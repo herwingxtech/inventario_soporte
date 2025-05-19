@@ -39,6 +39,9 @@ app.get('/db-test', async (req, res) => {
 // Ejemplo:
 // const equiposRoutes = require('./src/routes/equipos.routes');
 // app.use('/api/equipos', equiposRoutes);
+// === Montar el enrutador de status en la ruta base /api/status ===
+app.use('/api/status', statusRoutes);
+// ===============================================================
 
 
 // Iniciar el servidor
