@@ -2,6 +2,7 @@
 const express = require('express');
 require('dotenv').config(); // Carga las variables de entorno
 const { pool } = require('./src/config/db'); // Importa el pool de conexiones
+const statusRoutes = require('./src/routes/status.routes'); // Importa las rutas de status
 
 const app = express();
 const port = process.env.PORT || 3000; // Usa el puerto del .env o 3000 por defecto
