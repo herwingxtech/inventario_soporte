@@ -5,6 +5,7 @@ const { pool } = require('./src/config/db'); // Importa el pool de conexiones
 const statusRoutes = require('./src/routes/status.routes'); // Importa las rutas de status
 const empresasRoutes = require('./src/routes/empresas.routes'); // Importa las rutas de empresas
 const sucursalesRoutes = require('./src/routes/sucursales.routes'); // Importa las rutas de sucursales
+const areasRoutes = require('./src/routes/areas.routes'); // Importa las rutas de areas
 const app = express();
 const port = process.env.PORT || 3000; // Usa el puerto del .env o 3000 por defecto
 
@@ -45,6 +46,7 @@ app.get('/db-test', async (req, res) => {
 app.use('/api/status', statusRoutes);
 app.use('/api/empresas', empresasRoutes); // Monta el enrutador de empresas
 app.use('/api/sucursales', sucursalesRoutes); // Monta el enrutador de sucursales
+app.use('/api/areas', areasRoutes); // Monta el enrutador de areas
 // ===============================================================
 
 
