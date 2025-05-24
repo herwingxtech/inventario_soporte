@@ -6,6 +6,7 @@ const statusRoutes = require('./src/routes/status.routes'); // Importa las rutas
 const empresasRoutes = require('./src/routes/empresas.routes'); // Importa las rutas de empresas
 const sucursalesRoutes = require('./src/routes/sucursales.routes'); // Importa las rutas de sucursales
 const areasRoutes = require('./src/routes/areas.routes'); // Importa las rutas de areas
+const tiposSucursalRoutes = require('./src/routes/tipos_sucursal.routes'); // Importa las rutas de tipos de equipo
 const app = express();
 const port = process.env.PORT || 3000; // Usa el puerto del .env o 3000 por defecto
 
@@ -47,8 +48,32 @@ app.use('/api/status', statusRoutes);
 app.use('/api/empresas', empresasRoutes); // Monta el enrutador de empresas
 app.use('/api/sucursales', sucursalesRoutes); // Monta el enrutador de sucursales
 app.use('/api/areas', areasRoutes); // Monta el enrutador de areas
-// ===============================================================
+app.use('/api/tipos_sucursal', tiposSucursalRoutes); // Monta el enrutador de tipos de sucursal
 
+// ===============================================================
+// Middleware para manejar rutas no encontradas (404)
+app.use((req, res, next) => {
+  res.status(404).json({ message: 'Ruta no encontrada' });
+});
+
+
+// Middleware Global para manejo de Errores
+// Este middleware especial con 4 argumentos (err, req, res, next)
+// captura cualquier error que se pase a next(err)
+app.use((err, req, res, next) => {
+    console.error('Error capturado por middleware global:', err); // Log del error en el servidor
+
+    // Determinar el código de estado. Si el error tiene un status (ej: 400, 409), usarlo.
+    // Si no, default a 500 (Internal Server Error).
+    const statusCode = err.status || 500;
+
+    // Enviar la respuesta de error al cliente
+    res.status(statusCode).json({
+        message: err.message || 'Ocurrió un error interno en el servidor', // Usar el mensaje del error o uno genérico
+        // Opcionalmente, incluir más detalles del error en modo desarrollo
+        error: process.env.NODE_ENV === 'development' ? err.stack : {} // Envía el stack trace solo en desarrollo
+    });
+});
 
 // Iniciar el servidor
 app.listen(port, () => {
