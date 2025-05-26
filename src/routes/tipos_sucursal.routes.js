@@ -1,25 +1,41 @@
 // src/routes/tiposSucursal.routes.js
+// Define las rutas HTTP para la entidad 'tipos_sucursal'.
 
 const express = require('express');
-const router = express.Router(); // Creamos una instancia del enrutador de Express
+// Creamos una instancia del enrutador de Express. Este objeto nos permite definir rutas.
+const router = express.Router();
 
-// Importamos las funciones del controlador de tipos de sucursal
+// Importamos las funciones controladoras que contienen la lógica para manejar estas rutas.
 const tiposSucursalController = require('../controllers/tipos_sucursal.controller');
 
-// Definimos las rutas y asignamos la función del controlador que debe manejarlas
+// ===============================================================
+// DEFINICIÓN DE RUTAS
+// Asociamos cada ruta HTTP a su función controladora correspondiente.
+// Estas rutas se montarán bajo el prefijo /api/tipos-sucursal en server.js.
+// ===============================================================
 
-// GET /api/tipos-sucursal - Obtener todos los tipos de sucursal
+// [GET] /api/tipos-sucursal
+// Ruta para obtener todos los tipos de sucursal.
 router.get('/', tiposSucursalController.getAllTiposSucursal);
 
-// GET /api/tipos-sucursal/:id - Obtener un tipo de sucursal por ID
+// [GET] /api/tipos-sucursal/:id
+// Ruta para obtener un tipo de sucursal específico por su ID.
+// ':id' es un parámetro de ruta que será capturado en req.params.id.
 router.get('/:id', tiposSucursalController.getTiposSucursalById);
 
-// Las rutas POST, PUT, DELETE pueden no ser necesarias si los tipos son fijos,
-// pero las incluimos por completitud si decides gestionarlos dinámicamente.
+// [POST] /api/tipos-sucursal
+// Ruta para crear un nuevo tipo de sucursal.
 router.post('/', tiposSucursalController.createTiposSucursal);
+
+// [PUT] /api/tipos-sucursal/:id
+// Ruta para actualizar un tipo de sucursal existente por su ID.
 router.put('/:id', tiposSucursalController.updateTiposSucursal);
+
+// [DELETE] /api/tipos-sucursal/:id
+// Ruta para eliminar un tipo de sucursal por su ID.
 router.delete('/:id', tiposSucursalController.deleteTiposSucursal);
 
 
-// Exportamos el enrutador para que pueda ser usado en server.js
+// Exportamos el objeto router.
+// Esto permite que sea importado y "montado" por el archivo principal del servidor (server.js).
 module.exports = router;
