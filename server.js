@@ -7,6 +7,7 @@ const empresasRoutes = require('./src/routes/empresas.routes'); // Importa las r
 const sucursalesRoutes = require('./src/routes/sucursales.routes'); // Importa las rutas de sucursales
 const areasRoutes = require('./src/routes/areas.routes'); // Importa las rutas de areas
 const tiposSucursalRoutes = require('./src/routes/tipos_sucursal.routes'); // Importa las rutas de tipos de equipo
+const empleadosRoutes = require('./src/routes/empleados.routes'); // Importa las rutas de empleados
 const app = express();
 const port = process.env.PORT || 3000; // Usa el puerto del .env o 3000 por defecto
 
@@ -49,7 +50,7 @@ app.use('/api/empresas', empresasRoutes); // Monta el enrutador de empresas
 app.use('/api/sucursales', sucursalesRoutes); // Monta el enrutador de sucursales
 app.use('/api/areas', areasRoutes); // Monta el enrutador de areas
 app.use('/api/tipos_sucursal', tiposSucursalRoutes); // Monta el enrutador de tipos de sucursal
-
+app.use('/api/empleados', empleadosRoutes); // Monta el enrutador de empleados
 // ===============================================================
 // Middleware para manejar rutas no encontradas (404)
 app.use((req, res, next) => {
