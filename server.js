@@ -11,6 +11,8 @@ const tiposEquipoRoutes = require('./src/routes/tipos_equipo.routes'); // Import
 const empleadosRoutes = require('./src/routes/empleados.routes'); // Importa las rutas de empleados
 const direccionesIpRoutes = require('./src/routes/direcciones_ip.routes'); // Importa las rutas de direcciones IP
 const equiposRoutes = require('./src/routes/equipos.routes'); // Importa las rutas de equipos
+const rolesRoutes = require('./src/routes/roles.routes'); // Importa las rutas de roles
+
 const app = express();
 const port = process.env.PORT || 3000; // Usa el puerto del .env o 3000 por defecto
 
@@ -57,6 +59,7 @@ app.use('/api/tipos-equipo', tiposEquipoRoutes); // Monta el enrutador de tipos 
 app.use('/api/empleados', empleadosRoutes); // Monta el enrutador de empleados
 app.use('/api/direcciones-ip', direccionesIpRoutes); // Monta el enrutador de direcciones IP
 app.use('/api/equipos', equiposRoutes); // Monta el enrutador de equipos
+app.use('/api/roles', rolesRoutes); // Monta el enrutador de roles
 // ===============================================================
 // Middleware para manejar rutas no encontradas (404)
 app.use((req, res, next) => {
