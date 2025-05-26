@@ -7,6 +7,7 @@ const empresasRoutes = require('./src/routes/empresas.routes'); // Importa las r
 const sucursalesRoutes = require('./src/routes/sucursales.routes'); // Importa las rutas de sucursales
 const areasRoutes = require('./src/routes/areas.routes'); // Importa las rutas de areas
 const tiposSucursalRoutes = require('./src/routes/tipos_sucursal.routes'); // Importa las rutas de tipos de equipo
+const tiposEquipoRoutes = require('./src/routes/tipos_equipo.routes'); // Importa las rutas de tipos de equipo
 const empleadosRoutes = require('./src/routes/empleados.routes'); // Importa las rutas de empleados
 const direccionesIpRoutes = require('./src/routes/direcciones_ip.routes'); // Importa las rutas de direcciones IP
 const equiposRoutes = require('./src/routes/equipos.routes'); // Importa las rutas de equipos
@@ -52,6 +53,7 @@ app.use('/api/empresas', empresasRoutes); // Monta el enrutador de empresas
 app.use('/api/sucursales', sucursalesRoutes); // Monta el enrutador de sucursales
 app.use('/api/areas', areasRoutes); // Monta el enrutador de areas
 app.use('/api/tipos-sucursal', tiposSucursalRoutes); // Monta el enrutador de tipos de sucursal
+app.use('/api/tipos-equipo', tiposEquipoRoutes); // Monta el enrutador de tipos de equipo
 app.use('/api/empleados', empleadosRoutes); // Monta el enrutador de empleados
 app.use('/api/direcciones-ip', direccionesIpRoutes); // Monta el enrutador de direcciones IP
 app.use('/api/equipos', equiposRoutes); // Monta el enrutador de equipos
