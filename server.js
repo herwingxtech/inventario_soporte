@@ -13,7 +13,7 @@ const direccionesIpRoutes = require('./src/routes/direcciones_ip.routes'); // Im
 const equiposRoutes = require('./src/routes/equipos.routes'); // Importa las rutas de equipos
 const rolesRoutes = require('./src/routes/roles.routes'); // Importa las rutas de roles.|
 const usuariosSistemaRoutes = require('./src/routes/usuarios_sistema.routes'); // Importa las rutas de usuarios_sistema
-
+const cuentasEmailRoutes = require('./src/routes/cuentas_email.routes')
 const app = express();
 const port = process.env.PORT || 3000; // Usa el puerto del .env o 3000 por defecto
 
@@ -62,6 +62,7 @@ app.use('/api/direcciones-ip', direccionesIpRoutes); // Monta el enrutador de di
 app.use('/api/equipos', equiposRoutes); // Monta el enrutador de equipos
 app.use('/api/roles', rolesRoutes); // Monta el enrutador de roles
 app.use('/api/usuarios-sistema', usuariosSistemaRoutes); // Monta el enrutador de usuarios_sistema
+app.use('api/cuentas-email', cuentasEmailRoutes); //Monta enrutador de cuentas_email
 // ===============================================================
 // Middleware para manejar rutas no encontradas (404)
 app.use((req, res, next) => {
