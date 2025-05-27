@@ -14,7 +14,8 @@ const equiposRoutes = require('./src/routes/equipos.routes'); // Importa las rut
 const rolesRoutes = require('./src/routes/roles.routes'); // Importa las rutas de roles.|
 const usuariosSistemaRoutes = require('./src/routes/usuarios_sistema.routes'); // Importa las rutas de usuarios_sistema
 const cuentasEmailRoutes = require('./src/routes/cuentas_email.routes'); //Importa rutas de cuentas email
-const mantenimientosRoutes = require('./src/routes/mantenimientos.routes'); //importa rutas de mantenimiento
+const mantenimientosRoutes = require('./src/routes/mantenimientos.routes'); //Importa rutas de mantenimiento
+const notasRoutes =  require('./src/routes/notas.routes'); //Importa rutas de notas
 const app = express();
 const port = process.env.PORT || 3000; // Usa el puerto del .env o 3000 por defecto
 
@@ -65,6 +66,7 @@ app.use('/api/roles', rolesRoutes); // Monta el enrutador de roles
 app.use('/api/usuarios-sistema', usuariosSistemaRoutes); // Monta el enrutador de usuarios_sistema
 app.use('/api/cuentas-email', cuentasEmailRoutes); //Monta enrutador de cuentas_email
 app.use('/api/mantenimientos', mantenimientosRoutes); //Monta enrutador para mantenimientos
+app.use('/api/notas/', notasRoutes); //Monta enrutador para notas
 // ===============================================================
 // Middleware para manejar rutas no encontradas (404)
 app.use((req, res, next) => {
