@@ -298,18 +298,17 @@ CREATE TABLE `direcciones_ip` (
 -- -----------------------------------------------------
 CREATE TABLE `asignaciones` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
-  `id_equipo` INT NOT NULL,
-  `id_empleado` INT, -- Asignado a una persona
-  -- Eliminamos id_ubicacion_interna
-  `id_sucursal_asignado` INT, -- Añadido: Asignado directamente a una sucursal (e.g., stock en tienda)
-  `id_area_asignado` INT, -- CAMBIADO de id_area a id_area_asignado y FK a la nueva tabla areas (ligada a sucursal)
-  `id_equipo_padre` INT,
-  `id_ip` INT UNIQUE,
-  -- Eliminamos id_area (preferimos id_area_asignado para mayor claridad en la asignación)
+  `id_equipo` INT NOT NULL, -- El equipo que está siendo asignado
+  `id_empleado` INT, -- NULLable: Si el equipo está asignado a una persona
+  `id_sucursal_asignado` INT, -- NULLable: Asignado a una sucursal (ej. stock en tienda)
+  `id_area_asignado` INT, -- NULLable: Asignado a un área (en corporativo)
+  `id_equipo_padre` INT, -- NULLable: Componente de otro equipo
+  `id_ip` INT UNIQUE, -- NULLable: IP principal asociada (UNIQUE en TODA la tabla por defecto, pero la regla es UNIQUE ACTIVA)
   `fecha_asignacion` DATETIME NOT NULL,
-  `fecha_fin_asignacion` DATETIME,
+  `fecha_fin_asignacion` DATETIME, -- NULL = Asignación Activa
   `observacion` TEXT,
-  `fecha_actualizacion` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, -- Añadido
+  `fecha_registro` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `fecha_actualizacion` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `id_status_asignacion` INT NOT NULL DEFAULT 1,
   -- NOTA: La validación de que SOLO se puede llenar id_sucursal_asignado o id_area_asignado
   -- (y las reglas sobre tipos de sucursal) DEBE hacerse en el código del backend,
@@ -364,7 +363,7 @@ CREATE TABLE `asignaciones` (
 -- Añadimos fecha_actualizacion
 -- -----------------------------------------------------
 CREATE TABLE `mantenimientos` (
-  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `id` INT AUTO_INCREMENT PRIMARY KEY, 
   `id_equipo` INT NOT NULL,
   `fecha_inicio` DATE NOT NULL,
   `fecha_fin` DATE,
