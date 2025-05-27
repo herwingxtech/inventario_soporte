@@ -20,15 +20,21 @@ const asignacionesRoutes = require('./src/routes/asignaciones.routes'); //Implem
 const app = express();
 const port = process.env.PORT || 3000; // Usa el puerto del .env o 3000 por defecto
 
+// Middleware para servir archivos estáticos desde la carpeta 'public'.
+// Cuando una petición llega (ej. GET /index.html o GET /css/style.css),
+// Express busca ese archivo en la carpeta 'public' y lo sirve si lo encuentra.
+// Si no lo encuentra, la petición pasa al siguiente middleware.
+app.use(express.static('public')); // MIDDLEWARE para servir archivos estáticos.
+
 // Middleware para parsear JSON en las peticiones
 app.use(express.json());
 // Middleware para parsear datos de formularios URL-encoded
 app.use(express.urlencoded({ extended: true }));
 
 // Ruta de ejemplo para verificar que el servidor funciona
-app.get('/', (req, res) => {
+/*app.get('/', (req, res) => {
   res.send('¡Servidor de Inventario funcionando!');
-});
+});*/
 
 // Ruta de ejemplo para probar la conexión a la base de datos
 app.get('/db-test', async (req, res) => {
