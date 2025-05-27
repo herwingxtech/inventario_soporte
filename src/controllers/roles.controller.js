@@ -16,7 +16,7 @@ const getAllRoles = async (req, res, next) => { // 'next' para manejo de errores
   try {
     // Consulta SQL para seleccionar todos los roles.
     // Incluimos las columnas relevantes.
-    const sql = 'SELECT id, nombre_rol, fecha_registro, fecha_actualizacion FROM roles';
+    const sql = 'SELECT id, nombre_rol, fecha_registro FROM roles';
     // Ejecutamos la consulta.
     const roles = await query(sql);
 
@@ -37,7 +37,7 @@ const getRoleById = async (req, res, next) => { // Añadimos 'next'.
     const { id } = req.params;
 
     // Consulta SQL para seleccionar un rol por ID.
-    const sql = 'SELECT id, nombre_rol, fecha_registro, fecha_actualizacion FROM roles WHERE id = ?';
+    const sql = 'SELECT id, nombre_rol, fecha_registro FROM roles WHERE id = ?';
     const params = [id]; // El ID a buscar.
     const roles = await query(sql, params); // query siempre devuelve un array.
 
@@ -74,7 +74,7 @@ const createRole = async (req, res, next) => { // Añadimos 'next'.
         return res.status(400).json({ message: 'El campo nombre_rol no puede estar vacío.' });
      }
 
-    // Consulta SQL para insertar. fecha_registro y fecha_actualizacion usan DEFAULT/ON UPDATE.
+    // Consulta SQL para insertar. fecha_registro  usan DEFAULT/ON UPDATE.
     const sql = 'INSERT INTO roles (nombre_rol) VALUES (?)';
     const params = [nombre_rol];
 
@@ -124,7 +124,6 @@ const updateRole = async (req, res, next) => { // Añadimos 'next'.
         return res.status(400).json({ message: 'El campo nombre_rol no puede estar vacío.' });
      }
 
-    // fecha_actualizacion se actualiza automáticamente en la DB.
     // Construir la consulta UPDATE.
     const sql = 'UPDATE roles SET nombre_rol = ? WHERE id = ?';
     const params = [nombre_rol, id];
