@@ -395,7 +395,7 @@ CREATE TABLE `mantenimientos` (
 CREATE TABLE `roles` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `nombre_rol` VARCHAR(50) NOT NULL UNIQUE,
-  `fecha_actualizacion` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP -- Añadido (Opcional)
+  `fecha_registro` TIMESTAMP DEFAULT CURRENT_TIMESTAMP 
 ) ENGINE = InnoDB;
 
 -- Insertar roles iniciales
