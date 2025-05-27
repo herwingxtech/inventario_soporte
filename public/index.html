@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario IT - Inicio</title>
+    <!--===============================================================-->
+    <!-- Integración de Tailwind CSS desde CDN -->
+    <!-- Importante: Esto es para desarrollo rápido. Para producción, usa el proceso de build recomendado por Tailwind -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!--===============================================================-->
+
+    <!-- Enlace a tu archivo CSS personalizado (opcional, para estilos que no sean de Tailwind) -->
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-gray-100 font-sans">
+    <!--===============================================================-->
+    <!-- Encabezado/Navbar (Ejemplo básico con Tailwind) -->
+    <!-- Usaremos clases de Tailwind como bg-blue-600, text-white, p-4, flex, justify-between, items-center -->
+    <header class="bg-blue-600 text-white p-4 shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Inventario LDS</h1>
+            <!-- Menú de navegación (Versión escritorio) -->
+            <nav class="hidden md:flex space-x-4">
+                <a href="#" class="hover:underline">Equipos</a>
+                <a href="#" class="hover:underline">Empleados</a>
+                <a href="#" class="hover:underline">Asignaciones</a>
+                <a href="#" class="hover:underline">Usuarios</a>
+                <a href="#" class="hover:underline">Ip's</a>
+                <!-- Más enlaces de menú aquí -->
+                <span class="text-blue-200">|</span> <!-- Separador simple -->
+                 <!-- Nombre de usuario logueado / Perfil (placeholder) -->
+                 <a href="#" class="hover:underline">Herwing Eduardo (Admin)</a>
+                 <button class="hover:underline">Salir</button>
+            </nav>
+            <!-- Botón de menú hamburguesa (Versión móvil) -->
+            <div class="md:hidden">
+                <button id="hamburger-button" class="text-white focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-4 6h4"></path></svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Menú desplegable móvil (Inicialmente oculto) -->
+    <div id="mobile-menu" class="md:hidden bg-blue-700 text-white text-center transition-all duration-300 ease-in-out max-h-0 overflow-hidden">
+        <a href="#" class="block py-2 px-4 hover:bg-blue-800">Equipos</a>
+        <a href="#" class="block py-2 px-4 hover:bg-blue-800">Empleados</a>
+        <a href="#" class="block py-2 px-4 hover:bg-blue-800">Asignaciones</a>
+        <a href="#" class="block py-2 px-4 hover:bg-blue-800">Usuarios</a>
+         <!-- Más enlaces de menú aquí -->
+        <a href="#" class="block py-2 px-4 hover:bg-blue-800 mt-2 border-t border-blue-600">Herwing Eduardo (Admin)</a>
+        <button class="block w-full text-left py-2 px-4 hover:bg-blue-800">Salir</button>
+    </div>
+
+
+    <!--===============================================================-->
+    <!-- Contenido principal (Aquí cargaremos las diferentes vistas CRUD) -->
+    <!-- Usaremos clases como container, mx-auto, mt-8, p-6, bg-white, rounded-lg, shadow-md -->
+    <main class="container mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Contenido Principal / Dashboard</h2>
+        <p class="text-gray-600">Esta es la sección donde se cargará la lista de equipos, empleados, etc.</p>
+        <!-- Ejemplo: Contenedor donde podríamos cargar una tabla de equipos -->
+        <div id="content-area" class="mt-6">
+            <!-- Aquí se renderizará dinámicamente el contenido con JavaScript -->
+            <p>Cargando...</p>
+        </div>
+    </main>
+
+
+    <!--===============================================================-->
+    <!-- Pie de página (Ejemplo básico con Tailwind) -->
+    <footer class="mt-8 p-4 text-center text-gray-600 text-sm">
+        <p>© 2025 Inventario LDS. Todos los derechos reservados.</p>
+    </footer>
+
+    <!--===============================================================-->
+    <!-- Enlace a tu archivo JavaScript principal -->
+    <script src="/js/main.js"></script>
+    <!--===============================================================-->
+
+    <!-- Script básico para el menú hamburguesa (Vanilla JS) -->
+    <script>
+        document.getElementById('hamburger-button').addEventListener('click', function() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenu.classList.toggle('max-h-0'); // Alterna la altura máxima para ocultar/mostrar
+            mobileMenu.classList.toggle('max-h-screen'); // Usa max-h-screen para mostrar
+        });
+    </script>
+</body>
+</html>
