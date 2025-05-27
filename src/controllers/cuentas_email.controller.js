@@ -198,6 +198,7 @@ const createCuentaEmail = async (req, res, next) => { // Añadimos 'next'.
     // Añadir campos opcionales si están presentes en el body (y no son undefined).
     // Manejamos explícitamente el valor `null` si la columna lo permite y se envía null.
     if (usuario_email !== undefined) { sql += ', usuario_email'; placeholders.push('?'); values.push(usuario_email === null || usuario_email.trim() === '' ? null : usuario_email); } // NULLable, convertir "" a null
+    if (password_data !== undefined) { sql += ', password_data'; placeholders.push('?'); values.push(password_data === null || password_data.trim() === '' ? null : password_data); }
     if (id_empleado_asignado !== undefined) { sql += ', id_empleado_asignado'; placeholders.push('?'); values.push(id_empleado_asignado); } // NULLable
     if (id_status !== undefined) { sql += ', id_status'; placeholders.push('?'); values.push(id_status); } // NOT NULL, ya validado que no sea null.
     if (observaciones !== undefined) { sql += ', observaciones'; placeholders.push('?'); values.push(observaciones === null || observaciones.trim() === '' ? null : observaciones); } // NULLable, convertir "" a null
