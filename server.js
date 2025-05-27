@@ -11,7 +11,8 @@ const tiposEquipoRoutes = require('./src/routes/tipos_equipo.routes'); // Import
 const empleadosRoutes = require('./src/routes/empleados.routes'); // Importa las rutas de empleados
 const direccionesIpRoutes = require('./src/routes/direcciones_ip.routes'); // Importa las rutas de direcciones IP
 const equiposRoutes = require('./src/routes/equipos.routes'); // Importa las rutas de equipos
-const rolesRoutes = require('./src/routes/roles.routes'); // Importa las rutas de roles
+const rolesRoutes = require('./src/routes/roles.routes'); // Importa las rutas de roles.|
+const usuariosSistemaRoutes = require('./src/routes/usuarios_sistema.routes'); // Importa las rutas de usuarios_sistema
 
 const app = express();
 const port = process.env.PORT || 3000; // Usa el puerto del .env o 3000 por defecto
@@ -60,6 +61,7 @@ app.use('/api/empleados', empleadosRoutes); // Monta el enrutador de empleados
 app.use('/api/direcciones-ip', direccionesIpRoutes); // Monta el enrutador de direcciones IP
 app.use('/api/equipos', equiposRoutes); // Monta el enrutador de equipos
 app.use('/api/roles', rolesRoutes); // Monta el enrutador de roles
+app.use('/api/usuarios-sistema', usuariosSistemaRoutes); // Monta el enrutador de usuarios_sistema
 // ===============================================================
 // Middleware para manejar rutas no encontradas (404)
 app.use((req, res, next) => {
@@ -71,18 +73,16 @@ app.use((req, res, next) => {
 // Este middleware especial con 4 argumentos (err, req, res, next)
 // captura cualquier error que se pase a next(err)
 app.use((err, req, res, next) => {
-    console.error('Error capturado por middleware global:', err); // Log del error en el servidor
+  console.error('-------- ERROR CAPTURADO POR MIDDLEWARE GLOBAL --------');
+  console.error(err.stack);
+  console.error('-----------------------------------------------------');
 
-    // Determinar el código de estado. Si el error tiene un status (ej: 400, 409), usarlo.
-    // Si no, default a 500 (Internal Server Error).
-    const statusCode = err.status || 500;
+  const statusCode = err.status || 500;
 
-    // Enviar la respuesta de error al cliente
-    res.status(statusCode).json({
-        message: err.message || 'Ocurrió un error interno en el servidor', // Usar el mensaje del error o uno genérico
-        // Opcionalmente, incluir más detalles del error en modo desarrollo
-        error: process.env.NODE_ENV === 'development' ? err.stack : {} // Envía el stack trace solo en desarrollo
-    });
+  res.status(statusCode).json({
+      message: err.message || 'Ocurrió un error interno en el servidor',
+      error: process.env.NODE_ENV === 'development' ? err.stack : {}
+  });
 });
 
 // Iniciar el servidor
