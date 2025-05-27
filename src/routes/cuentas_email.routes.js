@@ -6,7 +6,7 @@ const express = require('express');
 const router = express.Router();
 
 // Importamos las funciones controladoras.
-const cuentasEmailController = require('../controllers/cuentasEmail.controller');
+const cuentasEmailController = require('../controllers/cuentas_email.controller');
 
 // ===============================================================
 // DEFINICIÓN DE RUTAS

@@ -62,7 +62,7 @@ app.use('/api/direcciones-ip', direccionesIpRoutes); // Monta el enrutador de di
 app.use('/api/equipos', equiposRoutes); // Monta el enrutador de equipos
 app.use('/api/roles', rolesRoutes); // Monta el enrutador de roles
 app.use('/api/usuarios-sistema', usuariosSistemaRoutes); // Monta el enrutador de usuarios_sistema
-app.use('api/cuentas-email', cuentasEmailRoutes); //Monta enrutador de cuentas_email
+app.use('/api/cuentas-email', cuentasEmailRoutes); //Monta enrutador de cuentas_email
 // ===============================================================
 // Middleware para manejar rutas no encontradas (404)
 app.use((req, res, next) => {
