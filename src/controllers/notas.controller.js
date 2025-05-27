@@ -1,237 +1,215 @@
-// src/controllers/mantenimientos.controller.js
-// Controlador para manejar las operaciones CRUD de la entidad Mantenimientos.
-// Registra el historial de servicio de los equipos.
+// src/controllers/notas.controller.js
+// Controlador para manejar las operaciones CRUD de la entidad Notas.
+// Permite adjuntar notas a equipos, mantenimientos o cuentas de email.
 
 const { query } = require('../config/db'); // Importamos la función de consulta DB.
-
-// ===============================================================
-// FUNCIONES DE VALIDACIÓN (Ayuda a mantener el código limpio)
-// ===============================================================
-
-// Reutilizamos la función de validación de fecha YYYY-MM-DD (con corrección UTC)
-// de equipos.controller.js. Puedes copiarla o importarla si prefieres modularizar más.
-// Por ahora, la copiamos aquí para que este controlador sea autónomo.
-function isValidDate(dateString) {
-    if (!dateString) return true; // Permitir null/vacío para campos no obligatorios.
-    const regex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!regex.test(dateString)) return false;
-
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return false; // Es 'Invalid Date'.
-
-    const [year, month, day] = dateString.split('-').map(Number);
-    // Usar métodos UTC para evitar problemas de zona horaria.
-    return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
-}
-
 
 // ===============================================================
 // FUNCIONES CONTROLADORAS
 // ===============================================================
 
-// [GET] /api/mantenimientos
-// Obtiene y devuelve todos los registros de la tabla 'mantenimientos'.
-// Incluye detalles básicos del equipo asociado y el nombre del estado.
-const getAllMantenimientos = async (req, res, next) => { // 'next' para manejo de errores.
+// [GET] /api/notas
+// Obtiene y devuelve todos los registros de la tabla 'notas'.
+// Incluye detalles básicos de las entidades asociadas (equipo, mantenimiento, email, usuario creador).
+const getAllNotas = async (req, res, next) => { // 'next' para manejo de errores.
   try {
-    // Consulta SQL con JOINs a 'equipos' y 'status'.
+    // Consulta SQL con LEFT JOINs para las entidades opcionales asociadas.
+    // Incluimos nombre de usuario creador, detalles básicos del equipo, etc.
     const sql = `
       SELECT
-        m.id,
-        m.id_equipo,
+        n.id,
+        n.titulo,
+        n.contenido,
+        n.id_equipo,
         e.numero_serie AS equipo_numero_serie, -- Detalles del equipo asociado.
         e.nombre_equipo AS equipo_nombre,
-        m.fecha_inicio,
-        m.fecha_fin,
-        m.diagnostico,
-        m.solucion,
-        m.costo,
-        m.proveedor,
-        m.fecha_registro,
-        m.fecha_actualizacion, -- Incluido el campo de última actualización.
-        m.id_status,
-        st.nombre_status AS status_nombre -- Nombre del status del mantenimiento.
-      FROM mantenimientos AS m
-      JOIN equipos AS e ON m.id_equipo = e.id -- INNER JOIN porque id_equipo NO es NULLable.
-      JOIN status AS st ON m.id_status = st.id -- INNER JOIN porque id_status NO es NULLable.
+        n.id_mantenimiento,
+        m.fecha_inicio AS mantenimiento_fecha_inicio, -- Detalles del mantenimiento asociado.
+        n.id_cuenta_email,
+        ce.email AS cuenta_email_email, -- Detalles de la cuenta de email asociada.
+        n.id_usuario_creacion,
+        us.username AS usuario_creacion_username, -- Nombre de usuario que creó la nota.
+        n.fecha_creacion,
+        n.fecha_actualizacion -- Incluido el campo de última actualización.
+      FROM notas AS n
+      LEFT JOIN equipos AS e ON n.id_equipo = e.id -- LEFT JOIN porque id_equipo es NULLable.
+      LEFT JOIN mantenimientos AS m ON n.id_mantenimiento = m.id -- LEFT JOIN porque id_mantenimiento es NULLable.
+      LEFT JOIN cuentas_email_corporativo AS ce ON n.id_cuenta_email = ce.id -- LEFT JOIN porque id_cuenta_email es NULLable.
+      LEFT JOIN usuarios_sistema AS us ON n.id_usuario_creacion = us.id -- LEFT JOIN porque id_usuario_creacion es NULLable.
     `;
     // Ejecutamos la consulta.
-    const mantenimientos = await query(sql);
+    const notas = await query(sql);
 
-    // Enviamos la lista de mantenimientos como respuesta JSON (200 OK).
-    res.status(200).json(mantenimientos);
+    // Enviamos la lista de notas como respuesta JSON (200 OK).
+    res.status(200).json(notas);
 
   } catch (error) {
-    console.error('Error al obtener todos los mantenimientos:', error);
+    console.error('Error al obtener todas las notas:', error);
     next(error); // Pasar error al middleware global.
   }
 };
 
-// [GET] /api/mantenimientos/:id
-// Obtiene y devuelve un registro de mantenimiento específico por su ID.
-// Incluye detalles del equipo asociado y el nombre del estado.
-const getMantenimientoById = async (req, res, next) => { // Añadimos 'next'.
+// [GET] /api/notas/:id
+// Obtiene y devuelve un registro de nota específico por su ID.
+// Incluye detalles básicos de las entidades asociadas.
+const getNotaById = async (req, res, next) => { // Añadimos 'next'.
   try {
-    // Obtenemos el ID del mantenimiento.
+    // Obtenemos el ID de la nota.
     const { id } = req.params;
 
-    // Consulta SQL para seleccionar un mantenimiento por ID con JOINs.
+    // Consulta SQL para seleccionar una nota por ID con LEFT JOINs.
     const sql = `
-       SELECT
-        m.id,
-        m.id_equipo,
+      SELECT
+        n.id,
+        n.titulo,
+        n.contenido,
+        n.id_equipo,
         e.numero_serie AS equipo_numero_serie,
         e.nombre_equipo AS equipo_nombre,
-        m.fecha_inicio,
-        m.fecha_fin,
-        m.diagnostico,
-        m.solucion,
-        m.costo,
-        m.proveedor,
-        m.fecha_registro,
-        m.fecha_actualizacion, -- Incluido.
-        m.id_status,
-        st.nombre_status AS status_nombre
-      FROM mantenimientos AS m
-      JOIN equipos AS e ON m.id_equipo = e.id
-      JOIN status AS st ON m.id_status = st.id
-      WHERE m.id = ? -- Filtrar por el ID proporcionado.
+        n.id_mantenimiento,
+        m.fecha_inicio AS mantenimiento_fecha_inicio,
+        n.id_cuenta_email,
+        ce.email AS cuenta_email_email,
+        n.id_usuario_creacion,
+        us.username AS usuario_creacion_username,
+        n.fecha_creacion,
+        n.fecha_actualizacion
+      FROM notas AS n
+      LEFT JOIN equipos AS e ON n.id_equipo = e.id
+      LEFT JOIN mantenimientos AS m ON n.id_mantenimiento = m.id
+      LEFT JOIN cuentas_email_corporativo AS ce ON n.id_cuenta_email = ce.id
+      LEFT JOIN usuarios_sistema AS us ON n.id_usuario_creacion = us.id
+      WHERE n.id = ? -- Filtrar por el ID proporcionado.
     `;
     const params = [id]; // El ID a buscar.
-    const mantenimientos = await query(sql, params); // query siempre devuelve un array.
+    const notas = await query(sql, params); // query siempre devuelve un array.
 
     // === Verificación de Resultado ===
-    if (mantenimientos.length === 0) {
-      // Si el array está vacío, el mantenimiento no fue encontrado (404 Not Found).
-      res.status(404).json({ message: `Registro de mantenimiento con ID ${id} no encontrado.` });
+    if (notas.length === 0) {
+      // Si el array está vacío, la nota no fue encontrada (404 Not Found).
+      res.status(404).json({ message: `Nota con ID ${id} no encontrada.` });
     } else {
       // Si se encontró, devolvemos el primer (y único) resultado (200 OK).
-      res.status(200).json(mantenimientos[0]);
+      res.status(200).json(notas[0]);
     }
 
   } catch (error) {
-    console.error(`Error al obtener registro de mantenimiento con ID ${req.params.id}:`, error);
+    console.error(`Error al obtener nota con ID ${req.params.id}:`, error);
     next(error); // Pasar error al manejador global.
   }
 };
 
-// [POST] /api/mantenimientos
-// Crea un nuevo registro en la tabla 'mantenimientos'.
-// Incluye validaciones para campos obligatorios, formatos (fechas, costo) y FKs.
-const createMantenimiento = async (req, res, next) => { // Añadimos 'next'.
+// [POST] /api/notas
+// Crea un nuevo registro en la tabla 'notas'.
+// Incluye validaciones para campos obligatorios y FKs.
+// Requiere que al menos una de las FKs de entidad (equipo, mantenimiento, email) esté presente.
+const createNota = async (req, res, next) => { // Añadimos 'next'.
   try {
-    // Obtenemos los datos del body. id_equipo y fecha_inicio son obligatorios.
-    // fecha_fin, diagnostico, solucion, costo, proveedor, id_status son opcionales.
-    // id_status tiene DEFAULT 1.
+    // Obtenemos los datos del body. contenido es obligatorio.
+    // titulo, id_equipo, id_mantenimiento, id_cuenta_email, id_usuario_creacion son opcionales.
     const {
-        id_equipo, fecha_inicio, fecha_fin, diagnostico, solucion,
-        costo, proveedor, id_status
+        titulo, contenido, id_equipo, id_mantenimiento,
+        id_cuenta_email, id_usuario_creacion
     } = req.body;
 
     // === Validaciones ===
-    // Validar campos obligatorios.
-    if (id_equipo === undefined || !fecha_inicio) { // fecha_inicio debe ser un string no vacío
-      return res.status(400).json({ message: 'Los campos id_equipo y fecha_inicio son obligatorios.' });
+    // Validar campo obligatorio: contenido.
+    if (!contenido || contenido.trim() === '') {
+      return res.status(400).json({ message: 'El campo contenido es obligatorio y no puede estar vacío.' });
     }
 
-    // Validar formato de fechas.
-     if (!isValidDate(fecha_inicio)) {
-          return res.status(400).json({ message: 'El formato de fecha_inicio debe ser YYYY-MM-DD.' });
-     }
-     // fecha_fin es NULLable, solo validar si se proporciona.
-     if (fecha_fin !== undefined && fecha_fin !== null) {
-         if (!isValidDate(fecha_fin)) {
-              return res.status(400).json({ message: 'El formato de fecha_fin debe ser YYYY-MM-DD.' });
-         }
-          // Validar que fecha_fin no sea anterior a fecha_inicio si ambas están presentes.
-         if (new Date(fecha_fin) < new Date(fecha_inicio)) {
-             return res.status(400).json({ message: 'La fecha_fin no puede ser anterior a la fecha_inicio.' });
-         }
-     } else if (fecha_fin === '') { // Si envían cadena vacía para fecha_fin, tratar como null.
-         fecha_fin = null; // Asignar null para que se guarde correctamente en la DB.
-     }
-
-
-    // Validar si id_equipo proporcionado existe (FK).
-    const equipoExists = await query('SELECT id FROM equipos WHERE id = ?', [id_equipo]);
-    if (equipoExists.length === 0) {
-        return res.status(400).json({ message: `El ID de equipo ${id_equipo} no es válido.` });
+    // === Regla de Negocio: La nota debe estar asociada al menos a una entidad ===
+    // Al menos uno de id_equipo, id_mantenimiento, id_cuenta_email debe ser proporcionado y no nulo.
+    if (!id_equipo && !id_mantenimiento && !id_cuenta_email) {
+         return res.status(400).json({ message: 'La nota debe estar asociada a un equipo, mantenimiento o cuenta de email.' });
+    }
+    // Si alguno se proporcionó como null explícitamente, también cuenta como no asociado.
+    if (id_equipo === null && id_mantenimiento === null && id_cuenta_email === null) {
+         return res.status(400).json({ message: 'La nota debe estar asociada a un equipo, mantenimiento o cuenta de email (los IDs no pueden ser todos nulos si se proporcionan).' });
     }
 
-    // Validar si id_status proporcionado existe (si se envió y no es NULL).
-     if (id_status !== undefined && id_status !== null) { // id_status es NOT NULL en DB.
-          const statusExists = await query('SELECT id FROM status WHERE id = ?', [id_status]);
-          if (statusExists.length === 0) {
-              return res.status(400).json({ message: `El ID de status ${id_status} no es válido.` });
-          }
-     } else if (id_status === null) {
-         return res.status(400).json({ message: 'El campo id_status no puede ser nulo.' });
-     }
-    // Si id_status es undefined, la DB usa el DEFAULT (1).
+
+    // Validar FK id_equipo si se proporciona y no es NULL.
+    if (id_equipo !== undefined && id_equipo !== null) {
+        const equipoExists = await query('SELECT id FROM equipos WHERE id = ?', [id_equipo]);
+        if (equipoExists.length === 0) {
+            return res.status(400).json({ message: `El ID de equipo ${id_equipo} no es válido.` });
+        }
+    }
+
+    // Validar FK id_mantenimiento si se proporciona y no es NULL.
+    if (id_mantenimiento !== undefined && id_mantenimiento !== null) {
+        const mantenimientoExists = await query('SELECT id FROM mantenimientos WHERE id = ?', [id_mantenimiento]);
+        if (mantenimientoExists.length === 0) {
+            return res.status(400).json({ message: `El ID de mantenimiento ${id_mantenimiento} no es válido.` });
+        }
+    }
+
+    // Validar FK id_cuenta_email si se proporciona y no es NULL.
+    if (id_cuenta_email !== undefined && id_cuenta_email !== null) {
+        const cuentaEmailExists = await query('SELECT id FROM cuentas_email_corporativo WHERE id = ?', [id_cuenta_email]);
+        if (cuentaEmailExists.length === 0) {
+            return res.status(400).json({ message: `El ID de cuenta de email ${id_cuenta_email} no es válido.` });
+        }
+    }
+
+    // Validar FK id_usuario_creacion si se proporciona y no es NULL.
+    // NOTA: En un sistema con autenticación, id_usuario_creacion debería obtenerse del usuario autenticado,
+    // no del body de la petición por seguridad. Por ahora, lo validamos si se envía.
+    if (id_usuario_creacion !== undefined && id_usuario_creacion !== null) {
+        const usuarioExists = await query('SELECT id FROM usuarios_sistema WHERE id = ?', [id_usuario_creacion]);
+        if (usuarioExists.length === 0) {
+            return res.status(400).json({ message: `El ID de usuario creador ${id_usuario_creacion} no es válido.` });
+        }
+    }
 
 
-    // Validar costo si se proporciona (debe ser un número, opcionalmente decimal).
-     if (costo !== undefined && costo !== null) {
-         // Check if it's a number or a string that can be parsed as a number (including decimals).
-         // isFinite() verifica que es un número finito y no NaN, Infinity, -Infinity.
-         if (typeof costo !== 'number' && typeof costo !== 'string' || !isFinite(parseFloat(costo))) {
-              return res.status(400).json({ message: 'El campo costo debe ser un número válido.' });
-         }
-         // Opcional: Puedes redondear a 2 decimales si lo necesitas antes de guardar,
-         // aunque la DB lo hará si la columna es DECIMAL(10, 2).
-         // costo = parseFloat(costo).toFixed(2); // Si decides convertir a string con 2 decimales.
-     } else if (costo === '') { // Si envían cadena vacía para costo, tratar como null.
-         costo = null;
-     }
+    // Consulta SQL para insertar. Construimos dinámicamente para campos opcionales.
+    let sql = 'INSERT INTO notas (contenido'; // contenido es el único siempre requerido.
+    const values = [contenido];
+    const placeholders = ['?'];
 
-
-    // Consulta SQL para insertar. Construimos dinámicamente.
-    let sql = 'INSERT INTO mantenimientos (id_equipo, fecha_inicio';
-    const values = [id_equipo, fecha_inicio];
-    const placeholders = ['?', '?'];
-
-    // Añadir campos opcionales si están presentes en el body (y no son undefined/null o vacíos si no se permiten).
-    // fecha_fin, diagnostico, solucion, costo, proveedor, id_status son NULLable o tienen DEFAULT.
-    if (fecha_fin !== undefined && fecha_fin !== null) { sql += ', fecha_fin'; placeholders.push('?'); values.push(fecha_fin); } // null ya manejado arriba si era "".
-    if (diagnostico !== undefined && diagnostico !== null) { sql += ', diagnostico'; placeholders.push('?'); values.push(diagnostico === null || diagnostico.trim() === '' ? null : diagnostico); } // NULLable
-    if (solucion !== undefined && solucion !== null) { sql += ', solucion'; placeholders.push('?'); values.push(solucion === null || solucion.trim() === '' ? null : solucion); } // NULLable
-    if (costo !== undefined && costo !== null) { sql += ', costo'; placeholders.push('?'); values.push(costo); } // NULLable
-    if (proveedor !== undefined && proveedor !== null) { sql += ', proveedor'; placeholders.push('?'); values.push(proveedor === null || proveedor.trim() === '' ? null : proveedor); } // NULLable
-    if (id_status !== undefined && id_status !== null) { sql += ', id_status'; placeholders.push('?'); values.push(id_status); } // NOT NULL, ya validado que no sea null. Si undefined, DB usa DEFAULT.
+    // Añadir campos opcionales si están presentes en el body (y no son undefined).
+    // Manejamos explícitamente el valor `null` si se envía null o cadena vacía para los que lo permiten.
+    if (titulo !== undefined) { sql += ', titulo'; placeholders.push('?'); values.push(titulo === null || titulo.trim() === '' ? null : titulo); } // NULLable
+    if (id_equipo !== undefined) { sql += ', id_equipo'; placeholders.push('?'); values.push(id_equipo); } // NULLable
+    if (id_mantenimiento !== undefined) { sql += ', id_mantenimiento'; placeholders.push('?'); values.push(id_mantenimiento); } // NULLable
+    if (id_cuenta_email !== undefined) { sql += ', id_cuenta_email'; placeholders.push('?'); values.push(id_cuenta_email); } // NULLable
+    if (id_usuario_creacion !== undefined) { sql += ', id_usuario_creacion'; placeholders.push('?'); values.push(id_usuario_creacion); } // NULLable
 
 
     sql += ') VALUES (' + placeholders.join(', ') + ')';
 
     // Ejecutamos la consulta.
     const result = await query(sql, values);
-    const newMantenimientoId = result.insertId; // ID del registro insertado.
+    const newNotaId = result.insertId; // ID del registro insertado.
 
     // Enviamos respuesta de éxito (201 Created).
     res.status(201).json({
-      message: 'Registro de mantenimiento creado exitosamente',
-      id: newMantenimientoId,
-      id_equipo: id_equipo,
-      fecha_inicio: fecha_inicio
+      message: 'Nota creada exitosamente',
+      id: newNotaId,
+      // Podemos devolver el título y parte del contenido para confirmación
+      titulo: titulo,
+      contenido_preview: contenido.substring(0, 50) + (contenido.length > 50 ? '...' : '')
     });
 
   } catch (error) {
-    console.error('Error al crear registro de mantenimiento:', error);
-    // En esta tabla, no hay UNIQUE constraints que puedan causar ER_DUP_ENTRY en la creación simple.
-    // Cualquier error aquí probablemente será de la DB (ej. FK inválida no capturada, error SQL, conexión).
+    console.error('Error al crear nota:', error);
+    // No hay UNIQUE constraints en esta tabla. Cualquier error será probablemente de la DB o SQL.
     next(error); // Pasar error al manejador global.
   }
 };
 
-// [PUT] /api/mantenimientos/:id
-// Actualiza un registro existente en la tabla 'mantenimientos' por su ID.
-// Incluye validaciones para formatos y FKs.
-const updateMantenimiento = async (req, res, next) => { // Añadimos 'next'.
+// [PUT] /api/notas/:id
+// Actualiza un registro existente en la tabla 'notas' por su ID.
+// Incluye validaciones y mantiene la regla de asociación a entidad.
+const updateNota = async (req, res, next) => { // Añadimos 'next'.
   try {
     // Obtenemos ID y datos del body.
     const { id } = req.params;
     const {
-        id_equipo, fecha_inicio, fecha_fin, diagnostico, solucion,
-        costo, proveedor, id_status
+        titulo, contenido, id_equipo, id_mantenimiento,
+        id_cuenta_email, id_usuario_creacion
     } = req.body;
 
     // === Validaciones ===
@@ -241,107 +219,81 @@ const updateMantenimiento = async (req, res, next) => { // Añadimos 'next'.
          return res.status(400).json({ message: 'Se debe proporcionar al menos un campo para actualizar.' });
     }
 
-    // Validar formato de fechas si se intentan actualizar.
-    // fecha_inicio es NOT NULL, si se actualiza, no puede ser null/vacío y debe tener formato válido.
-     if (fecha_inicio !== undefined && fecha_inicio !== null && fecha_inicio.trim() === '') {
-         return res.status(400).json({ message: 'El campo fecha_inicio no puede estar vacío.' });
-     }
-     if (fecha_inicio !== undefined && fecha_inicio !== null) {
-         if (!isValidDate(fecha_inicio)) {
-              return res.status(400).json({ message: 'El formato de fecha_inicio debe ser YYYY-MM-DD.' });
-         }
-     }
-     // fecha_fin es NULLable, validar si se proporciona (puede ser null).
-     if (fecha_fin !== undefined && fecha_fin !== null) { // Permitir explícitamente enviar null
-         if (!isValidDate(fecha_fin)) {
-              return res.status(400).json({ message: 'El formato de fecha_fin debe ser YYYY-MM-DD.' });
-         }
-     } else if (fecha_fin === '') { // Si envían cadena vacía para fecha_fin, tratar como null.
-         fecha_fin = null; // Asignar null para que se guarde correctamente en la DB.
+    // Validar que contenido si se intenta actualizar, no esté vacío.
+     if (contenido !== undefined && (contenido === null || contenido.trim() === '')) { // contenido es NOT NULL en DB.
+         return res.status(400).json({ message: 'El campo contenido no puede estar vacío.' });
      }
 
-    // Validar relación entre fecha_inicio y fecha_fin SI AMBAS están presentes
-    // (ya sea porque ambas se envían en el body, o una se envía y la otra ya existía en la DB).
-    // Esto requiere OBTENER el registro actual si solo se envía una fecha.
-    let final_fecha_inicio = fecha_inicio;
-    let final_fecha_fin = fecha_fin;
-
-    // Si alguna de las fechas está undefined en el body, necesitamos el valor actual.
-    if (final_fecha_inicio === undefined || final_fecha_fin === undefined) {
-         const currentMantenimiento = await query('SELECT fecha_inicio, fecha_fin FROM mantenimientos WHERE id = ?', [id]);
-         if (currentMantenimiento.length === 0) {
-             // El registro a actualizar no existe. Devolver 404.
-             // Esto podría manejarse más adelante si el UPDATE affectedRows es 0,
-             // pero validar aquí permite dar un error más temprano si la lógica de fecha depende de ello.
-              return res.status(404).json({ message: `Registro de mantenimiento con ID ${id} no encontrado.` });
-         }
-         // Si la fecha no fue enviada en el body, usamos el valor actual de la DB.
-         if (final_fecha_inicio === undefined) final_fecha_inicio = currentMantenimiento[0].fecha_inicio;
-         if (final_fecha_fin === undefined) final_fecha_fin = currentMantenimiento[0].fecha_fin;
-    }
-
-    // Ahora que tenemos los valores FINALES para fecha_inicio y fecha_fin, validamos la lógica.
-    // Asegurarse de que final_fecha_inicio y final_fecha_fin son objetos Date válidos si no son null/undefined.
-    // La función isValidDate ya chequea el formato string y si es fecha real. Aquí comparamos los valores.
-    // Convertimos a objetos Date para la comparación.
-    const dateInicio = final_fecha_inicio ? new Date(final_fecha_inicio) : null;
-    const dateFin = final_fecha_fin ? new Date(final_fecha_fin) : null;
-
-    if (dateInicio && dateFin && dateFin < dateInicio) {
-        return res.status(400).json({ message: 'La fecha de fin no puede ser anterior a la fecha de inicio.' });
-    }
-
-
-    // Validar si id_equipo existe (si se intenta actualizar y no es NULL).
-    if (id_equipo !== undefined && id_equipo !== null) { // id_equipo es NOT NULL en DB.
+    // Validar FKs si se intentan actualizar y no son NULL.
+    if (id_equipo !== undefined && id_equipo !== null) {
         const equipoExists = await query('SELECT id FROM equipos WHERE id = ?', [id_equipo]);
         if (equipoExists.length === 0) {
             return res.status(400).json({ message: `El ID de equipo ${id_equipo} no es válido.` });
         }
-    } else if (id_equipo === null) {
-         return res.status(400).json({ message: 'El campo id_equipo no puede ser nulo.' });
+    }
+    if (id_mantenimiento !== undefined && id_mantenimiento !== null) {
+        const mantenimientoExists = await query('SELECT id FROM mantenimientos WHERE id = ?', [id_mantenimiento]);
+        if (mantenimientoExists.length === 0) {
+            return res.status(400).json({ message: `El ID de mantenimiento ${id_mantenimiento} no es válido.` });
+        }
+    }
+    if (id_cuenta_email !== undefined && id_cuenta_email !== null) {
+        const cuentaEmailExists = await query('SELECT id FROM cuentas_email_corporativo WHERE id = ?', [id_cuenta_email]);
+        if (cuentaEmailExists.length === 0) {
+            return res.status(400).json({ message: `El ID de cuenta de email ${id_cuenta_email} no es válido.` });
+        }
+    }
+     // Validar FK id_usuario_creacion si se proporciona y no es NULL.
+     if (id_usuario_creacion !== undefined && id_usuario_creacion !== null) {
+         const usuarioExists = await query('SELECT id FROM usuarios_sistema WHERE id = ?', [id_usuario_creacion]);
+         if (usuarioExists.length === 0) {
+             return res.status(400).json({ message: `El ID de usuario creador ${id_usuario_creacion} no es válido.` });
+         }
+     }
+
+
+    // === Regla de Negocio: La nota DEBE seguir asociada a AL MENOS una entidad después de la actualización ===
+    // Necesitamos saber los valores actuales de las FKs si no se están actualizando.
+    let currentNota = null;
+    if (id_equipo === undefined || id_mantenimiento === undefined || id_cuenta_email === undefined) {
+        // Si alguna de las FKs de entidad no está en el body, consultamos el registro actual.
+        const result = await query('SELECT id_equipo, id_mantenimiento, id_cuenta_email FROM notas WHERE id = ?', [id]);
+        if (result.length === 0) {
+             // El registro a actualizar no existe. Devolver 404.
+             return res.status(404).json({ message: `Nota con ID ${id} no encontrada.` });
+        }
+        currentNota = result[0];
     }
 
-    // Validar si id_status existe (si se intenta actualizar y no es NULL).
-     if (id_status !== undefined && id_status !== null) { // id_status es NOT NULL en DB.
-          const statusExists = await query('SELECT id FROM status WHERE id = ?', [id_status]);
-          if (statusExists.length === 0) {
-              return res.status(400).json({ message: `El ID de status ${id_status} no es válido.` });
-          }
-     } else if (id_status === null) {
-         return res.status(400).json({ message: 'El campo id_status no puede ser nulo.' });
-     }
+    // Determinamos los valores FINALES de las FKs después de la actualización.
+    const final_id_equipo = id_equipo !== undefined ? id_equipo : (currentNota ? currentNota.id_equipo : undefined);
+    const final_id_mantenimiento = id_mantenimiento !== undefined ? id_mantenimiento : (currentNota ? currentNota.id_mantenimiento : undefined);
+    const final_id_cuenta_email = id_cuenta_email !== undefined ? id_cuenta_email : (currentNota ? currentNota.id_cuenta_email : undefined);
 
-    // Validar costo si se proporciona (puede ser null).
-     if (costo !== undefined && costo !== null) { // Permitir explícitamente enviar null.
-         if (typeof costo !== 'number' && typeof costo !== 'string' || !isFinite(parseFloat(costo))) {
-              return res.status(400).json({ message: 'El campo costo debe ser un número válido.' });
-         }
-     } else if (costo === '') { // Si envían cadena vacía, tratar como null.
-         costo = null;
-     }
+    // Aplicamos la regla: al menos uno de los valores FINALES debe ser NO NULO.
+    if (final_id_equipo === null && final_id_mantenimiento === null && final_id_cuenta_email === null) {
+         return res.status(400).json({ message: 'Después de la actualización, la nota debe seguir asociada a un equipo, mantenimiento o cuenta de email.' });
+    }
 
 
     // fecha_actualizacion se actualiza automáticamente en la DB.
 
     // Construir la consulta UPDATE dinámicamente.
-    let sql = 'UPDATE mantenimientos SET ';
+    let sql = 'UPDATE notas SET ';
     const params = [];
     const updates = []; // Partes de la sentencia SET.
 
     // Añadir campos a actualizar si están presentes en el body (y no son undefined).
     // Manejamos explícitamente el valor `null` si la columna lo permite y se envía null.
-    if (id_equipo !== undefined) { updates.push('id_equipo = ?'); params.push(id_equipo); } // NOT NULL
-    if (fecha_inicio !== undefined) { updates.push('fecha_inicio = ?'); params.push(fecha_inicio); } // NOT NULL
-    if (fecha_fin !== undefined) { updates.push('fecha_fin = ?'); params.push(fecha_fin === null ? null : fecha_fin); } // NULLable (ya manejamos "" -> null)
-    if (diagnostico !== undefined) { updates.push('diagnostico = ?'); params.push(diagnostico === null || diagnostico.trim() === '' ? null : diagnostico); } // NULLable
-    if (solucion !== undefined) { updates.push('solucion = ?'); params.push(solucion === null || solucion.trim() === '' ? null : solucion); } // NULLable
-    if (costo !== undefined) { updates.push('costo = ?'); params.push(costo); } // NULLable (ya manejamos "" -> null)
-    if (proveedor !== undefined) { updates.push('proveedor = ?'); params.push(proveedor === null || proveedor.trim() === '' ? null : proveedor); } // NULLable
-    if (id_status !== undefined) { updates.push('id_status = ?'); params.push(id_status); } // NOT NULL
+    if (titulo !== undefined) { updates.push('titulo = ?'); params.push(titulo === null || titulo.trim() === '' ? null : titulo); } // NULLable, convertir "" a null
+    if (contenido !== undefined) { updates.push('contenido = ?'); params.push(contenido); } // NOT NULL
+    if (id_equipo !== undefined) { updates.push('id_equipo = ?'); params.push(id_equipo); } // NULLable
+    if (id_mantenimiento !== undefined) { updates.push('id_mantenimiento = ?'); params.push(id_mantenimiento); } // NULLable
+    if (id_cuenta_email !== undefined) { updates.push('id_cuenta_email = ?'); params.push(id_cuenta_email); } // NULLable
+    if (id_usuario_creacion !== undefined) { updates.push('id_usuario_creacion = ?'); params.push(id_usuario_creacion); } // NULLable
 
 
-    // Si no hay campos para actualizar, ya se manejó al inicio.
+    // Si no hay campos para actualizar (aparte del ID), ya se manejó al inicio.
      if (updates.length === 0) {
          return res.status(400).json({ message: 'No se proporcionaron campos válidos para actualizar.' });
      }
@@ -354,32 +306,37 @@ const updateMantenimiento = async (req, res, next) => { // Añadimos 'next'.
     const result = await query(sql, params);
 
     // === Verificación de Resultado ===
-    if (result.affectedRows === 0) {
-      // Si 0 filas afectadas, el ID no fue encontrado (y no se manejó en la validación de fechas al inicio).
-      res.status(404).json({ message: `Registro de mantenimiento con ID ${id} no encontrado.` });
-    } else {
+    if (result.affectedRows === 0 && !currentNota) { // Si no encontramos la nota al inicio, ya devolvimos 404.
+        // Si llegamos aquí y affectedRows es 0, significa que el ID existía, pero no se cambió nada,
+        // o hubo algún otro problema que la DB no reportó como error.
+        // Consideramos que no fue encontrada si currentNota era null (lo que significa que el SELECT inicial falló).
+        // Si currentNota existía, 0 affectedRows solo significa que no hubo cambios en los valores, lo cual es un éxito para PUT.
+         res.status(200).json({ message: `Nota con ID ${id} actualizada exitosamente (o sin cambios).` });
+    } else if (result.affectedRows > 0) {
       // Éxito (200 OK).
-      res.status(200).json({ message: `Registro de mantenimiento con ID ${id} actualizado exitosamente.` });
+      res.status(200).json({ message: `Nota con ID ${id} actualizada exitosamente.` });
+    } else {
+         // Caso en que currentNota existía pero affectedRows es 0 - ya cubierto arriba con mensaje "o sin cambios".
+          res.status(200).json({ message: `Nota con ID ${id} actualizada exitosamente (o sin cambios).` });
     }
 
+
   } catch (error) {
-    console.error(`Error al actualizar registro de mantenimiento con ID ${req.params.id}:`, error);
-    // No hay UNIQUE constraints en esta tabla que causen ER_DUP_ENTRY en UPDATE.
-    // Cualquier otro error probablemente será de la DB o SQL.
+    console.error(`Error al actualizar nota con ID ${req.params.id}:`, error);
+    // No hay UNIQUE constraints. Cualquier error será de la DB o SQL (ej. FK inválida no capturada).
     next(error); // Pasar error al manejador global.
   }
 };
 
-// [DELETE] /api/mantenimientos/:id
-// Elimina un registro de la tabla 'mantenimientos' por su ID.
-// NOTA: La FK a notas es ON DELETE CASCADE, por lo que las notas asociadas se eliminan automáticamente.
-const deleteMantenimiento = async (req, res, next) => { // Añadimos 'next'.
+// [DELETE] /api/notas/:id
+// Elimina un registro de la tabla 'notas' por su ID.
+const deleteNota = async (req, res, next) => { // Añadimos 'next'.
   try {
-    // Obtenemos el ID del mantenimiento a eliminar.
+    // Obtenemos el ID de la nota a eliminar.
     const { id } = req.params;
 
     // Consulta SQL para eliminar por ID.
-    const sql = 'DELETE FROM mantenimientos WHERE id = ?';
+    const sql = 'DELETE FROM notas WHERE id = ?';
     const params = [id];
     // Ejecutamos la consulta.
     const result = await query(sql, params);
@@ -387,33 +344,25 @@ const deleteMantenimiento = async (req, res, next) => { // Añadimos 'next'.
     // === Verificación de Resultado ===
     if (result.affectedRows === 0) {
       // Si 0 filas afectadas, el ID no existía.
-      res.status(404).json({ message: `Registro de mantenimiento con ID ${id} no encontrado.` });
+      res.status(404).json({ message: `Nota con ID ${id} no encontrada.` });
     } else {
       // Éxito (200 OK).
-      res.status(200).json({ message: `Registro de mantenimiento con ID ${id} eliminado exitosamente.` });
+      res.status(200).json({ message: `Nota con ID ${id} eliminada exitosamente.` });
     }
 
   } catch (error) {
-    console.error(`Error al eliminar registro de mantenimiento con ID ${req.params.id}:`, error);
-     // === Manejo de Errores Específicos ===
-     // Manejar el error si está siendo usada por notas (ON DELETE CASCADE), aunque CASCADE debería prevenir este error.
-     // ER_ROW_IS_REFERENCED_2 podría ocurrir si hubiera otros problemas.
-     if (error.code === 'ER_ROW_IS_REFERENCED_2') {
-        res.status(409).json({ // 409 Conflict.
-            message: `No se puede eliminar el registro de mantenimiento con ID ${req.params.id} porque está siendo utilizado por otros registros.`,
-            error: error.message
-        });
-     } else {
-        next(error); // Para cualquier otro error, pasar al manejador global.
-     }
+    console.error(`Error al eliminar nota con ID ${req.params.id}:`, error);
+     // No hay FKs que restrinjan la eliminación de una nota (las FKs van *desde* notas).
+     // Este catch atraparía errores de la DB o SQL no relacionados con FK referenciada.
+     next(error); // Pasar error al manejador global.
   }
 };
 
 // Exportamos las funciones del controlador.
 module.exports = {
-  getAllMantenimientos,
-  getMantenimientoById,
-  createMantenimiento,
-  updateMantenimiento,
-  deleteMantenimiento,
+  getAllNotas,
+  getNotaById,
+  createNota,
+  updateNota,
+  deleteNota,
 };
