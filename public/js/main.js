@@ -1,233 +1,205 @@
 // public/js/main.js
-// Contiene la lógica para interactuar con la API del backend
-// y manipular el DOM para mostrar los datos del inventario.
+// Este es el archivo JavaScript principal de tu frontend.
+// Se encarga de la inicialización general, la configuración de eventos globales (ej. navegación),
+// y la orquestación de la carga de diferentes vistas en el área de contenido principal.
 
-console.log('Frontend JavaScript cargado correctamente.');
-
-// URL base API backend
-const API_URL = 'http://localhost:3000/api'; 
+console.log('Frontend JavaScript principal cargado. Configurando aplicación...');
 
 // ===============================================================
-// FUNCIONES PARA INTERACTUAR CON LA API
-// Usamos la API Fetch para hacer peticiones HTTP al backend.
+// IMPORTACIONES DE MÓDULOS DE VISTA
+// Importamos las funciones que cargan y renderizan cada vista específica.
 // ===============================================================
 
-// Función asíncrona para obtener todos los equipos desde el backend.
-// Retorna un array de objetos equipo o lanza un error.
-async function getEquipos() {
-  console.log('Intentando obtener equipos de la API...');
-  try {
-    // Realiza una petición GET a la ruta /api/equipos
-    const response = await fetch(`${API_URL}/equipos`);
-console.log('Respuesta de la API:', response);
+import { loadEquiposList } from './views/equiposView.js';
+// TODO: Importar funciones para cargar otras vistas a medida que las crees.
+// import { loadEmpleadosList } from './views/empleadosView.js';
+// import { loadDireccionesIpList } from './views/direccionesIpView.js';
+// import { loadCuentasEmailList } from './views/cuentasEmailView.js';
+// import { loadMantenimientosList } from './views/mantenimientosView.js';
+// import { loadNotasList } from './views/notasView.js';
+// import { loadAsignacionesList } from './views/asignacionesView.js';
+// TODO: Importar funciones para vistas de detalle/formulario (ej. showEquipoDetails, showEquipoForm)
 
-    // Verifica si la respuesta HTTP fue exitosa (código 2xx)
-    if (!response.ok) {
-      // Si la respuesta no es OK, lanza un error con el status y mensaje.
-      // Intentamos leer el body como JSON para obtener el mensaje de error del backend
-      const errorData = await response.json();
-      console.log(errorData)
-      throw new Error(`Error al obtener equipos: ${response.status} ${response.statusText} - ${errorData.message}`);
+// ===============================================================
+// ELEMENTOS DEL DOM GLOBALES
+// Obtenemos referencias a elementos que usaremos en varias partes.
+// ===============================================================
+const contentArea = document.getElementById('content-area'); // El contenedor principal donde se cargan las vistas.
+const mobileMenu = document.getElementById('mobile-menu'); // Referencia al menú desplegable móvil.
+
+
+// ===============================================================
+// MAPEO DE VISTAS
+// Objeto que mapea nombres de vista a las funciones que las cargan/renderizan.
+// ===============================================================
+
+// Función para renderizar el contenido inicial de la vista 'home'.
+function renderHomeView() {
+    console.log('Renderizando vista Home.');
+    contentArea.innerHTML = `
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Bienvenido a tu Inventario IT</h2>
+        <p class="text-gray-700 mb-6">Selecciona una opción del menú para empezar a gestionar tus activos.</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Tarjetas con enlaces o botones que activan la navegación a vistas específicas -->
+            <!-- Usamos data-view en los botones para que el listener global los capture -->
+            <div class="bg-blue-100 p-4 rounded-lg shadow-md">
+                <h3 class="font-semibold text-blue-800 mb-2">Gestión de Equipos</h3>
+                <p class="text-blue-700 text-sm">Inventario de computadoras, monitores, impresoras, etc.</p>
+                 <button class="mt-3 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-600/90" data-view="equiposList">Ver Equipos</button>
+            </div>
+             <div class="bg-green-100 p-4 rounded-lg shadow-md">
+                <h3 class="font-semibold text-green-800 mb-2">Gestión de Empleados</h3>
+                <p class="text-green-700 text-sm">Información del personal asociado a los activos.</p>
+                 <button class="mt-3 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-600/90" data-view="empleadosList">Ver Empleados</button>
+            </div>
+             <div class="bg-purple-100 p-4 rounded-lg shadow-md">
+                <h3 class="font-semibold text-purple-800 mb-2">Asignaciones y Ubicaciones</h3>
+                <p class="text-purple-700 text-sm">Rastrea dónde y a quién están asignados los equipos.</p>
+                 <button class="mt-3 bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-600/90" data-view="asignacionesList">Ver Asignaciones</button>
+            </div>
+            <!-- TODO: Añadir más tarjetas para otras secciones si lo deseas, con data-view -->
+        </div>
+    `; // Usamos template literals para el HTML de la vista home.
+}
+
+
+// Objeto que mapea nombres de vista (del atributo data-view) a las funciones
+// que son responsables de cargar y renderizar esa vista.
+const viewsMap = {
+    'home': renderHomeView, // La función que renderiza la vista inicial
+    'equiposList': loadEquiposList, // La función del módulo equiposView.js para listar equipos.
+    // TODO: Añadir mapeos para las otras vistas a medida que las crees:
+    // 'empleadosList': loadEmpleadosList,
+    // 'direccionesIpList': loadDireccionesIpList,
+    // 'cuentasEmailList': loadCuentasEmailList,
+    // 'mantenimientosList': loadMantenimientosList,
+    // 'notasList': loadNotasList,
+    // 'asignacionesList': loadAsignacionesList,
+    // 'equipoDetails': showEquipoDetails, // Ejemplo de vista de detalle, recibiría { id: ... }
+    // 'equipoForm': showEquipoForm, // Ejemplo de vista de formulario, recibiría { id: ... } o null
+    // 'profile': showProfileView, // Ejemplo de vista de perfil de usuario
+};
+
+
+// ===============================================================
+// FUNCIÓN DE NAVEGACIÓN CENTRALIZADA
+// Esta función es llamada para cambiar la vista que se muestra en contentArea.
+// ===============================================================
+
+// viewName: string que identifica la vista a cargar (ej. 'equiposList', 'home').
+// params: opcional, objeto con parámetros necesarios para la vista (ej. { id: 5 } para detalles).
+function navigateTo(viewName, params = null) {
+    console.log(`Navegando a la vista: "${viewName}" con parámetros:`, params);
+
+    // Busca la función de carga de la vista en el mapa.
+    const loadViewFunction = viewsMap[viewName];
+
+    if (loadViewFunction) {
+        // Si la función existe, la llama.
+        // La función de la vista es responsable de limpiar contentArea y renderizar su contenido.
+        loadViewFunction(params); // Pasa los parámetros a la función de la vista.
+    } else {
+        // Si el nombre de vista no está en el mapa, muestra un error.
+        console.error(`Vista desconocida o no implementada: "${viewName}"`);
+        contentArea.innerHTML = `<p class="text-red-500 font-bold">Error:</p><p class="text-red-500">La vista solicitada "${viewName}" no está implementada.</p>`;
     }
 
-    // Parsea el cuerpo de la respuesta como JSON y retorna los datos.
-    const data = await response.json();
-    console.log('Equipos recibidos:', data);
-    return data;
+    // Cierra el menú móvil si está abierto después de la navegación (mejora de UX).
+    if (mobileMenu.classList.contains('max-h-screen')) {
+        mobileMenu.classList.remove('max-h-screen');
+        mobileMenu.classList.add('max-h-0');
+    }
 
-  } catch (error) {
-    // Captura cualquier error durante la petición (problemas de red, errores lanzados arriba)
-    console.error('Error al obtener equipos:', error);
-    // Propaga el error para que la función que llamó a getEquipos pueda manejarlo
-    throw error;
-  }
+    // TODO: Implementar la actualización de la URL del navegador (History API)
+    // para permitir el uso de los botones de atrás/adelante.
+    // Ejemplo: history.pushState({ view: viewName, params: params }, '', `#${viewName}`); // Usando el hash.
+    // O con rutas limpias (requiere configuración adicional en Express para SPAs):
+    // history.pushState({ view: viewName, params: params }, '', `/${viewName}`);
 }
+
 
 // ===============================================================
-// FUNCIONES PARA MANIPULAR EL DOM (RENDERIZAR)
-// Estas funciones toman datos y generan/actualizan el HTML.
+// INICIALIZACIÓN DE LA APLICACIÓN Y MANEJO DE EVENTOS GLOBALES
+// Se ejecuta una vez que el DOM está listo.
 // ===============================================================
 
-// Obtiene el área de contenido principal donde mostraremos las vistas.
-const contentArea = document.getElementById('content-area');
+// Espera a que el DOM (estructura HTML) esté completamente cargado.
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM completamente cargado. Iniciando configuración de eventos.');
 
-// Función para mostrar un mensaje de carga mientras se obtienen los datos.
-function showLoading() {
-  contentArea.innerHTML = '<p>Cargando datos...</p>';
-}
+    // === Configurar Event Listeners para Navegación ===
+    // Selecciona todos los elementos que tienen el atributo `data-view`.
+    // Estos son los elementos clickeables que activarán un cambio de vista.
+    const viewTriggerElements = document.querySelectorAll('[data-view]');
 
-// Función para mostrar un mensaje de error en el área de contenido.
-function showError(message) {
-  contentArea.innerHTML = `<p class="text-red-500">Error: ${message}</p>`;
-}
+    viewTriggerElements.forEach(element => {
+        // Añade un listener para el evento 'click' a cada elemento.
+        element.addEventListener('click', (event) => {
+            // Previene el comportamiento por defecto del elemento (ej. no seguir el href de un enlace).
+            event.preventDefault();
 
-// Función para renderizar una lista de equipos en una tabla HTML.
-// Recibe un array de objetos equipo.
-function renderEquiposTable(equipos) {
-  // Limpia el contenido anterior del área.
-  contentArea.innerHTML = '';
+            // Obtiene el nombre de la vista del atributo `data-view`.
+            const viewName = element.dataset.view;
 
-  // Verifica si hay equipos para mostrar.
-  if (!equipos || equipos.length === 0) {
-    contentArea.innerHTML = '<p>No hay equipos registrados.</p>';
-    return;
-  }
+            // TODO: Obtener parámetros si el elemento los tuviera (ej. data-params='{"id": 123}').
+            // const params = element.dataset.params ? JSON.parse(element.dataset.params) : null;
+            const params = null; // Por ahora, las vistas de lista no necesitan parámetros iniciales.
 
-  // Crea los elementos de la tabla usando el DOM API.
-  const table = document.createElement('table');
-  // Añade clases de Tailwind para estilizar la tabla.
-  table.classList.add('min-w-full', 'bg-white', 'border', 'border-gray-200');
-
-  // Crea la cabecera de la tabla (<thead>).
-  const thead = document.createElement('thead');
-  thead.classList.add('bg-gray-200', 'text-gray-600', 'uppercase', 'text-sm', 'leading-normal');
-  const headerRow = document.createElement('tr');
-
-  // Define las columnas de la cabecera (Texto visible, Nombre de la propiedad en los datos)
-  const headers = [
-    { text: 'Número Serie', prop: 'numero_serie' },
-    { text: 'Nombre Equipo', prop: 'nombre_equipo' },
-    { text: 'Tipo', prop: 'nombre_tipo_equipo' }, // Usamos el nombre_tipo_equipo del JOIN
-    { text: 'Ubicación Actual', prop: 'nombre_sucursal_actual' }, // Usamos el nombre_sucursal_actual del JOIN
-    { text: 'Estado', prop: 'status_nombre' }, // Usamos el status_nombre del JOIN
-    { text: 'Acciones', prop: null } // Columna para botones de acción
-  ];
-
-  // Crea las celdas de la cabecera (<th>).
-  headers.forEach(header => {
-    const th = document.createElement('th');
-    th.classList.add('py-3', 'px-6', 'text-left', 'border-b', 'border-gray-200');
-    th.textContent = header.text;
-    headerRow.appendChild(th);
-  });
-
-  thead.appendChild(headerRow);
-  table.appendChild(thead);
-
-  // Crea el cuerpo de la tabla (<tbody>).
-  const tbody = document.createElement('tbody');
-  tbody.classList.add('text-gray-600', 'text-sm', 'font-light');
-
-  // Itera sobre cada objeto equipo en el array recibido.
-  equipos.forEach(equipo => {
-    const row = document.createElement('tr');
-    row.classList.add('border-b', 'border-gray-200', 'hover:bg-gray-100');
-
-    // Crea las celdas de datos (<td>) para cada propiedad definida en los headers.
-    headers.forEach(header => {
-      const td = document.createElement('td');
-      td.classList.add('py-3', 'px-6', 'text-left', 'whitespace-nowrap');
-
-      if (header.prop) {
-        // Muestra el valor de la propiedad del objeto equipo.
-        // Usamos || 'N/A' para mostrar "N/A" si el valor es null, undefined o vacío.
-        td.textContent = equipo[header.prop] || 'N/A';
-      } else {
-        // Es la columna de Acciones. Creamos botones.
-        const actionsContainer = document.createElement('div');
-        actionsContainer.classList.add('flex', 'item-center', 'justify-start'); // Alinear botones
-
-        // Botón Ver Detalles (ejemplo)
-        const viewButton = document.createElement('button');
-        viewButton.classList.add('mr-2', 'transform', 'hover:text-purple-500', 'hover:scale-110');
-        viewButton.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>';
-        // Añadir un listener (implementaremos la navegación/modal después)
-        viewButton.addEventListener('click', () => {
-          console.log('Ver detalles de equipo con ID:', equipo.id);
-          // TODO: Implementar mostrar detalles del equipo
+            // Llama a la función de navegación centralizada.
+            navigateTo(viewName, params);
         });
-
-        // Botón Editar (ejemplo)
-        const editButton = document.createElement('button');
-        editButton.classList.add('mr-2', 'transform', 'hover:text-yellow-500', 'hover:scale-110');
-        editButton.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>';
-        // Añadir un listener (implementaremos formularios de edición después)
-        editButton.addEventListener('click', () => {
-          console.log('Editar equipo con ID:', equipo.id);
-          // TODO: Implementar formulario de edición
-        });
-
-
-        // Botón Eliminar (ejemplo)
-        const deleteButton = document.createElement('button');
-        deleteButton.classList.add('transform', 'hover:text-red-500', 'hover:scale-110');
-        deleteButton.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m14 0H5m2 0V5a2 2 0 012-2h6a2 2 0 012 2v2"></path></svg>';
-        // Añadir un listener (implementaremos la confirmación y eliminación después)
-        deleteButton.addEventListener('click', async () => {
-          // TODO: Implementar modal de confirmación
-          if (confirm(`¿Estás seguro de eliminar el equipo con ID ${equipo.id}?`)) {
-            console.log('Eliminando equipo con ID:', equipo.id);
-            // TODO: Implementar llamada DELETE a la API
-            // TODO: Implementar llamada DELETE a la API
-             try {
-                 const response = await fetch(`${API_URL}/equipos/${equipo.id}`, {
-                     method: 'DELETE'
-                 });
-                 if (!response.ok) {
-                      const errorData = await response.json();
-                      throw new Error(errorData.message || 'Error al eliminar');
-                 }
-                 console.log('Equipo eliminado:', equipo.id);
-                 // Volver a cargar la lista después de eliminar
-                 fetchAndRenderEquipos();
-             } catch (error) {
-                 console.error('Error al eliminar equipo:', error);
-                 alert('Error al eliminar el equipo: ' + error.message);
-             }
-          }
-        });
-
-        actionsContainer.appendChild(viewButton);
-        actionsContainer.appendChild(editButton);
-        actionsContainer.appendChild(deleteButton);
-        td.appendChild(actionsContainer);
-      }
-
-      row.appendChild(td);
     });
 
-    tbody.appendChild(row);
-  });
-
-  table.appendChild(tbody);
-
-  // Agrega la tabla al área de contenido.
-  contentArea.appendChild(table);
-
-  console.log('Tabla de equipos renderizada.');
-}
-
-// ===============================================================
-// FUNCIÓN PRINCIPAL Y MANEJO DE EVENTOS
-// Controla el flujo al cargar la página.
-// ===============================================================
-
-// Función asíncrona que maneja la obtención y renderización de equipos.
-async function fetchAndRenderEquipos() {
-  showLoading(); // Muestra el mensaje de carga.
-  try {
-    // Llama a la función para obtener los datos de la API.
-    const equipos = await getEquipos();
-    // Si tiene éxito, renderiza la tabla con los datos recibidos.
-    renderEquiposTable(equipos);
-  } catch (error) {
-    // Si hay un error en cualquier paso (petición o parsing), muestra el mensaje de error.
-    showError(error.message);
-  }
-}
+    // TODO: Configurar listener para botones de acción generales (ej. Logout) si usan data-action
+    // const actionTriggerElements = document.querySelectorAll('[data-action]');
+    // actionTriggerElements.forEach(element => {
+    //    element.addEventListener('click', handleGlobalActions); // Crear función handleGlobalActions
+    // });
 
 
-// Espera a que el DOM esté completamente cargado antes de ejecutar el código principal.
-document.addEventListener('DOMContentLoaded', () => {
-  console.log('DOM completamente cargado. Iniciando fetchAndRenderEquipos.');
-  // Llama a la función principal para cargar y mostrar los equipos al cargar la página.
-  fetchAndRenderEquipos();
+    // === Carga de la vista inicial al cargar la página ===
+    // Decidimos qué vista mostrar por defecto cuando el usuario llega a index.html.
+    // Podemos:
+    // 1. Cargar una vista específica por defecto (ej. 'home' o 'equiposList').
+    // 2. Leer la URL (ej. el hash #equiposList) para cargar una vista específica si hay un enlace directo.
+    // Por ahora, cargamos la vista 'home' por defecto.
+
+    // Si quieres cargar una vista específica al inicio, descomenta y ajusta:
+    // navigateTo('equiposList');
+
+    // Si quieres cargar la vista 'home' (contenida en el HTML inicial y renderizada por JS):
+     renderHomeView(); // <-- Renderiza la vista Home definida en JS.
+     // Nota: El HTML inicial ya tiene el contenido de home, pero renderizarlo con JS aquí
+     // asegura que se apliquen las clases de Tailwind de las tarjetas si decides añadirlas dinámicamente después,
+     // y establece el patrón de que todas las vistas se cargan a través de JS.
+
+    // Si decides usar ruteo basado en URL/hash, puedes hacer algo como:
+    // const initialView = window.location.hash ? window.location.hash.substring(1) : 'home';
+    // navigateTo(initialView);
+
+
+    // TODO: Implementar ruteo basado en el historial (History API) para manejar botones atrás/adelante
+    // window.addEventListener('popstate', (event) => {
+    //    const state = event.state; // Obtiene el estado guardado con pushState
+    //    if (state && state.view) {
+    //        navigateTo(state.view, state.params); // Navega a la vista guardada en el historial
+    //    } else {
+    //        // Si no hay estado o hash, navega a la vista por defecto (ej. home)
+    //        navigateTo('home');
+    //    }
+    // });
+
+
 });
 
-// Script para el menú hamburguesa (ya estaba en index.html, lo puedes dejar ahí o moverlo aquí si quieres centralizar JS)
-// Aquí lo dejamos como ejemplo de cómo el JS se conecta a eventos del DOM.
-document.getElementById('hamburger-button').addEventListener('click', function () {
-  const mobileMenu = document.getElementById('mobile-menu');
-  mobileMenu.classList.toggle('max-h-0'); // Alterna la altura máxima para ocultar/mostrar
-  mobileMenu.classList.toggle('max-h-screen'); // Usa max-h-screen para mostrar
+// Script básico para el menú hamburguesa (puede quedarse aquí o en index.html).
+// Lo ponemos aquí si queremos que tenga acceso a 'mobileMenu' y 'navigateTo' si fuera necesario,
+// pero solo la lógica básica de toggle puede quedarse en index.html.
+// Aquí lo dejamos para centralizar JS.
+document.getElementById('hamburger-button').addEventListener('click', function() {
+    // Toggle between max-h-0 (hidden) and max-h-screen (visible) classes.
+    mobileMenu.classList.toggle('max-h-0');
+    mobileMenu.classList.toggle('max-h-screen');
+    // Opcional: Si el menú se abre, quizás no queremos que se cierre automáticamente al hacer clic en los enlaces dentro
+    // del menú mismo (los listeners de navegación ya lo cierran al llamar a navigateTo).
 });
