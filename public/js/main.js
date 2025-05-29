@@ -10,20 +10,21 @@ console.log('Frontend JavaScript principal cargado. Configurando aplicación...'
 // Importamos las funciones que cargan y renderizan cada vista específica.
 // ===============================================================
 
-import { loadEquiposList } from './views/equiposView.js'; // Importamos la función para listar equipos.
-import { loadEmpleadosList } from './views/empleadosView.js'; // Importamos la función para listar empleados.
+import { loadEquiposList } from './views/equiposView.js';
+import { loadEmpleadosList } from './views/empleadosView.js';
+import { loadDireccionesIpList } from './views/direccionesIpView.js'; // Importamos la función para listar Direcciones IP.
 
 
 
 // ===============================================================
-// ELEMENTOS DEL DOM GLOBALES 
+// ELEMENTOS DEL DOM GLOBALES (igual que antes)
 // ===============================================================
 const contentArea = document.getElementById('content-area');
 const mobileMenu = document.getElementById('mobile-menu');
 
 
 // ===============================================================
-// MAPEO DE VISTAS 
+// MAPEO DE VISTAS (actualizado)
 // Objeto que mapea nombres de vista a las funciones que las cargan/renderizan.
 // ===============================================================
 
@@ -58,12 +59,12 @@ function renderHomeView() {
 // Objeto que mapea nombres de vista (del atributo data-view) a las funciones
 // que son responsables de cargar y renderizar esa vista.
 const viewsMap = {
-    'home': renderHomeView, // Vista inicial de bienvenida.
-    'equiposList': loadEquiposList, // Añadimos la función para listar equipos.
-    'empleadosList': loadEmpleadosList, // Añadimos la función para listar empleados.
+    'home': renderHomeView,
+    'equiposList': loadEquiposList,
+    'empleadosList': loadEmpleadosList,
+    'direccionesIpList': loadDireccionesIpList, // Añadimos la función para listar Direcciones IP.
     // <------------------->
     // TODO: Añadir mapeos para las otras vistas a medida que las crees:
-    // 'direccionesIpList': loadDireccionesIpList,
     // 'asignacionesList': loadAsignacionesList,
     // ... etc.
 };
@@ -73,52 +74,43 @@ const viewsMap = {
 // FUNCIÓN DE NAVEGACIÓN CENTRALIZADA (igual que antes)
 // ===============================================================
 
-// viewName: string que identifica la vista a cargar (ej. 'equiposList', 'home').
-// params: opcional, objeto con parámetros necesarios para la vista (ej. { id: 5 } para detalles).
 function navigateTo(viewName, params = null) {
     console.log(`Navegando a la vista: "${viewName}" con parámetros:`, params);
 
-    // Busca la función de carga de la vista en el mapa.
     const loadViewFunction = viewsMap[viewName];
 
     if (loadViewFunction) {
-        loadViewFunction(params); // Pasa los parámetros a la función de la vista.
+        loadViewFunction(params);
     } else {
         console.error(`Vista desconocida o no implementada: "${viewName}"`);
         contentArea.innerHTML = `<p class="text-red-500 font-bold">Error:</p><p class="text-red-500">La vista solicitada "${viewName}" no está implementada.</p>`;
     }
 
-    // Cierra el menú móvil si está abierto después de la navegación.
     if (mobileMenu.classList.contains('max-h-screen')) {
         mobileMenu.classList.remove('max-h-screen');
         mobileMenu.classList.add('max-h-0');
     }
-
-    // TODO: Implementar la actualización de la URL del navegador (History API).
 }
 
 
 // ===============================================================
 // INICIALIZACIÓN DE LA APLICACIÓN Y MANEJO DE EVENTOS GLOBALES (igual que antes)
-// Se ejecuta una vez que el DOM está listo.
 // ===============================================================
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM completamente cargado. Iniciando configuración de eventos.');
 
-    // === Configurar Event Listeners para Navegación ===
     const viewTriggerElements = document.querySelectorAll('[data-view]');
     viewTriggerElements.forEach(element => {
         element.addEventListener('click', (event) => {
             event.preventDefault();
             const viewName = element.dataset.view;
-            const params = null; // Por ahora, las vistas de lista no necesitan parámetros.
+            const params = null;
             navigateTo(viewName, params);
         });
     });
 
-    // === Carga de la vista inicial al cargar la página ===
-    renderHomeView(); // Renderiza la vista Home definida en JS.
+    renderHomeView();
 });
 
 // Script básico para el menú hamburguesa (igual que antes)
