@@ -1,12 +1,11 @@
 // public/js/main.js
-// Este es el archivo JavaScript principal de tu frontend.
 // Contiene la lógica para interactuar con la API del backend
 // y manipular el DOM para mostrar los datos del inventario.
 
 console.log('Frontend JavaScript cargado correctamente.');
 
-// URL base de tu API backend
-const API_URL = 'http://localhost:3000/api'; // Asegúrate de que coincida con el puerto de tu server.js
+// URL base API backend
+const API_URL = 'http://localhost:3000/api'; 
 
 // ===============================================================
 // FUNCIONES PARA INTERACTUAR CON LA API
@@ -20,12 +19,14 @@ async function getEquipos() {
   try {
     // Realiza una petición GET a la ruta /api/equipos
     const response = await fetch(`${API_URL}/equipos`);
+console.log('Respuesta de la API:', response);
 
     // Verifica si la respuesta HTTP fue exitosa (código 2xx)
     if (!response.ok) {
       // Si la respuesta no es OK, lanza un error con el status y mensaje.
       // Intentamos leer el body como JSON para obtener el mensaje de error del backend
       const errorData = await response.json();
+      console.log(errorData)
       throw new Error(`Error al obtener equipos: ${response.status} ${response.statusText} - ${errorData.message}`);
     }
 
@@ -41,17 +42,6 @@ async function getEquipos() {
     throw error;
   }
 }
-
-// Puedes añadir funciones similares para otras entidades:
-/*
-async function getEmpleados() {
-    const response = await fetch(`${API_URL}/empleados`);
-    if (!response.ok) throw new Error('Error al obtener empleados');
-    return await response.json();
-}
-// ... etc.
-*/
-
 
 // ===============================================================
 // FUNCIONES PARA MANIPULAR EL DOM (RENDERIZAR)
@@ -212,7 +202,7 @@ function renderEquiposTable(equipos) {
 // Controla el flujo al cargar la página.
 // ===============================================================
 
-// Función asíncrona que orquesta la obtención y renderización de equipos.
+// Función asíncrona que maneja la obtención y renderización de equipos.
 async function fetchAndRenderEquipos() {
   showLoading(); // Muestra el mensaje de carga.
   try {
@@ -232,9 +222,6 @@ document.addEventListener('DOMContentLoaded', () => {
   console.log('DOM completamente cargado. Iniciando fetchAndRenderEquipos.');
   // Llama a la función principal para cargar y mostrar los equipos al cargar la página.
   fetchAndRenderEquipos();
-
-  // Puedes añadir otros event listeners aquí, por ejemplo, para los enlaces de navegación
-  // que cambiarían la vista (ej. mostrar lista de empleados).
 });
 
 // Script para el menú hamburguesa (ya estaba en index.html, lo puedes dejar ahí o moverlo aquí si quieres centralizar JS)
