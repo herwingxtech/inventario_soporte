@@ -32,7 +32,7 @@ const mobileMenu = document.getElementById('mobile-menu');
 function renderHomeView() {
     console.log('Renderizando vista Home.');
     contentArea.innerHTML = `
-        <h2 class="text-2xl font-bold text-gray-800 mb-4">Bienvenido a tu Inventario IT</h2>
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Bienvenido a tu Inventario LDS</h2>
         <p class="text-gray-700 mb-6">Selecciona una opción del menú para empezar a gestionar tus activos.</p>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div class="bg-blue-100 p-4 rounded-lg shadow-md">

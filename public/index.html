@@ -20,7 +20,7 @@
         <div class="container mx-auto flex justify-between items-center">
             <!-- Título del sitio con un data-view para ir a home al hacer clic -->
             <!-- Añadimos cursor-pointer para indicar que es clickeable -->
-            <h1 class="text-2xl font-bold cursor-pointer" data-view="home">Inventario IT</h1>
+            <h1 class="text-2xl font-bold cursor-pointer" data-view="home">Inventario LDS</h1>
 
             <!-- Menú de navegación (Versión escritorio) -->
             <nav class="hidden md:flex space-x-4">
@@ -77,32 +77,7 @@
     <main class="container mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
         <!-- El contenido dinámico de las vistas se cargará aquí -->
         <div id="content-area" class="mt-6">
-            <!-- CONTENIDO INICIAL DE LA VISTA HOME -->
-            <!-- Esto será renderizado por JS al inicio -->
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">Bienvenido a tu Inventario IT</h2>
-            <p class="text-gray-700 mb-6">Selecciona una opción del menú para empezar a gestionar tus activos.</p>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Placeholder cards (ejemplos con data-view-trigger para navegación) -->
-                <!-- Puedes añadir estos data-view-trigger a cualquier elemento clickeable que deba cargar una vista -->
-                <div class="bg-blue-100 p-4 rounded-lg shadow-md">
-                    <h3 class="font-semibold text-blue-800 mb-2">Gestión de Equipos</h3>
-                    <p class="text-blue-700 text-sm">Inventario de computadoras, monitores, impresoras, etc.</p>
-                     <!-- data-view="equiposList" le dice a qué vista navegar -->
-                     <button class="mt-3 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" data-view="equiposList">Ver Equipos</button>
-                </div>
-                 <div class="bg-green-100 p-4 rounded-lg shadow-md">
-                    <h3 class="font-semibold text-green-800 mb-2">Gestión de Empleados</h3>
-                    <p class="text-green-700 text-sm">Información del personal asociado a los activos.</p>
-                     <button class="mt-3 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700" data-view="empleadosList">Ver Empleados</button>
-                </div>
-                 <div class="bg-purple-100 p-4 rounded-lg shadow-md">
-                    <h3 class="font-semibold text-purple-800 mb-2">Asignaciones y Ubicaciones</h3>
-                    <p class="text-purple-700 text-sm">Rastrea dónde y a quién están asignados los equipos.</p>
-                     <button class="mt-3 bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700" data-view="asignacionesList">Ver Asignaciones</button>
-                </div>
-                <!-- TODO: Añadir más cards para otras secciones si lo deseas -->
-            </div>
-            <!-- FIN CONTENIDO INICIAL DE LA VISTA HOME -->
+   
         </div>
     </main>
 
@@ -110,7 +85,7 @@
     <!--===============================================================-->
     <!-- Pie de página -->
     <footer class="mt-8 p-4 text-center text-gray-600 text-sm">
-        <p>© 2023 Inventario IT. Todos los derechos reservados.</p>
+        <p>© 2025 Inventario LDS. Todos los derechos reservados.</p>
     </footer>
 
     <!--===============================================================-->
@@ -118,16 +93,5 @@
     <script src="/js/main.js" type="module"></script>
     <!--===============================================================-->
 
-    <!-- Script básico para el menú hamburguesa (puede quedarse aquí o moverse a main.js) -->
-    <script>
-        // Ya añadimos el listener en main.js para cerrar el menú al navegar.
-        // Este script solo necesita la lógica de alternar la clase al hacer clic en el botón.
-        document.getElementById('hamburger-button').addEventListener('click', function() {
-            const mobileMenu = document.getElementById('mobile-menu');
-            // Toggle between max-h-0 (hidden) and max-h-screen (visible)
-            mobileMenu.classList.toggle('max-h-0');
-            mobileMenu.classList.toggle('max-h-screen');
-        });
-    </script>
 </body>
 </html>
