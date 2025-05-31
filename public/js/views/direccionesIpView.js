@@ -51,7 +51,7 @@ function renderDireccionesIpTable(direccionesIp) {
 
     // * Botón para crear nueva dirección IP
     const createButtonContainer = document.createElement('div');
-    createButtonContainer.classList.add('mb-4', 'text-right');
+    createButtonContainer.classList.add('mb-4');
     const createButton = document.createElement('button');
     createButton.classList.add('bg-blue-500', 'hover:bg-blue-600', 'text-white', 'font-bold', 'py-2', 'px-4', 'rounded');
     createButton.textContent = 'Nueva Dirección IP';

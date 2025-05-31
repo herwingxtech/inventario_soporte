@@ -42,6 +42,25 @@ function renderEquiposTable(equipos) {
         return;
     }
 
+    // * Renderiza el título de la vista
+    const title = document.createElement('h2');
+    title.classList.add('text-2xl', 'font-bold', 'text-gray-800', 'mb-6');
+    title.textContent = 'Lista de Equipos';
+    contentArea.appendChild(title);
+
+    // * Botón para crear nuevo equipo
+    const createButtonContainer = document.createElement('div');
+    createButtonContainer.classList.add('mb-4');
+    const createButton = document.createElement('button');
+    createButton.classList.add('bg-blue-500', 'hover:bg-blue-600', 'text-white', 'font-bold', 'py-2', 'px-4', 'rounded');
+    createButton.textContent = 'Nuevo Equipo';
+    createButton.addEventListener('click', () => {
+        // TODO: Implementar formulario de creación de Equipo
+        console.log('Mostrar formulario para crear nuevo Equipo');
+    });
+    createButtonContainer.appendChild(createButton);
+    contentArea.appendChild(createButtonContainer);
+
     // * Crea el elemento tabla y le añade clases de estilo.
     const table = document.createElement('table');
     table.classList.add('min-w-full', 'bg-white', 'border', 'border-gray-200', 'shadow-md', 'rounded-lg', 'overflow-hidden');

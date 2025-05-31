@@ -27,7 +27,7 @@ const mobileMenu = document.getElementById('mobile-menu');
 function renderHomeView() {
     console.log('Renderizando vista Home.'); // * Log para saber cuándo se renderiza la vista home
     contentArea.innerHTML = `
-        <h2 class="text-2xl font-bold text-gray-800 mb-4">Bienvenido a tu Inventario LDS</h2>
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Bienvenido a tu Inventario</h2>
         <p class="text-gray-700 mb-6">Selecciona una opción del menú para empezar a gestionar tus activos.</p>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div class="bg-blue-100 p-4 rounded-lg shadow-md">
@@ -41,9 +41,9 @@ function renderHomeView() {
                  <button class="mt-3 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-600/90" data-view="empleadosList">Ver Empleados</button>
             </div>
              <div class="bg-purple-100 p-4 rounded-lg shadow-md">
-                <h3 class="font-semibold text-purple-800 mb-2">Asignaciones y Ubicaciones</h3>
-                <p class="text-purple-700 text-sm">Rastrea dónde y a quién están asignados los equipos.</p>
-                 <button class="mt-3 bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-600/90" data-view="asignacionesList">Ver Asignaciones</button>
+                <h3 class="font-semibold text-purple-800 mb-2">Gestión de Direcciones IP</h3>
+                <p class="text-purple-700 text-sm">Rastrea a quién están asignadas las direcciones IP.</p>
+                 <button class="mt-3 bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-600/90" data-view="direccionesIpList">Ver Direcciones IP</button>
             </div>
         </div>
     `;
