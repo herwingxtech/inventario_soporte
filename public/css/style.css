@@ -1,17 +1,3 @@
-/* public/css/style.css */
 /* ! Archivo de estilos CSS personalizados
    * Aquí agrego reglas que no cubre Tailwind o que necesito sobreescribir.
    * Uso comentarios para recordar por qué agrego cada regla o ejemplo. */
-
-/* Puedes añadir estilos aquí si necesitas anular algo de Tailwind
-   o para selectores complejos que no son fáciles con clases de utilidad. */
-
-/* Ejemplo: un margen en el body (Tailwind ya lo hace con clases como p-4 o mt-8, pero es un ejemplo) */
-/* body {
-    margin: 20px;
-} */
-
-/* O si necesitas estilizar elementos específicos que no tienen clases */
-/* h1 {
-    color: #333;
-} */

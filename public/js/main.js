@@ -1,37 +1,37 @@
 // public/js/main.js
 // ! Archivo principal JS del frontend
-// * Aquí inicializo la app, configuro eventos globales y orquesto la carga de vistas SPA.
-// * Uso importaciones modulares para mantener el código organizado.
-// * Los TODO son recordatorios personales de mejoras o refactorizaciones.
+// * Este archivo inicializa la SPA, configura eventos globales y orquesta la carga de vistas. Uso importaciones modulares para mantener el código organizado y limpio.
 
-console.log('Frontend JavaScript principal cargado. Configurando aplicación...');
+console.log('Frontend JavaScript principal cargado. Configurando aplicación...'); // * Log para saber que el script principal cargó
 
 // ===============================================================
-// IMPORTACIONES DE MÓDULOS DE VISTA
-// Importamos las funciones que cargan y renderizan cada vista específica.
+// * IMPORTACIONES DE MÓDULOS DE VISTA
+// * Importo funciones para cargar/renderizar cada vista específica. Así mantengo el código desacoplado y fácil de mantener.
 // ===============================================================
 
 import { loadEquiposList } from './views/equiposView.js';
 import { loadEmpleadosList } from './views/empleadosView.js';
-import { loadDireccionesIpList } from './views/direccionesIpView.js'; // Importamos la función para listar Direcciones IP.
+import { loadDireccionesIpList } from './views/direccionesIpView.js';
 
 
-
-// ===============================================================
-// ELEMENTOS DEL DOM GLOBALES (igual que antes)
-// ===============================================================
+/* 
+* ===============================================================
+* ELEMENTOS DEL DOM GLOBALES 
+* * Referencio los elementos principales del layout para manipularlos desde cualquier vista.
+* ===============================================================
+*/
 const contentArea = document.getElementById('content-area');
 const mobileMenu = document.getElementById('mobile-menu');
 
 
 // ===============================================================
-// MAPEO DE VISTAS (actualizado)
-// Objeto que mapea nombres de vista a las funciones que las cargan/renderizan.
+// * MAPEO DE VISTAS (actualizado)
+// * Relaciono nombres de vista con funciones para facilitar la navegación SPA.
 // ===============================================================
 
-// Función para renderizar el contenido inicial de la vista 'home'.
+// * Función para renderizar el contenido inicial de la vista 'home'.
 function renderHomeView() {
-    console.log('Renderizando vista Home.');
+    console.log('Renderizando vista Home.'); // * Log para saber cuándo se renderiza la vista home
     contentArea.innerHTML = `
         <h2 class="text-2xl font-bold text-gray-800 mb-4">Bienvenido a tu Inventario LDS</h2>
         <p class="text-gray-700 mb-6">Selecciona una opción del menú para empezar a gestionar tus activos.</p>
@@ -57,13 +57,12 @@ function renderHomeView() {
 }
 
 
-// Objeto que mapea nombres de vista (del atributo data-view) a las funciones
-// que son responsables de cargar y renderizar esa vista.
+// * Objeto que mapea nombres de vista (del atributo data-view) a las funciones que las cargan/renderizan.
 const viewsMap = {
     'home': renderHomeView,
     'equiposList': loadEquiposList,
     'empleadosList': loadEmpleadosList,
-    'direccionesIpList': loadDireccionesIpList, // Añadimos la función para listar Direcciones IP.
+    'direccionesIpList': loadDireccionesIpList,
     // <------------------->
     // TODO: Añadir mapeos para las otras vistas a medida que las crees:
     // 'asignacionesList': loadAsignacionesList,
@@ -72,22 +71,25 @@ const viewsMap = {
 
 
 // ===============================================================
-// FUNCIÓN DE NAVEGACIÓN CENTRALIZADA (igual que antes)
+// * FUNCIÓN DE NAVEGACIÓN CENTRALIZADA
+// * Esta función se encarga de cambiar de vista y cerrar el menú móvil si está abierto.
 // ===============================================================
 
 function navigateTo(viewName, params = null) {
-    console.log(`Navegando a la vista: "${viewName}" con parámetros:`, params);
+    console.log(`Navegando a la vista: "${viewName}" con parámetros:`, params); // * Log para rastrear la navegación
 
     const loadViewFunction = viewsMap[viewName];
 
     if (loadViewFunction) {
         loadViewFunction(params);
     } else {
+        // ! Error: Vista desconocida o no implementada
         console.error(`Vista desconocida o no implementada: "${viewName}"`);
         contentArea.innerHTML = `<p class="text-red-500 font-bold">Error:</p><p class="text-red-500">La vista solicitada "${viewName}" no está implementada.</p>`;
     }
 
     if (mobileMenu.classList.contains('max-h-screen')) {
+        // * Cierra el menú móvil si está abierto al navegar
         mobileMenu.classList.remove('max-h-screen');
         mobileMenu.classList.add('max-h-0');
     }
@@ -95,26 +97,27 @@ function navigateTo(viewName, params = null) {
 
 
 // ===============================================================
-// INICIALIZACIÓN DE LA APLICACIÓN Y MANEJO DE EVENTOS GLOBALES (igual que antes)
+// * INICIALIZACIÓN DE LA APLICACIÓN Y MANEJO DE EVENTOS GLOBALES
+// * Aquí engancho los eventos de navegación a los elementos con data-view y renderizo la vista inicial.
 // ===============================================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM completamente cargado. Iniciando configuración de eventos.');
+    console.log('DOM completamente cargado. Iniciando configuración de eventos.'); // * Log para saber cuándo el DOM está listo
 
     const viewTriggerElements = document.querySelectorAll('[data-view]');
     viewTriggerElements.forEach(element => {
         element.addEventListener('click', (event) => {
-            event.preventDefault();
+            event.preventDefault(); // * Evita el comportamiento por defecto del enlace
             const viewName = element.dataset.view;
             const params = null;
             navigateTo(viewName, params);
         });
     });
 
-    renderHomeView();
+    renderHomeView(); // * Carga la vista Home al iniciar la aplicación
 });
 
-// Script básico para el menú hamburguesa (igual que antes)
+// * Script básico para el menú hamburguesa (permite abrir/cerrar el menú en móvil)
 document.getElementById('hamburger-button').addEventListener('click', function() {
     mobileMenu.classList.toggle('max-h-0');
     mobileMenu.classList.toggle('max-h-screen');

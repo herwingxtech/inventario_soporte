@@ -1,14 +1,15 @@
 // ! Controlador para la entidad Áreas
-// * Las áreas dependen de sucursales y solo pueden crearse en sucursales de tipo 'Corporativo'.
+// * Aquí gestiono todo lo relacionado con áreas: creación, consulta, actualización y eliminación.
+// * Las áreas solo pueden crearse en sucursales de tipo 'Corporativo'. Incluye validaciones de negocio y relaciones.
 
-// * Importo la función query para ejecutar consultas a la base de datos
+// * Importo la función query para ejecutar consultas a la base de datos personalizada.
 const { query } = require('../config/db');
 
 // ===============================================================
 // * Funciones controladoras para cada endpoint de áreas
 // ===============================================================
 
-// * [GET] /api/areas - Trae todas las áreas (con nombres de sucursal, empresa y status)
+// * [GET] /api/areas - Trae todas las áreas con información de sucursal, empresa y status
 const getAllAreas = async (req, res, next) => {
   try {
     // * Consulta SQL con JOIN para traer áreas y sus relaciones
@@ -31,7 +32,7 @@ const getAllAreas = async (req, res, next) => {
     const areas = await query(sql);
     res.status(200).json(areas);
   } catch (error) {
-    // ! Si hay error, lo paso al middleware global
+    // * Si ocurre un error, lo paso al middleware global para manejo centralizado
     console.error('Error al obtener todas las áreas:', error);
     next(error);
   }
@@ -66,6 +67,7 @@ const getAreaById = async (req, res, next) => {
       res.status(200).json(areas[0]);
     }
   } catch (error) {
+    // * Si ocurre un error, lo paso al middleware global para manejo centralizado
     console.error(`Error al obtener área con ID ${req.params.id}:`, error);
     next(error);
   }
@@ -75,11 +77,11 @@ const getAreaById = async (req, res, next) => {
 const createArea = async (req, res, next) => {
   try {
     const { nombre, id_sucursal, id_status } = req.body;
-    // * Validación de campos obligatorios
+    // * Validación de campos obligatorios (nombre e id_sucursal)
     if (!nombre || id_sucursal === undefined) {
       return res.status(400).json({ message: 'Los campos nombre e id_sucursal son obligatorios.' });
     }
-    // * Validar existencia de sucursal y obtener su tipo
+    // * Validar existencia de sucursal y que sea de tipo 'Corporativo'
     const sucursalResult = await query('SELECT id, id_tipo_sucursal FROM sucursales WHERE id = ?', [id_sucursal]);
     if (sucursalResult.length === 0) {
       return res.status(400).json({ message: `El ID de sucursal ${id_sucursal} no es válido.` });
@@ -103,7 +105,7 @@ const createArea = async (req, res, next) => {
         return res.status(400).json({ message: `El ID de status ${id_status} no es válido.` });
       }
     }
-    // * Construcción dinámica de la consulta
+    // * Construcción dinámica de la consulta para insertar solo los campos presentes
     let sql = 'INSERT INTO areas (nombre, id_sucursal';
     let placeholders = ['?', '?'];
     const values = [nombre, id_sucursal];
@@ -122,6 +124,7 @@ const createArea = async (req, res, next) => {
       id_sucursal: id_sucursal
     });
   } catch (error) {
+    // * Si ocurre un error, lo paso al middleware global para manejo centralizado
     console.error('Error al crear área:', error);
     if (error.code === 'ER_DUP_ENTRY') {
       res.status(409).json({
@@ -200,6 +203,7 @@ const updateArea = async (req, res, next) => {
       res.status(200).json({ message: `Área con ID ${id} actualizada exitosamente.` });
     }
   } catch (error) {
+    // * Si ocurre un error, lo paso al middleware global para manejo centralizado
     console.error(`Error al actualizar área con ID ${req.params.id}:`, error);
     if (error.code === 'ER_DUP_ENTRY') {
       res.status(409).json({
@@ -225,6 +229,7 @@ const deleteArea = async (req, res, next) => {
       res.status(200).json({ message: `Área con ID ${id} eliminada exitosamente.` });
     }
   } catch (error) {
+    // * Si ocurre un error, lo paso al middleware global para manejo centralizado
     console.error(`Error al eliminar área con ID ${req.params.id}:`, error);
     if (error.code === 'ER_ROW_IS_REFERENCED_2') {
       res.status(409).json({

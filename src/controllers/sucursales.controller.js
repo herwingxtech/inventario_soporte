@@ -1,13 +1,15 @@
 // ! Controlador para la entidad Sucursales
+// * Aquí gestiono todo lo relacionado con sucursales: creación, consulta, actualización y eliminación.
+// * Incluye validaciones de negocio y relaciones con empresas, tipos y status.
 
-// * Importo la función query para ejecutar consultas a la base de datos
+// * Importo la función query para ejecutar consultas a la base de datos personalizada.
 const { query } = require('../config/db');
 
 // ===============================================================
 // * Funciones controladoras para cada endpoint de sucursales
 // ===============================================================
 
-// * [GET] /api/sucursales - Trae todas las sucursales (con nombres de empresa, tipo y status)
+// * [GET] /api/sucursales - Trae todas las sucursales con información de empresa, tipo y status
 const getAllSucursales = async (req, res, next) => {
   try {
     // * Consulta SQL con JOIN para traer sucursales y sus relaciones
@@ -33,7 +35,7 @@ const getAllSucursales = async (req, res, next) => {
     const sucursales = await query(sql);
     res.status(200).json(sucursales);
   } catch (error) {
-    // ! Si hay error, lo paso al middleware global
+    // * Si ocurre un error, lo paso al middleware global para manejo centralizado
     console.error('Error al obtener todas las sucursales:', error);
     next(error);
   }
@@ -71,6 +73,7 @@ const getSucursalById = async (req, res, next) => {
       res.status(200).json(sucursales[0]);
     }
   } catch (error) {
+    // * Si ocurre un error, lo paso al middleware global para manejo centralizado
     console.error(`Error al obtener sucursal con ID ${req.params.id}:`, error);
     next(error);
   }
@@ -80,7 +83,7 @@ const getSucursalById = async (req, res, next) => {
 const createSucursal = async (req, res, next) => {
   try {
     const { nombre, direccion, numero_telefono, id_empresa, id_tipo_sucursal, id_status } = req.body;
-    // * Validación de campos obligatorios
+    // * Validación de campos obligatorios (nombre, id_empresa, id_tipo_sucursal)
     if (!nombre || id_empresa === undefined || id_tipo_sucursal === undefined) {
       return res.status(400).json({ message: 'Los campos nombre, id_empresa e id_tipo_sucursal son obligatorios.' });
     }
@@ -101,7 +104,7 @@ const createSucursal = async (req, res, next) => {
         return res.status(400).json({ message: `El ID de status ${id_status} no es válido.` });
       }
     }
-    // * Construcción dinámica de la consulta
+    // * Construcción dinámica de la consulta para insertar solo los campos presentes
     let sql = 'INSERT INTO sucursales (nombre, id_empresa, id_tipo_sucursal';
     let placeholders = ['?', '?', '?'];
     const values = [nombre, id_empresa, id_tipo_sucursal];
@@ -131,6 +134,7 @@ const createSucursal = async (req, res, next) => {
       id_tipo_sucursal: id_tipo_sucursal
     });
   } catch (error) {
+    // * Si ocurre un error, lo paso al middleware global para manejo centralizado
     console.error('Error al crear sucursal:', error);
     if (error.code === 'ER_DUP_ENTRY') {
       res.status(409).json({
@@ -207,6 +211,7 @@ const updateSucursal = async (req, res, next) => {
       res.status(200).json({ message: `Sucursal con ID ${id} actualizada exitosamente.` });
     }
   } catch (error) {
+    // * Si ocurre un error, lo paso al middleware global para manejo centralizado
     console.error(`Error al actualizar sucursal con ID ${req.params.id}:`, error);
     if (error.code === 'ER_DUP_ENTRY') {
       res.status(409).json({
@@ -232,6 +237,7 @@ const deleteSucursal = async (req, res, next) => {
       res.status(200).json({ message: `Sucursal con ID ${id} eliminada exitosamente.` });
     }
   } catch (error) {
+    // * Si ocurre un error, lo paso al middleware global para manejo centralizado
     console.error(`Error al eliminar sucursal con ID ${req.params.id}:`, error);
     if (error.code === 'ER_ROW_IS_REFERENCED_2') {
       res.status(409).json({

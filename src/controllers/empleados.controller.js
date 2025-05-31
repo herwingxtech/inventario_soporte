@@ -1,5 +1,7 @@
 // src/controllers/empleados.controller.js
 // ! Controlador para la entidad Empleados
+// * Aquí gestiono todo lo relacionado con empleados: creación, consulta, actualización y eliminación.
+// * Incluye validaciones de negocio y relaciones con sucursales, áreas y status.
 
 // * Importo la función query para ejecutar consultas a la base de datos
 const { query } = require('../config/db');
@@ -8,7 +10,7 @@ const { query } = require('../config/db');
 // * Funciones controladoras para cada endpoint de empleados
 // ===============================================================
 
-// * [GET] /api/empleados - Trae todos los empleados (con nombres de sucursal, área y status)
+// * [GET] /api/empleados - Trae todos los empleados con información de sucursal, área y status (pueden ser NULL)
 const getAllEmpleados = async (req, res, next) => {
   try {
     // * Consulta SQL con LEFT JOIN para traer empleados y sus relaciones (sucursal y área pueden ser NULL)
@@ -39,7 +41,7 @@ const getAllEmpleados = async (req, res, next) => {
     const empleados = await query(sql);
     res.status(200).json(empleados);
   } catch (error) {
-    // ! Si hay error, lo paso al middleware global
+    // * Si ocurre un error, lo paso al middleware global para manejo centralizado
     console.error('Error al obtener todos los empleados:', error);
     next(error);
   }
@@ -82,6 +84,7 @@ const getEmpleadoById = async (req, res, next) => {
       res.status(200).json(empleados[0]);
     }
   } catch (error) {
+    // * Si ocurre un error, lo paso al middleware global para manejo centralizado
     console.error(`Error al obtener empleado con ID ${req.params.id}:`, error);
     next(error);
   }
@@ -95,7 +98,7 @@ const createEmpleado = async (req, res, next) => {
       telefono, puesto, fecha_nacimiento, fecha_ingreso,
       id_sucursal, id_area, id_status
     } = req.body;
-    // * Validación de campos obligatorios
+    // * Validación de campos obligatorios (nombres y apellidos)
     if (!nombres || !apellidos) {
       return res.status(400).json({ message: 'Los campos nombres y apellidos son obligatorios.' });
     }
@@ -110,7 +113,7 @@ const createEmpleado = async (req, res, next) => {
         return res.status(400).json({ message: 'El formato del campo email_personal no es válido.' });
       }
     }
-    // * Validar formato de fechas si se proporcionan
+    // * Validar formato de fechas si se proporcionan (YYYY-MM-DD)
     if (fecha_nacimiento !== undefined && fecha_nacimiento !== null && fecha_nacimiento.trim() !== '') {
       if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha_nacimiento)) {
         return res.status(400).json({ message: 'El formato de fecha_nacimiento debe ser YYYY-MM-DD.' });
@@ -144,7 +147,7 @@ const createEmpleado = async (req, res, next) => {
     } else if (id_status === null) {
       return res.status(400).json({ message: 'El campo id_status no puede ser nulo.' });
     }
-    // * Construcción dinámica de la consulta
+    // * Construcción dinámica de la consulta para insertar solo los campos presentes
     let sql = 'INSERT INTO empleados (nombres, apellidos';
     const values = [nombres, apellidos];
     const placeholders = ['?', '?'];
@@ -218,7 +221,7 @@ const updateEmpleado = async (req, res, next) => {
         return res.status(400).json({ message: `El ID de status ${id_status} no es válido.` });
       }
     }
-    // * Construcción dinámica de la consulta
+    // * Construcción dinámica de la consulta para actualizar solo los campos presentes
     let sql = 'UPDATE empleados SET ';
     const params = [];
     const updates = [];

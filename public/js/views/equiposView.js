@@ -1,58 +1,59 @@
-// public/js/views/equiposView.js
 // ! Vista de listado de equipos
-// * Aquí gestiono la lógica de renderizado, eventos y consumo de API para la tabla de equipos.
-// * Los TODO son recordatorios personales para refactorizar o mejorar la UX/UI.
+// * Si la API cambia, revisa los headers y los nombres de las propiedades. Si la UX se siente lenta, revisa el renderizado de la tabla.
+// * Consejo: Si agregas más columnas o cambias la estructura de equipos, actualiza el array 'headers'.
+// * ADVERTENCIA: No olvides manejar los errores de red, especialmente si el backend está caído o el equipo tiene asignaciones activas.
+// * Si la tabla crece mucho, considera paginación o virtualización para no saturar el DOM.
+// * Aquí gestiono la lógica de renderizado, eventos y consumo de API para la tabla de equipos. Los TODO son recordatorios personales para refactorizar o mejorar la UX/UI.
 
-// Importamos las funciones de la API que necesitamos.
+// * Importo las funciones de la API que necesito para obtener y eliminar equipos.
 import { getEquipos, deleteEquipo } from '../api.js';
-// Importamos funciones genéricas para manipulación del DOM/UI.
-// TODO: Crear dom.js si decides centralizar (por ahora, usamos IDs directos y console.log).
-// import { showLoading, showError, clearContent } from '../dom.js';
-// Importamos funciones para renderizar elementos UI.
-// TODO: Crear render.js si decides centralizar (por ahora, la lógica de tabla está aquí).
-// import { renderTable } from '../render.js';
 
 
 // ===============================================================
-// ELEMENTOS DEL DOM RELACIONADOS CON ESTA VISTA
+// * ELEMENTOS DEL DOM RELACIONADOS CON ESTA VISTA
+// * Referencia al área principal donde se renderiza la tabla y mensajes.
 // ===============================================================
-const contentArea = document.getElementById('content-area'); // El contenedor principal.
+const contentArea = document.getElementById('content-area');
 
 
 // ===============================================================
-// FUNCIONES DE RENDERIZADO ESPECÍFICAS DE ESTA VISTA
+// * FUNCIONES DE RENDERIZADO ESPECÍFICAS DE ESTA VISTA
+// * Funciones para mostrar estado (carga, error) y renderizar la tabla de datos.
 // ===============================================================
 
-// Función para mostrar un mensaje de carga específico para esta vista.
 function showEquiposLoading() {
+    // * Muestra mensaje de carga en el área principal de equipos.
     contentArea.innerHTML = '<p>Cargando lista de equipos...</p>';
 }
 
-// Función para mostrar un mensaje de error específico para esta vista.
 function showEquiposError(message) {
+    // ! Error al cargar equipos, se muestra mensaje destacado al usuario.
     contentArea.innerHTML = `<p class="text-red-500 font-bold">Error al cargar equipos:</p><p class="text-red-500">${message}</p>`;
 }
 
-// Función para renderizar una lista de equipos en una tabla HTML en el contentArea.
-// Esta lógica estaba antes en main.js.
+// * Renderiza la lista de equipos en una tabla HTML. Incluye lógica para mostrar N/A y botones de acción.
 function renderEquiposTable(equipos) {
-    contentArea.innerHTML = ''; // Limpia el contenido anterior.
+    // * Limpia el contenido anterior antes de renderizar la tabla.
+    contentArea.innerHTML = '';
 
     if (!equipos || equipos.length === 0) {
+        // ! No hay equipos registrados en la base de datos.
         contentArea.innerHTML = '<p>No hay equipos registrados en el inventario.</p>';
         return;
     }
 
+    // * Crea el elemento tabla y le añade clases de estilo.
     const table = document.createElement('table');
-    table.classList.add('min-w-full', 'bg-white', 'border', 'border-gray-200', 'shadow-md', 'rounded-lg', 'overflow-hidden'); // Más estilos Tailwind
+    table.classList.add('min-w-full', 'bg-white', 'border', 'border-gray-200', 'shadow-md', 'rounded-lg', 'overflow-hidden');
 
+    // * Crea la cabecera de la tabla y le añade clases de estilo.
     const thead = document.createElement('thead');
     thead.classList.add('bg-gray-200', 'text-gray-600', 'uppercase', 'text-sm', 'leading-normal');
     const headerRow = document.createElement('tr');
 
-    // Define las columnas (Texto visible, Nombre de la propiedad en los datos)
+    // * Define las columnas de la cabecera (Texto visible, Nombre de la propiedad en los datos).
     const headers = [
-        { text: 'ID', prop: 'id' }, // Añadimos ID para referencia
+        { text: 'ID', prop: 'id' },
         { text: 'Número Serie', prop: 'numero_serie' },
         { text: 'Nombre Equipo', prop: 'nombre_equipo' },
         { text: 'Tipo', prop: 'nombre_tipo_equipo' },
@@ -63,142 +64,134 @@ function renderEquiposTable(equipos) {
 
     headers.forEach(header => {
         const th = document.createElement('th');
-         th.classList.add('py-3', 'px-6', 'text-left', 'border-b', 'border-gray-200');
-         // Alinear texto en acciones a la derecha o centro si se prefiere
-         if (!header.prop) th.classList.add('text-center'); // Ejemplo: alinear acciones al centro
+        th.classList.add('py-3', 'px-6', 'text-left', 'border-b', 'border-gray-200');
+        // * Centra el texto en la columna de Acciones.
+        if (!header.prop) th.classList.add('text-center');
         th.textContent = header.text;
         headerRow.appendChild(th);
     });
-
     thead.appendChild(headerRow);
     table.appendChild(thead);
 
+    // * Crea el cuerpo de la tabla y le añade clases de estilo.
     const tbody = document.createElement('tbody');
     tbody.classList.add('text-gray-600', 'text-sm', 'font-light');
 
+    // * Itera sobre cada equipo para crear una fila en la tabla.
     equipos.forEach(equipo => {
         const row = document.createElement('tr');
         row.classList.add('border-b', 'border-gray-200', 'hover:bg-gray-100');
-         // Añadir data-id al tr para identificar la fila por ID de equipo (útil para eventos)
-         row.dataset.id = equipo.id;
+        // * Guarda el ID del equipo en el atributo data-id de la fila para referencia.
+        row.dataset.id = equipo.id;
 
+        // * Itera sobre las columnas para crear celdas en la fila.
         headers.forEach(header => {
             const td = document.createElement('td');
-             td.classList.add('py-3', 'px-6', 'text-left', 'whitespace-nowrap');
+            td.classList.add('py-3', 'px-6', 'text-left', 'whitespace-nowrap');
 
             if (header.prop) {
-                // Formateo básico para fechas si la propiedad es una fecha
+                // * Si la columna es fecha (basado en el nombre de la propiedad), muestra solo la parte de fecha.
                 if (header.prop.includes('fecha') && equipo[header.prop]) {
-                     // Asumiendo que las fechas de la DB vienen como strings o Date objects.
-                     // Si vienen como strings YYYY-MM-DDTHH:mm:ss.sssZ, puedes formatearlas.
-                     // Para simplicidad, mostraremos tal cual por ahora o formatearemos básico.
-                     // const date = new Date(equipo[header.prop]);
-                     // td.textContent = date.toLocaleDateString(); // Ejemplo: 22/7/2024
-                     td.textContent = equipo[header.prop].split('T')[0]; // Muestra solo YYYY-MM-DD si es un timestamp
+                    // TODO: Implementar un formateo de fechas más amigable si es necesario para el usuario final.
+                    td.textContent = equipo[header.prop].split('T')[0];
                 } else {
-                     td.textContent = equipo[header.prop] || 'N/A'; // Muestra N/A si es null/vacio.
+                    // * Muestra el valor de la propiedad o 'N/A' si es nulo/vacío.
+                    td.textContent = equipo[header.prop] || 'N/A';
                 }
-                 // Añadir clases para columnas específicas si se desea (ej: text-center para ID)
+                // * Centra el texto en la columna ID para destacarlo.
                 if (header.prop === 'id') td.classList.add('font-semibold', 'text-gray-800', 'text-center');
-
             } else {
-                // Columna de Acciones
+                // * Renderiza los botones de acción (Ver, Editar, Eliminar).
                 const actionsContainer = document.createElement('div');
-                actionsContainer.classList.add('flex', 'item-center', 'justify-center'); // Centrar botones
+                actionsContainer.classList.add('flex', 'item-center', 'justify-center');
 
-                // Botón Ver Detalles
+                // * Botón Ver Detalles del equipo. Implementación pendiente.
                 const viewButton = document.createElement('button');
-                 viewButton.classList.add('w-6', 'h-6', 'mr-2', 'transform', 'hover:text-blue-500', 'hover:scale-110'); // Cambiado color a azul
+                viewButton.classList.add('w-6', 'h-6', 'mr-2', 'transform', 'hover:text-blue-500', 'hover:scale-110');
                 viewButton.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>';
-                // Listener: Llamaremos a una función para mostrar detalles (a implementar después).
                 viewButton.addEventListener('click', () => {
+                    // TODO: Implementar la navegación a la vista de detalles del equipo con su ID.
                     console.log('Ver detalles de equipo con ID:', equipo.id);
-                    // TODO: Implementar la carga y renderizado de la vista de detalles del equipo
-                    // showEquipoDetails(equipo.id);
                 });
 
-                // Botón Editar
-                 const editButton = document.createElement('button');
-                 editButton.classList.add('w-6', 'h-6', 'mr-2', 'transform', 'hover:text-yellow-500', 'hover:scale-110');
+                // * Botón Editar equipo. Implementación pendiente.
+                const editButton = document.createElement('button');
+                editButton.classList.add('w-6', 'h-6', 'mr-2', 'transform', 'hover:text-yellow-500', 'hover:scale-110');
                 editButton.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>';
-                 // Listener: Llamaremos a una función para mostrar el formulario de edición (a implementar después).
                 editButton.addEventListener('click', () => {
-                     console.log('Editar equipo con ID:', equipo.id);
-                     // TODO: Implementar la carga y renderizado del formulario de edición del equipo
-                     // showEquipoForm(equipo.id); // Pasar ID para editar, o null/undefined para crear
-                 });
+                    // TODO: Implementar la navegación al formulario de edición del equipo con su ID.
+                    console.log('Editar equipo con ID:', equipo.id);
+                });
 
-
-                // Botón Eliminar
+                // * Botón Eliminar equipo. Muestra confirmación antes de llamar a la API.
                 const deleteButton = document.createElement('button');
                 deleteButton.classList.add('w-6', 'h-6', 'transform', 'hover:text-red-500', 'hover:scale-110');
                 deleteButton.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m14 0H5m2 0V5a2 2 0 012-2h6a2 2 0 012 2v2"></path></svg>';
-                // Listener: Manejamos la confirmación y la llamada a la API DELETE.
                 deleteButton.addEventListener('click', async () => {
-                    // TODO: Usar un modal de confirmación más elegante después.
+                    // ! Confirmación crítica: Asegurarse que el usuario realmente quiere eliminar.
                     if (confirm(`¿Estás seguro de eliminar el equipo con Número de Serie "${equipo.numero_serie}" (ID: ${equipo.id})?`)) {
-                         console.log('Confirmada eliminación para equipo con ID:', equipo.id);
                         try {
-                            // Llama a la función deleteEquipo de api.js
+                            // * Llama a la función de la API para eliminar el equipo.
                             await deleteEquipo(equipo.id);
-                            console.log('Equipo eliminado exitosamente:', equipo.id);
-                            // Opcional: Muestra un mensaje de éxito flotante.
-                            // window.showSuccessMessage('Equipo eliminado!');
-                            // Después de eliminar, volvemos a cargar la lista para reflejar el cambio.
-                            loadEquiposList(); // Llama a la función que carga la vista de lista.
-
+                            // * Recarga la lista de equipos tras eliminar para reflejar el cambio.
+                            loadEquiposList();
+                            // TODO: Mostrar un mensaje de éxito más amigable al usuario (ej. toast notification).
                         } catch (error) {
-                            // Maneja el error de la eliminación (ej. si tiene asignaciones activas).
-                            console.error('Error al eliminar equipo:', error);
-                             // Usa el mensaje del error (que ya viene formateado por api.js).
+                            // ! Error al eliminar equipo. Muestra mensaje de error al usuario.
                             alert('Error al eliminar el equipo: ' + error.message);
                         }
                     }
                 });
 
-                // Añade los botones al contenedor de acciones.
+                // * Agrega los botones de acción al contenedor.
                 actionsContainer.appendChild(viewButton);
                 actionsContainer.appendChild(editButton);
                 actionsContainer.appendChild(deleteButton);
                 td.appendChild(actionsContainer);
             }
 
-            row.appendChild(td); // Añade la celda a la fila.
+            // * Agrega la celda a la fila.
+            row.appendChild(td);
         });
 
-        tbody.appendChild(row); // Añade la fila al cuerpo de la tabla.
+        // * Agrega la fila al cuerpo de la tabla.
+        tbody.appendChild(row);
     });
 
-    table.appendChild(tbody); // Añade el cuerpo a la tabla.
+    // * Agrega el cuerpo a la tabla.
+    table.appendChild(tbody);
 
-    // Agrega la tabla al área de contenido principal.
+    // * Agrega la tabla al área de contenido principal del DOM.
     contentArea.appendChild(table);
 
+    // * Log de confirmación de renderizado.
     console.log('Tabla de equipos renderizada.');
 }
 
 // ===============================================================
-// FUNCIÓN PRINCIPAL DE CARGA DE LA VISTA (Para ser llamada por main.js o navegación)
-// Orquesta la obtención de datos y el renderizado para la lista de equipos.
+// * FUNCIÓN PRINCIPAL DE CARGA DE LA VISTA
+// * Orquesta la obtención de datos de la API y el renderizado de la lista de equipos.
 // ===============================================================
 
 async function loadEquiposList() {
-     console.log('Cargando vista de lista de equipos...');
-    showEquiposLoading(); // Muestra carga.
+    // * Muestra mensaje de carga y luego intenta obtener los datos y renderizar.
+    console.log('Cargando vista de lista de equipos...');
+    showEquiposLoading();
     try {
-        // Llama a la función de la API para obtener los datos.
+        // * Llama a la función de la API para obtener los datos de los equipos.
         const equipos = await getEquipos();
-        // Si tiene éxito, renderiza la tabla.
+        // * Si tiene éxito, renderiza la tabla con los datos obtenidos.
         renderEquiposTable(equipos);
     } catch (error) {
-        // Si hay un error, muestra el mensaje de error.
+        // ! Error al cargar la lista de equipos. Muestra mensaje de error al usuario.
         showEquiposError(error.message);
+        // TODO: Implementar un manejo de errores más robusto en el frontend (ej. reintentos, fallback UI).
     }
 }
 
 
 // ===============================================================
-// EXPORTAR FUNCIONES DE LA VISTA
-// Exportamos las funciones que otros módulos podrían necesitar llamar (ej. desde la navegación en main.js).
+// * EXPORTAR FUNCIONES DE LA VISTA
+// * Exporto la función principal loadEquiposList para que pueda ser llamada desde el módulo de navegación (main.js).
 // ===============================================================
 export { loadEquiposList };

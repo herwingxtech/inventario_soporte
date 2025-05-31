@@ -1,13 +1,15 @@
 // ! Controlador para la entidad Empresas
+// * Aquí gestiono todo lo relacionado con empresas: creación, consulta, actualización y eliminación.
+// * Incluye validaciones de negocio y relaciones con status.
 
-// * Importo la función query para ejecutar consultas a la base de datos
+// * Importo la función query para ejecutar consultas a la base de datos personalizada.
 const { query } = require('../config/db');
 
 // ===============================================================
 // * Funciones controladoras para cada endpoint de empresas
 // ===============================================================
 
-// * [GET] /api/empresas - Trae todas las empresas (con nombre de status)
+// * [GET] /api/empresas - Trae todas las empresas con información de status legible
 const getAllEmpresas = async (req, res, next) => {
   try {
     // * Consulta SQL con JOIN para traer empresas y su status legible
@@ -25,7 +27,7 @@ const getAllEmpresas = async (req, res, next) => {
     const empresas = await query(sql);
     res.status(200).json(empresas);
   } catch (error) {
-    // ! Si hay error, lo paso al middleware global
+    // * Si ocurre un error, lo paso al middleware global para manejo centralizado
     console.error('Error al obtener todas las empresas:', error);
     next(error);
   }
@@ -55,6 +57,7 @@ const getEmpresaById = async (req, res, next) => {
       res.status(200).json(empresas[0]);
     }
   } catch (error) {
+    // * Si ocurre un error, lo paso al middleware global para manejo centralizado
     console.error(`Error al obtener empresa con ID ${req.params.id}:`, error);
     next(error);
   }
@@ -75,7 +78,7 @@ const createEmpresa = async (req, res, next) => {
         return res.status(400).json({ message: `El ID de status ${id_status} no es válido.` });
       }
     }
-    // * Construcción dinámica de la consulta
+    // * Construcción dinámica de la consulta para insertar solo los campos presentes
     let sql = 'INSERT INTO empresas (nombre';
     let values = [nombre];
     let placeholders = ['?'];
@@ -93,6 +96,7 @@ const createEmpresa = async (req, res, next) => {
       nombre: nombre
     });
   } catch (error) {
+    // * Si ocurre un error, lo paso al middleware global para manejo centralizado
     console.error('Error al crear empresa:', error);
     if (error.code === 'ER_DUP_ENTRY') {
       res.status(409).json({
@@ -141,6 +145,7 @@ const updateEmpresa = async (req, res, next) => {
       res.status(200).json({ message: `Empresa con ID ${id} actualizada exitosamente.` });
     }
   } catch (error) {
+    // * Si ocurre un error, lo paso al middleware global para manejo centralizado
     console.error(`Error al actualizar empresa con ID ${req.params.id}:`, error);
     if (error.code === 'ER_DUP_ENTRY') {
       res.status(409).json({
@@ -166,6 +171,7 @@ const deleteEmpresa = async (req, res, next) => {
       res.status(200).json({ message: `Empresa con ID ${id} eliminada exitosamente.` });
     }
   } catch (error) {
+    // * Si ocurre un error, lo paso al middleware global para manejo centralizado
     console.error(`Error al eliminar empresa con ID ${req.params.id}:`, error);
     if (error.code === 'ER_ROW_IS_REFERENCED_2') {
       res.status(409).json({

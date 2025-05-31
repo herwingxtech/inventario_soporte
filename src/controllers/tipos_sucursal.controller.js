@@ -1,7 +1,7 @@
 // ! Controlador para la entidad Tipos de Sucursal
-// * Catálogo para diferenciar sucursales (ej: Corporativo, Tienda)
+// * Aquí gestiono el catálogo de tipos de sucursal (ej: Corporativo, Tienda). Incluye validaciones y operaciones CRUD.
 
-// * Importo la función query para ejecutar consultas a la base de datos
+// * Importo la función query para ejecutar consultas a la base de datos personalizada.
 const { query } = require('../config/db');
 
 // ===============================================================
@@ -12,6 +12,7 @@ const { query } = require('../config/db');
 const getAllTiposSucursal = async (req, res, next) => {
   try {
     // * Consulta SQL para traer todos los tipos de sucursal
+    // * Si ocurre un error, lo paso al middleware global para manejo centralizado
     const sql = 'SELECT id, nombre_tipo, descripcion FROM tipos_sucursal';
     const tipos = await query(sql);
     res.status(200).json(tipos);

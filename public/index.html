@@ -4,94 +4,64 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventario IT - Inicio</title>
-    <!--===============================================================-->
-    <!-- Integración de Tailwind CSS desde CDN -->
-    <!-- Para desarrollo rápido. Para producción, usa el proceso de build recomendado. -->
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <!--===============================================================-->
-
-    <!-- Enlace a tu archivo CSS personalizado (opcional) -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">>
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body class="bg-gray-100 font-sans">
-    <!--===============================================================-->
-    <!-- Encabezado/Navbar -->
     <header class="bg-blue-600 text-white p-4 shadow-md">
         <div class="container mx-auto flex justify-between items-center">
-            <!-- Título del sitio con un data-view para ir a home al hacer clic -->
-            <!-- Añadimos cursor-pointer para indicar que es clickeable -->
             <h1 class="text-2xl font-bold cursor-pointer" data-view="home">Inventario LDS</h1>
-
-            <!-- Menú de navegación (Versión escritorio) -->
             <nav class="hidden md:flex space-x-4">
-                <!-- Añadimos data-view a los enlaces para indicar la vista a cargar -->
                 <a href="#" class="hover:underline" data-view="equiposList">Equipos</a>
                 <a href="#" class="hover:underline" data-view="empleadosList">Empleados</a>
                 <a href="#" class="hover:underline" data-view="asignacionesList">Asignaciones</a>
                 <a href="#" class="hover:underline" data-view="usuariosList">Usuarios</a>
-                <!-- TODO: Añadir enlaces para otras vistas (IPs, Emails, Mantenimientos, Notas) con sus data-view -->
                 <a href="#" class="hover:underline" data-view="direccionesIpList">Direcciones IP</a>
-                 <a href="#" class="hover:underline" data-view="cuentasEmailList">Cuentas Email</a>
-                 <a href="#" class="hover:underline" data-view="mantenimientosList">Mantenimientos</a>
-                 <a href="#" class="hover:underline" data-view="notasList">Notas</a>
-
-
-                <span class="text-blue-200">|</span> <!-- Separador simple -->
-                 <!-- Nombre de usuario logueado / Perfil (placeholder) -->
-                 <!-- TODO: Implementar lógica real de autenticación y nombre de usuario -->
-                 <a href="#" class="hover:underline" data-view="profile">Herwing Eduardo (Admin)</a>
-                 <!-- TODO: Implementar lógica de logout -->
-                 <button class="hover:underline" data-action="logout">Salir</button>
+                <a href="#" class="hover:underline" data-view="cuentasEmailList">Cuentas Email</a>
+                <a href="#" class="hover:underline" data-view="mantenimientosList">Mantenimientos</a>
+                <a href="#" class="hover:underline" data-view="notasList">Notas</a>
+                <span class="text-blue-200">|</span>
+                <!-- TODO: Implementar lógica real de autenticación y nombre de usuario -->
+                <a href="#" class="hover:underline" data-view="profile">Herwing Eduardo (Admin)</a>
+                <!-- TODO: Implementar lógica de logout -->
+                <button class="hover:underline" data-action="logout">Salir</button>
             </nav>
 
-            <!-- Botón de menú hamburguesa (Versión móvil) -->
+            <!-- Botón de menú hamburguesa -->
             <div class="md:hidden">
                 <button id="hamburger-button" class="text-white focus:outline-none">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-4 6h4"></path></svg>
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16m-4 6h4"></path>
+                    </svg>
                 </button>
             </div>
         </div>
     </header>
-
-    <!-- Menú desplegable móvil (Inicialmente oculto) -->
-    <div id="mobile-menu" class="md:hidden bg-blue-700 text-white text-center transition-all duration-300 ease-in-out max-h-0 overflow-hidden">
-        <!-- Añadimos data-view a los enlaces móviles -->
+    <!-- Menú desplegable móvil  -->
+    <div id="mobile-menu"
+        class="md:hidden bg-blue-700 text-white text-center transition-all duration-300 ease-in-out max-h-0 overflow-hidden">
         <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="equiposList">Equipos</a>
         <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="empleadosList">Empleados</a>
         <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="asignacionesList">Asignaciones</a>
         <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="usuariosList">Usuarios</a>
-        <!-- TODO: Añadir enlaces para otras vistas en móvil -->
-         <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="direccionesIpList">Direcciones IP</a>
-         <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="cuentasEmailList">Cuentas Email</a>
-         <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="mantenimientosList">Mantenimientos</a>
-         <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="notasList">Notas</a>
-
-        <!-- Enlace de perfil y botón de salir en móvil -->
-        <a href="#" class="block py-2 px-4 hover:bg-blue-800 mt-2 border-t border-blue-600" data-view="profile">Herwing Eduardo (Admin)</a>
+        <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="direccionesIpList">Direcciones IP</a>
+        <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="cuentasEmailList">Cuentas Email</a>
+        <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="mantenimientosList">Mantenimientos</a>
+        <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="notasList">Notas</a>
+        <a href="#" class="block py-2 px-4 hover:bg-blue-800 mt-2 border-t border-blue-600" data-view="profile">Herwing
+            Eduardo (Admin)</a>
         <button class="block w-full text-left py-2 px-4 hover:bg-blue-800" data-action="logout">Salir</button>
     </div>
-
-
-    <!--===============================================================-->
-    <!-- Contenido principal -->
     <main class="container mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
-        <!-- El contenido dinámico de las vistas se cargará aquí -->
         <div id="content-area" class="mt-6">
-   
+
         </div>
     </main>
-
-
-    <!--===============================================================-->
-    <!-- Pie de página -->
     <footer class="mt-8 p-4 text-center text-gray-600 text-sm">
         <p>© 2025 Inventario LDS. Todos los derechos reservados.</p>
     </footer>
-
-    <!--===============================================================-->
-    <!-- Enlace a tu archivo JavaScript principal como módulo -->
     <script src="/js/main.js" type="module"></script>
-    <!--===============================================================-->
-
 </body>
 </html>
