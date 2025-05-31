@@ -1,18 +1,17 @@
 // src/controllers/asignaciones.controller.js
-// Controlador para manejar las operaciones CRUD de la entidad Asignaciones.
-// Esta tabla es el corazón del inventario, relacionando equipos con sus ubicaciones, personas, IPs, etc.
-// Incluye validaciones de reglas de negocio clave para asignaciones activas.
+// ! Controlador para la entidad Asignaciones
+// * Aquí gestiono la relación entre equipos, ubicaciones, personas, IPs, etc. Incluye validaciones de negocio y reglas de integridad.
+// * Esta tabla es el corazón del inventario, relacionando equipos con sus ubicaciones, personas, IPs, etc.
+// * Incluye validaciones de reglas de negocio clave para asignaciones activas.
 
 const { query } = require('../config/db'); // Importamos la función de consulta DB.
 
 // ===============================================================
-// FUNCIONES DE VALIDACIÓN (Ayuda a mantener el código limpio)
-// ===============================================================
-
-// Reutilizamos la función de validación de fecha y hora YYYY-MM-DD HH:mm:ss.
-// Valida formato básico YYYY-MM-DD o YYYY-MM-DD HH:mm:ss y si es una fecha real.
+// * Función de ayuda para validar formato de fecha y hora (YYYY-MM-DD o YYYY-MM-DD HH:mm:ss)
+// * Devuelve true si el string coincide con el formato y es una fecha real válida.
 function isValidDateTime(dateTimeString) {
-    if (!dateTimeString) return true; // Permitir null/vacío si el campo no es obligatorio.
+    // * Permito null/vacío si el campo no es obligatorio.
+    if (!dateTimeString) return true;
 
     const regex = /^\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?$/;
     if (!regex.test(dateTimeString)) return false;
@@ -20,32 +19,30 @@ function isValidDateTime(dateTimeString) {
     const date = new Date(dateTimeString);
     if (isNaN(date.getTime())) return false; // Es 'Invalid Date'.
 
-    // Si es solo fecha (YYYY-MM-DD), validamos componentes UTC.
+    // * Si es solo fecha (YYYY-MM-DD), validamos componentes UTC.
      if (/^\d{4}-\d{2}-\d{2}$/.test(dateTimeString)) {
          const [year, month, day] = dateTimeString.split('-').map(Number);
          return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
      }
 
-    // Si es fecha+hora, confiamos en que Date() lo parseó bien si no fue Invalid Date.
+    // * Si es fecha+hora, confío en que Date() lo parseó bien si no fue Invalid Date.
     return true;
 }
 
 
 // ===============================================================
-// FUNCIONES CONTROLADORAS
+// * Funciones controladoras para cada endpoint de asignaciones
 // ===============================================================
 
 // [GET] /api/asignaciones
-// Obtiene y devuelve todos los registros de la tabla 'asignaciones'.
-// Incluye detalles básicos de las entidades asociadas.
-// Puede aceptar query params para filtrar (ej. ?id_equipo=X, ?empleado_id=Y, ?activa=true).
+// * Trae todas las asignaciones, permite filtrar por query params
 const getAllAsignaciones = async (req, res, next) => { // 'next' para manejo de errores.
   try {
-    // Obtener posibles parámetros de filtrado de la query string.
+    // * Extraigo posibles filtros de la query string (equipo, empleado, sucursal, área, IP, activa)
     // Usamos nombres más amigables para los query params (ej: equipoId en lugar de id_equipo).
     const { equipoId, empleadoId, activa, sucursalId, areaId, ipId } = req.query; // Añadidos filtros por sucursal, area, ip.
 
-    // Consulta SQL base con LEFT JOINs.
+    // * Construyo la consulta SQL base con LEFT JOINs para traer toda la info relevante
     const sqlBase = `
       SELECT
         a.id,
@@ -81,7 +78,7 @@ const getAllAsignaciones = async (req, res, next) => { // 'next' para manejo de 
       JOIN status AS st ON a.id_status_asignacion = st.id -- INNER JOIN.
     `;
 
-    // Construir cláusula WHERE y parámetros dinámicamente basados en query params.
+    // * Construyo cláusulas WHERE dinámicamente según los filtros
     const whereClauses = [];
     const params = [];
 
@@ -105,7 +102,7 @@ const getAllAsignaciones = async (req, res, next) => { // 'next' para manejo de 
          whereClauses.push('a.id_ip = ?');
          params.push(ipId);
      }
-     // Filtrar por asignaciones activas ('true') o históricas ('false')
+    // Filtrar por asignaciones activas ('true') o históricas ('false')
     if (activa !== undefined) {
         if (activa === 'true') {
              whereClauses.push('a.fecha_fin_asignacion IS NULL');
@@ -115,32 +112,32 @@ const getAllAsignaciones = async (req, res, next) => { // 'next' para manejo de 
         // Si activa no es 'true' ni 'false', no añadimos filtro, mostramos todas.
     }
 
-    // Unir cláusulas WHERE si existen.
+    // * Unir cláusulas WHERE si existen.
     const sql = whereClauses.length > 0
       ? `${sqlBase} WHERE ${whereClauses.join(' AND ')}`
       : sqlBase;
 
-    // Ejecutamos la consulta.
+    // * Ejecuto la consulta y devuelvo el resultado
     const asignaciones = await query(sql, params);
 
-    // Enviamos la lista de asignaciones como respuesta JSON (200 OK).
+    // * Enviamos la lista de asignaciones como respuesta JSON (200 OK).
     res.status(200).json(asignaciones);
 
   } catch (error) {
+    // ! Si hay error, lo paso al middleware global
     console.error('Error al obtener todos los registros de asignación:', error);
     next(error); // Pasar error al middleware global.
   }
 };
 
 // [GET] /api/asignaciones/:id
-// Obtiene y devuelve un registro de asignación específico por su ID.
-// Incluye detalles de entidades asociadas.
+// * Trae una asignación específica por su ID (con relaciones)
 const getAsignacionById = async (req, res, next) => { // Añadimos 'next'.
   try {
-    // Obtenemos el ID de la asignación.
+    // * Extraigo el ID desde los parámetros de la URL
     const { id } = req.params;
 
-    // Consulta SQL para seleccionar una asignación por ID con LEFT JOINs.
+    // * Consulta SQL con JOINs para traer la asignación y sus relaciones
     const sql = `
       SELECT
         a.id,
@@ -189,25 +186,24 @@ const getAsignacionById = async (req, res, next) => { // Añadimos 'next'.
     }
 
   } catch (error) {
+    // ! Si hay error, lo paso al middleware global
     console.error(`Error al obtener registro de asignación con ID ${req.params.id}:`, error);
     next(error); // Pasar error al manejador global.
   }
 };
 
 // [POST] /api/asignaciones
-// Crea un nuevo registro en la tabla 'asignaciones'.
-// Implementa validaciones de reglas de negocio para asignaciones activas.
+// * Crea una nueva asignación con validaciones de negocio
 const createAsignacion = async (req, res, next) => { // Añadimos 'next'.
   try {
-    // Obtenemos los datos del body. id_equipo y fecha_asignacion son obligatorios.
-    // Los demás son opcionales (id_status_asignacion tiene DEFAULT 1).
+    // * Extraigo los datos del body. Algunos campos son obligatorios, otros opcionales.
     const {
         id_equipo, id_empleado, id_sucursal_asignado, id_area_asignado,
         id_equipo_padre, id_ip, fecha_asignacion, fecha_fin_asignacion,
         observacion, id_status_asignacion
     } = req.body;
 
-    // === Validaciones Generales ===
+    // * Validaciones de campos obligatorios y formatos
     // Validar campos obligatorios.
     if (id_equipo === undefined || id_equipo === null || !fecha_asignacion) {
       return res.status(400).json({ message: 'Los campos id_equipo y fecha_asignacion son obligatorios.' });
@@ -235,10 +231,12 @@ const createAsignacion = async (req, res, next) => { // Añadimos 'next'.
      }
 
 
+    // * Valido reglas de negocio para asignaciones activas
     // Determinar si la asignación que se está creando será ACTIVA.
     const isCreatingActiveAssignment = (fecha_fin_asignacion === undefined || fecha_fin_asignacion === null);
 
 
+    // * Valido existencia de FKs (equipo, empleado, sucursal, área, equipo padre, IP, status)
     // === Regla de Negocio 1 (Modificada): Para asignaciones ACTIVAS, DEBE estar asociada AL MENOS a un Empleado, Sucursal, o Área. ===
     // Contamos cuántas de las FKs de ubicación/persona están presentes y no son nulas.
     const locationFks = [id_empleado, id_sucursal_asignado, id_area_asignado];
@@ -327,6 +325,7 @@ const createAsignacion = async (req, res, next) => { // Añadimos 'next'.
     // Si id_status_asignacion es undefined, la DB usa el DEFAULT (1).
 
 
+    // * Valido reglas de negocio para asignaciones ACTIVAS
     // === Regla de Negocio 3 y 4: Para asignaciones ACTIVAS, el EQUIPO y la IP (si se asigna) deben ser únicos en otras asignaciones ACTIVAS ===
     // Esta validación solo aplica si estamos creando una asignación ACTIVA.
     if (isCreatingActiveAssignment) {
@@ -359,7 +358,7 @@ const createAsignacion = async (req, res, next) => { // Añadimos 'next'.
     // Opcional: Actualizar el status del equipo o IP en sus tablas principales... (decidimos no hacerlo automáticamente por ahora)
 
 
-    // Consulta SQL para insertar. Construimos dinámicamente para campos opcionales.
+    // * Construyo la consulta SQL dinámicamente según los campos presentes
     // id_equipo y fecha_asignacion son los únicos campos base siempre requeridos en la sentencia INSERT.
     let sql = 'INSERT INTO asignaciones (id_equipo, fecha_asignacion';
     const values = [id_equipo, fecha_asignacion];
@@ -378,11 +377,11 @@ const createAsignacion = async (req, res, next) => { // Añadimos 'next'.
 
     sql += ') VALUES (' + placeholders.join(', ') + ')';
 
-    // Ejecutamos la consulta.
+    // * Ejecuto la consulta y devuelvo el resultado
     const result = await query(sql, values);
     const newAsignacionId = result.insertId; // ID del registro insertado.
 
-    // Enviamos respuesta de éxito (201 Created).
+    // * Enviamos respuesta de éxito (201 Created).
     res.status(201).json({
       message: 'Registro de asignación creado exitosamente',
       id: newAsignacionId,
@@ -392,6 +391,7 @@ const createAsignacion = async (req, res, next) => { // Añadimos 'next'.
     });
 
   } catch (error) {
+    // ! Si hay error, lo paso al middleware global
     console.error('Error al crear registro de asignación:', error);
     // === Manejo de Errores Específicos ===
     // Manejar error de duplicación de `id_ip` (el UNIQUE constraint general en la tabla).
@@ -411,12 +411,10 @@ const createAsignacion = async (req, res, next) => { // Añadimos 'next'.
 };
 
 // [PUT] /api/asignaciones/:id
-// Actualiza un registro existente en la tabla 'asignaciones' por su ID.
-// Permite finalizar una asignación (establecer fecha_fin_asignacion).
-// Implementa validaciones de reglas de negocio actualizadas con valores finales.
+// * Actualiza una asignación por su ID
 const updateAsignacion = async (req, res, next) => { // Añadimos 'next'.
   try {
-    // Obtenemos ID y datos del body.
+    // * Extraigo el ID y los datos a actualizar
     const { id } = req.params;
      const {
         id_equipo, id_empleado, id_sucursal_asignado, id_area_asignado,
@@ -424,7 +422,7 @@ const updateAsignacion = async (req, res, next) => { // Añadimos 'next'.
         observacion, id_status_asignacion
     } = req.body;
 
-    // === Validaciones Generales ===
+    // * Valido existencia de FKs si se actualizan
     // Validar si se envió al menos un campo para actualizar (excluyendo el ID).
     const updateFields = Object.keys(req.body);
     if (updateFields.length === 0) {
@@ -488,11 +486,11 @@ const updateAsignacion = async (req, res, next) => { // Añadimos 'next'.
     }
 
 
-    // Determinar si la asignación será ACTIVA después de la actualización.
+    // * Determinar si la asignación será ACTIVA después de la actualización.
     const isFinalAssignmentActive = (final_fecha_fin_asignacion === null);
 
 
-    // Regla de Negocio 1 (Actualizada): Para asignaciones ACTIVAS FINALES, DEBE estar asociada AL MENOS a un Empleado, Sucursal, o Área.
+    // * Regla de Negocio 1 (Actualizada): Para asignaciones ACTIVAS FINALES, DEBE estar asociada AL MENOS a un Empleado, Sucursal, o Área.
     const finalLocationFks = [final_id_empleado, final_id_sucursal_asignado, final_id_area_asignado];
     const finalNonNullLocationFks = finalLocationFks.filter(id => id !== null);
 
@@ -548,7 +546,7 @@ const updateAsignacion = async (req, res, next) => { // Añadimos 'next'.
      if (id_status_asignacion !== undefined && id_status_asignacion !== null) { const statusExists = await query('SELECT id FROM status WHERE id = ?', [id_status_asignacion]); if (statusExists.length === 0) return res.status(400).json({ message: `El ID de status_asignacion ${id_status_asignacion} no es válido.` }); }
 
 
-    // === Regla de Negocio 3 y 4 (Actualizada): Unicidad de Equipo/IP en asignaciones ACTIVAS FINALES ===
+    // * Regla de Negocio 3 y 4 (Actualizada): Unicidad de Equipo/IP en asignaciones ACTIVAS FINALES ===
     // Esta validación solo aplica si la asignación será ACTIVA después de la actualización.
     if (isFinalAssignmentActive) {
         // Check si el equipo FINAL ya tiene *otra* asignación activa (excluyendo la actual).
@@ -579,7 +577,7 @@ const updateAsignacion = async (req, res, next) => { // Añadimos 'next'.
 
     // fecha_actualizacion se actualiza automáticamente en la DB.
 
-    // Construir la consulta UPDATE dinámicamente.
+    // * Construyo la consulta UPDATE dinámicamente
     let sql = 'UPDATE asignaciones SET ';
     const params = [];
     const updates = []; // Partes de la sentencia SET.
@@ -614,7 +612,7 @@ const updateAsignacion = async (req, res, next) => { // Añadimos 'next'.
      }
 
 
-    // Ejecutamos la consulta SOLO si hay algo que actualizar.
+    // * Ejecuto la consulta SOLO si hay algo que actualizar.
     let result = { affectedRows: 0 };
     if (updates.length > 0) {
         result = await query(sql, params);
@@ -628,6 +626,7 @@ const updateAsignacion = async (req, res, next) => { // Añadimos 'next'.
 
 
   } catch (error) {
+    // ! Si hay error, lo paso al middleware global
     console.error(`Error al actualizar registro de asignación con ID ${req.params.id}:`, error);
     // === Manejo de Errores Específicos ===
     // Manejar error de duplicación de `id_ip` (el UNIQUE constraint general en la tabla).
@@ -644,16 +643,15 @@ const updateAsignacion = async (req, res, next) => { // Añadimos 'next'.
 };
 
 // [DELETE] /api/asignaciones/:id
-// Elimina un registro de la tabla 'asignaciones' por su ID.
+// * Elimina una asignación por su ID
 const deleteAsignacion = async (req, res, next) => { // Añadimos 'next'.
   try {
-    // Obtenemos el ID de la asignación a eliminar.
+    // * Extraigo el ID de la asignación a eliminar
     const { id } = req.params;
 
-    // Consulta SQL para eliminar por ID.
+    // * Ejecuto el DELETE y reviso si realmente existía
     const sql = 'DELETE FROM asignaciones WHERE id = ?';
     const params = [id];
-    // Ejecutamos la consulta.
     const result = await query(sql, params);
 
     // === Verificación de Resultado ===
@@ -666,6 +664,7 @@ const deleteAsignacion = async (req, res, next) => { // Añadimos 'next'.
     }
 
   } catch (error) {
+    // ! Si hay error, lo paso al middleware global
     console.error(`Error al eliminar registro de asignación con ID ${req.params.id}:`, error);
      // No hay FKs que restrinjan la eliminación de una asignación (las FKs van *desde* asignaciones a otras tablas).
      // Este catch atraparía errores de la DB o SQL no relacionados con FK referenciada.
@@ -673,7 +672,7 @@ const deleteAsignacion = async (req, res, next) => { // Añadimos 'next'.
   }
 };
 
-// Exportamos las funciones del controlador.
+// * Exporto todas las funciones del controlador para usarlas en las rutas
 module.exports = {
   getAllAsignaciones,
   getAsignacionById,

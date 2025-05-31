@@ -1,5 +1,7 @@
 // public/js/views/empleadosView.js
-// Lógica específica para la vista de listado de Empleados.
+// ! Vista de listado de empleados
+// * Aquí gestiono la lógica de renderizado, eventos y consumo de API para la tabla de empleados.
+// * Los TODO son recordatorios personales para refactorizar o mejorar la UX/UI.
 
 // Importamos las funciones de la API que necesitamos.
 import { getEmpleados, deleteEmpleado } from '../api.js'; // Asumimos que ya tenemos getEmpleados y deleteEmpleado en api.js

@@ -1,6 +1,7 @@
 // src/controllers/mantenimientos.controller.js
-// Controlador para manejar las operaciones CRUD de la entidad Mantenimientos.
-// Registra el historial de servicio de los equipos.
+// ! Controlador para la entidad Mantenimientos
+// * Aquí registro el historial de servicio de los equipos: creación, consulta, actualización y eliminación de mantenimientos.
+// * Incluye validaciones de fechas, costos y relaciones con equipos y status.
 
 const { query } = require('../config/db'); // Importamos la función de consulta DB.
 
@@ -8,10 +9,10 @@ const { query } = require('../config/db'); // Importamos la función de consulta
 // FUNCIONES DE VALIDACIÓN (Ayuda a mantener el código limpio)
 // ===============================================================
 
-// Reutilizamos la función de validación de fecha YYYY-MM-DD (con corrección UTC)
-// de equipos.controller.js. Puedes copiarla o importarla si prefieres modularizar más.
-// Por ahora, la copiamos aquí para que este controlador sea autónomo.
+// * Función de ayuda para validar formato básico de fecha (YYYY-MM-DD) de forma segura (UTC)
+// * Devuelve true si el string coincide con el formato y es una fecha real válida.
 function isValidDate(dateString) {
+    // * Permito null/vacío si el campo no es obligatorio.
     if (!dateString) return true; // Permitir null/vacío para campos no obligatorios.
     const regex = /^\d{4}-\d{2}-\d{2}$/;
     if (!regex.test(dateString)) return false;
@@ -20,21 +21,19 @@ function isValidDate(dateString) {
     if (isNaN(date.getTime())) return false; // Es 'Invalid Date'.
 
     const [year, month, day] = dateString.split('-').map(Number);
-    // Usar métodos UTC para evitar problemas de zona horaria.
+    // * Uso métodos UTC para evitar problemas de zona horaria.
     return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
 }
 
 
 // ===============================================================
-// FUNCIONES CONTROLADORAS
+// * Funciones controladoras para cada endpoint de mantenimientos
 // ===============================================================
 
-// [GET] /api/mantenimientos
-// Obtiene y devuelve todos los registros de la tabla 'mantenimientos'.
-// Incluye detalles básicos del equipo asociado y el nombre del estado.
-const getAllMantenimientos = async (req, res, next) => { // 'next' para manejo de errores.
+// * [GET] /api/mantenimientos - Trae todos los mantenimientos con JOINs a equipos y status
+const getAllMantenimientos = async (req, res, next) => {
   try {
-    // Consulta SQL con JOINs a 'equipos' y 'status'.
+    // * Consulta SQL con JOINs para traer toda la info relevante de cada mantenimiento
     const sql = `
       SELECT
         m.id,
@@ -58,24 +57,23 @@ const getAllMantenimientos = async (req, res, next) => { // 'next' para manejo d
     // Ejecutamos la consulta.
     const mantenimientos = await query(sql);
 
-    // Enviamos la lista de mantenimientos como respuesta JSON (200 OK).
+    // * Devuelvo la lista como JSON
     res.status(200).json(mantenimientos);
 
   } catch (error) {
+    // ! Si hay error, lo paso al middleware global
     console.error('Error al obtener todos los mantenimientos:', error);
     next(error); // Pasar error al middleware global.
   }
 };
 
-// [GET] /api/mantenimientos/:id
-// Obtiene y devuelve un registro de mantenimiento específico por su ID.
-// Incluye detalles del equipo asociado y el nombre del estado.
-const getMantenimientoById = async (req, res, next) => { // Añadimos 'next'.
+// * [GET] /api/mantenimientos/:id - Trae un mantenimiento específico por su ID (con relaciones)
+const getMantenimientoById = async (req, res, next) => {
   try {
-    // Obtenemos el ID del mantenimiento.
+    // * Extraigo el ID desde los parámetros de la URL
     const { id } = req.params;
 
-    // Consulta SQL para seleccionar un mantenimiento por ID con JOINs.
+    // * Consulta SQL con JOINs para traer el mantenimiento y sus relaciones
     const sql = `
        SELECT
         m.id,
@@ -100,29 +98,27 @@ const getMantenimientoById = async (req, res, next) => { // Añadimos 'next'.
     const params = [id]; // El ID a buscar.
     const mantenimientos = await query(sql, params); // query siempre devuelve un array.
 
-    // === Verificación de Resultado ===
+    // * Si no existe, devuelvo 404
     if (mantenimientos.length === 0) {
       // Si el array está vacío, el mantenimiento no fue encontrado (404 Not Found).
       res.status(404).json({ message: `Registro de mantenimiento con ID ${id} no encontrado.` });
     } else {
-      // Si se encontró, devolvemos el primer (y único) resultado (200 OK).
+      // * Si existe, devuelvo el objeto
       res.status(200).json(mantenimientos[0]);
     }
 
   } catch (error) {
+    // ! Si hay error, lo paso al middleware global
     console.error(`Error al obtener registro de mantenimiento con ID ${req.params.id}:`, error);
     next(error); // Pasar error al manejador global.
   }
 };
 
-// [POST] /api/mantenimientos
-// Crea un nuevo registro en la tabla 'mantenimientos'.
-// Incluye validaciones para campos obligatorios, formatos (fechas, costo) y FKs.
-const createMantenimiento = async (req, res, next) => { // Añadimos 'next'.
+// * [POST] /api/mantenimientos - Crea un nuevo mantenimiento con validaciones
+const createMantenimiento = async (req, res, next) => {
   try {
-    // Obtenemos los datos del body. id_equipo y fecha_inicio son obligatorios.
-    // fecha_fin, diagnostico, solucion, costo, proveedor, id_status son opcionales.
-    // id_status tiene DEFAULT 1.
+    // * Extraigo los datos del body. Algunos campos son obligatorios, otros opcionales.
+    // * Valido fechas, costos y existencia de FKs
     const {
         id_equipo, fecha_inicio, fecha_fin, diagnostico, solucion,
         costo, proveedor, id_status
@@ -185,7 +181,7 @@ const createMantenimiento = async (req, res, next) => { // Añadimos 'next'.
      }
 
 
-    // Consulta SQL para insertar. Construimos dinámicamente.
+    // * Construyo la consulta SQL dinámicamente según los campos presentes
     let sql = 'INSERT INTO mantenimientos (id_equipo, fecha_inicio';
     const values = [id_equipo, fecha_inicio];
     const placeholders = ['?', '?'];
@@ -206,7 +202,7 @@ const createMantenimiento = async (req, res, next) => { // Añadimos 'next'.
     const result = await query(sql, values);
     const newMantenimientoId = result.insertId; // ID del registro insertado.
 
-    // Enviamos respuesta de éxito (201 Created).
+    // * Devuelvo el ID y datos clave del nuevo mantenimiento
     res.status(201).json({
       message: 'Registro de mantenimiento creado exitosamente',
       id: newMantenimientoId,
@@ -215,6 +211,7 @@ const createMantenimiento = async (req, res, next) => { // Añadimos 'next'.
     });
 
   } catch (error) {
+    // ! Si hay error, lo paso al middleware global
     console.error('Error al crear registro de mantenimiento:', error);
     // En esta tabla, no hay UNIQUE constraints que puedan causar ER_DUP_ENTRY en la creación simple.
     // Cualquier error aquí probablemente será de la DB (ej. FK inválida no capturada, error SQL, conexión).
@@ -222,12 +219,10 @@ const createMantenimiento = async (req, res, next) => { // Añadimos 'next'.
   }
 };
 
-// [PUT] /api/mantenimientos/:id
-// Actualiza un registro existente en la tabla 'mantenimientos' por su ID.
-// Incluye validaciones para formatos y FKs.
-const updateMantenimiento = async (req, res, next) => { // Añadimos 'next'.
+// * [PUT] /api/mantenimientos/:id - Actualiza un mantenimiento por su ID
+const updateMantenimiento = async (req, res, next) => {
   try {
-    // Obtenemos ID y datos del body.
+    // * Extraigo el ID y los datos a actualizar
     const { id } = req.params;
     const {
         id_equipo, fecha_inicio, fecha_fin, diagnostico, solucion,
@@ -324,7 +319,7 @@ const updateMantenimiento = async (req, res, next) => { // Añadimos 'next'.
 
     // fecha_actualizacion se actualiza automáticamente en la DB.
 
-    // Construir la consulta UPDATE dinámicamente.
+    // * Construyo la consulta UPDATE dinámicamente
     let sql = 'UPDATE mantenimientos SET ';
     const params = [];
     const updates = []; // Partes de la sentencia SET.
@@ -353,7 +348,7 @@ const updateMantenimiento = async (req, res, next) => { // Añadimos 'next'.
     // Ejecutamos la consulta.
     const result = await query(sql, params);
 
-    // === Verificación de Resultado ===
+    // * Devuelvo mensaje de éxito o 404 si no existía
     if (result.affectedRows === 0) {
       // Si 0 filas afectadas, el ID no fue encontrado (y no se manejó en la validación de fechas al inicio).
       res.status(404).json({ message: `Registro de mantenimiento con ID ${id} no encontrado.` });
@@ -363,6 +358,7 @@ const updateMantenimiento = async (req, res, next) => { // Añadimos 'next'.
     }
 
   } catch (error) {
+    // ! Si hay error, lo paso al middleware global
     console.error(`Error al actualizar registro de mantenimiento con ID ${req.params.id}:`, error);
     // No hay UNIQUE constraints en esta tabla que causen ER_DUP_ENTRY en UPDATE.
     // Cualquier otro error probablemente será de la DB o SQL.
@@ -370,12 +366,10 @@ const updateMantenimiento = async (req, res, next) => { // Añadimos 'next'.
   }
 };
 
-// [DELETE] /api/mantenimientos/:id
-// Elimina un registro de la tabla 'mantenimientos' por su ID.
-// NOTA: La FK a notas es ON DELETE CASCADE, por lo que las notas asociadas se eliminan automáticamente.
-const deleteMantenimiento = async (req, res, next) => { // Añadimos 'next'.
+// * [DELETE] /api/mantenimientos/:id - Elimina un mantenimiento por su ID
+const deleteMantenimiento = async (req, res, next) => {
   try {
-    // Obtenemos el ID del mantenimiento a eliminar.
+    // * Extraigo el ID del mantenimiento a eliminar
     const { id } = req.params;
 
     // Consulta SQL para eliminar por ID.
@@ -384,7 +378,7 @@ const deleteMantenimiento = async (req, res, next) => { // Añadimos 'next'.
     // Ejecutamos la consulta.
     const result = await query(sql, params);
 
-    // === Verificación de Resultado ===
+    // * Ejecuto el DELETE y reviso si realmente existía
     if (result.affectedRows === 0) {
       // Si 0 filas afectadas, el ID no existía.
       res.status(404).json({ message: `Registro de mantenimiento con ID ${id} no encontrado.` });
@@ -394,6 +388,7 @@ const deleteMantenimiento = async (req, res, next) => { // Añadimos 'next'.
     }
 
   } catch (error) {
+    // ! Si hay error, lo paso al middleware global
     console.error(`Error al eliminar registro de mantenimiento con ID ${req.params.id}:`, error);
      // === Manejo de Errores Específicos ===
      // Manejar el error si está siendo usada por notas (ON DELETE CASCADE), aunque CASCADE debería prevenir este error.
@@ -409,7 +404,7 @@ const deleteMantenimiento = async (req, res, next) => { // Añadimos 'next'.
   }
 };
 
-// Exportamos las funciones del controlador.
+// * Exporto todas las funciones del controlador para usarlas en las rutas
 module.exports = {
   getAllMantenimientos,
   getMantenimientoById,

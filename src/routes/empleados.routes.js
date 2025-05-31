@@ -2,10 +2,10 @@
 // Define las rutas HTTP para la entidad 'empleados'.
 
 const express = require('express');
-// Creamos una instancia del enrutador de Express.
+// * Instancia del enrutador de Express
 const router = express.Router();
 
-// Importamos las funciones controladoras que contienen la lógica para manejar estas rutas.
+// * Importo las funciones controladoras de empleados
 const empleadosController = require('../controllers/empleados.controller');
 
 // ===============================================================
@@ -14,24 +14,19 @@ const empleadosController = require('../controllers/empleados.controller');
 // Estas rutas se montarán bajo el prefijo /api/empleados en server.js.
 // ===============================================================
 
-// [GET] /api/empleados
-// Ruta para obtener todos los empleados.
+// * [GET] /api/empleados - Trae todos los empleados
 router.get('/', empleadosController.getAllEmpleados);
 
-// [GET] /api/empleados/:id
-// Ruta para obtener un empleado específico por su ID.
+// * [GET] /api/empleados/:id - Trae un empleado específico por su ID
 router.get('/:id', empleadosController.getEmpleadoById);
 
-// [POST] /api/empleados
-// Ruta para crear un nuevo empleado.
+// * [POST] /api/empleados - Crea un nuevo empleado
 router.post('/', empleadosController.createEmpleado);
 
-// [PUT] /api/empleados/:id
-// Ruta para actualizar un empleado existente por su ID.
+// * [PUT] /api/empleados/:id - Actualiza un empleado por su ID
 router.put('/:id', empleadosController.updateEmpleado);
 
-// [DELETE] /api/empleados/:id
-// Ruta para eliminar un empleado por su ID.
+// * [DELETE] /api/empleados/:id - Elimina un empleado por su ID
 router.delete('/:id', empleadosController.deleteEmpleado);
 
 // Exportamos el objeto router.

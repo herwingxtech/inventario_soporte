@@ -1,5 +1,7 @@
 /* public/css/style.css */
-/* Este archivo es para estilos CSS personalizados que no manejes con Tailwind */
+/* ! Archivo de estilos CSS personalizados
+   * Aquí agrego reglas que no cubre Tailwind o que necesito sobreescribir.
+   * Uso comentarios para recordar por qué agrego cada regla o ejemplo. */
 
 /* Puedes añadir estilos aquí si necesitas anular algo de Tailwind
    o para selectores complejos que no son fáciles con clases de utilidad. */

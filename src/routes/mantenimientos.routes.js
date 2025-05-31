@@ -2,10 +2,10 @@
 // Define las rutas HTTP para la entidad 'mantenimientos'.
 
 const express = require('express');
-// Creamos una instancia del enrutador de Express.
+// * Instancia del enrutador de Express
 const router = express.Router();
 
-// Importamos las funciones controladoras.
+// * Importo las funciones controladoras de mantenimientos
 const mantenimientosController = require('../controllers/mantenimientos.controller');
 
 // ===============================================================
@@ -13,25 +13,20 @@ const mantenimientosController = require('../controllers/mantenimientos.controll
 // Montadas bajo /api/mantenimientos en server.js.
 // ===============================================================
 
-// [GET] /api/mantenimientos
-// Ruta para obtener todos los registros de mantenimiento.
+// * [GET] /api/mantenimientos - Trae todos los mantenimientos
 router.get('/', mantenimientosController.getAllMantenimientos);
 
-// [GET] /api/mantenimientos/:id
-// Ruta para obtener un registro de mantenimiento específico por su ID.
+// * [GET] /api/mantenimientos/:id - Trae un mantenimiento específico por su ID
 router.get('/:id', mantenimientosController.getMantenimientoById);
 
-// [POST] /api/mantenimientos
-// Ruta para crear un nuevo registro de mantenimiento.
+// * [POST] /api/mantenimientos - Crea un nuevo mantenimiento
 router.post('/', mantenimientosController.createMantenimiento);
 
-// [PUT] /api/mantenimientos/:id
-// Ruta para actualizar un registro de mantenimiento existente por su ID.
+// * [PUT] /api/mantenimientos/:id - Actualiza un mantenimiento por su ID
 router.put('/:id', mantenimientosController.updateMantenimiento);
 
-// [DELETE] /api/mantenimientos/:id
-// Ruta para eliminar un registro de mantenimiento por su ID.
+// * [DELETE] /api/mantenimientos/:id - Elimina un mantenimiento por su ID
 router.delete('/:id', mantenimientosController.deleteMantenimiento);
 
-// Exportamos el router.
+// * Exporto el enrutador para usarlo en server.js
 module.exports = router;

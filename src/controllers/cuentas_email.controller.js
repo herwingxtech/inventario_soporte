@@ -1,6 +1,7 @@
 // src/controllers/cuentasEmail.controller.js
-// Controlador para manejar las operaciones CRUD de la entidad Cuentas Email Corporativo.
-// Incluye validaciones y manejo del campo password_data, con IMPORTANTES notas de seguridad.
+// ! Controlador para la entidad Cuentas Email Corporativo
+// * Aquí gestiono todo lo relacionado con las cuentas de correo corporativo: creación, consulta, actualización y eliminación.
+// * Incluye validaciones, manejo de password_data y advertencias de seguridad sobre el almacenamiento de contraseñas.
 
 const { query } = require('../config/db'); // Importamos la función de consulta DB.
 // NOTA DE SEGURIDAD: NO importamos bcrypt aquí porque no hasheamos contraseñas que necesitamos recuperar.
@@ -30,19 +31,14 @@ const { query } = require('../config/db'); // Importamos la función de consulta
 
 
 // ===============================================================
-// FUNCIONES CONTROLADORAS
+// * Funciones controladoras para cada endpoint de cuentas de email
 // ===============================================================
 
-// [GET] /api/cuentas-email
-// Obtiene y devuelve todos los registros de la tabla 'cuentas_email_corporativo'.
-// Incluye nombres de empleado (si asignado) y estado mediante JOINs.
-// IMPORTANTE: EXCLUYE explícitamente el campo `password_data` por seguridad.
-const getAllCuentasEmail = async (req, res, next) => { // 'next' para manejo de errores.
+// * [GET] /api/cuentas-email - Trae todas las cuentas de email con JOINs a empleados y status
+const getAllCuentasEmail = async (req, res, next) => {
   try {
-    // Consulta SQL para seleccionar cuentas de email.
-    // Hacemos JOINs con 'empleados' y 'status'.
-    // Usamos LEFT JOIN para `empleados` porque `id_empleado_asignado` es NULLable.
-    // *** EXCLUIMOS EXPLICITAMENTE el campo `password_data` de la selección. ***
+    // * Consulta SQL con JOINs para traer toda la info relevante de cada cuenta
+    // * EXCLUYO el campo password_data por seguridad
     const sql = `
       SELECT
         ce.id,
@@ -64,29 +60,24 @@ const getAllCuentasEmail = async (req, res, next) => { // 'next' para manejo de 
     // Ejecutamos la consulta.
     const cuentas = await query(sql);
 
-    // Enviamos la lista de cuentas (sin contraseñas) como respuesta JSON (200 OK).
+    // * Devuelvo la lista como JSON
     res.status(200).json(cuentas);
 
   } catch (error) {
+    // ! Si hay error, lo paso al middleware global
     console.error('Error al obtener todas las cuentas de email:', error);
     next(error); // Pasar error al middleware global.
   }
 };
 
-// [GET] /api/cuentas-email/:id
-// Obtiene y devuelve una cuenta de email específica por su ID.
-// Incluye nombres de entidades relacionadas.
-// IMPORTANTE: EXCLUYE explícitamente el campo `password_data` por seguridad.
-// Si por alguna razón necesitas ver la contraseña (NO RECOMENDADO), deberías
-// crear un endpoint separado con autenticación y autorización estricta,
-// y si está cifrada, descifrarla aquí ANTES de enviarla (gestionando la clave SEGURA).
-const getCuentaEmailById = async (req, res, next) => { // Añadimos 'next'.
+// * [GET] /api/cuentas-email/:id - Trae una cuenta de email específica por su ID (con relaciones)
+const getCuentaEmailById = async (req, res, next) => {
   try {
-    // Obtenemos el ID de la cuenta.
+    // * Extraigo el ID desde los parámetros de la URL
     const { id } = req.params;
 
-    // Consulta SQL para seleccionar una cuenta por ID con JOINs.
-    // *** EXCLUIMOS EXPLICITAMENTE el campo `password_data` de la selección. ***
+    // * Consulta SQL con JOINs para traer la cuenta y sus relaciones
+    // * EXCLUYO el campo password_data por seguridad
     const sql = `
       SELECT
         ce.id,
@@ -109,29 +100,28 @@ const getCuentaEmailById = async (req, res, next) => { // Añadimos 'next'.
     const params = [id]; // El ID a buscar.
     const cuentas = await query(sql, params); // query siempre devuelve un array.
 
-    // === Verificación de Resultado ===
+    // * Si no existe, devuelvo 404
     if (cuentas.length === 0) {
       // Si el array está vacío, la cuenta no fue encontrada (404 Not Found).
       res.status(404).json({ message: `Cuenta de email con ID ${id} no encontrada.` });
     } else {
-      // Si se encontró, devolvemos el primer (y único) resultado (200 OK).
+      // * Si existe, devuelvo el objeto
       res.status(200).json(cuentas[0]);
     }
 
   } catch (error) {
+    // ! Si hay error, lo paso al middleware global
     console.error(`Error al obtener cuenta de email con ID ${req.params.id}:`, error);
     next(error); // Pasar error al manejador global.
   }
 };
 
-// [POST] /api/cuentas-email
-// Crea un nuevo registro en la tabla 'cuentas_email_corporativo'.
-// Incluye validaciones y manejo del campo password_data (VER NOTAS DE SEGURIDAD).
-const createCuentaEmail = async (req, res, next) => { // Añadimos 'next'.
+// * [POST] /api/cuentas-email - Crea una nueva cuenta de email con validaciones y advertencias de seguridad
+const createCuentaEmail = async (req, res, next) => {
   try {
-    // Obtenemos los datos del body. email es obligatorio.
-    // usuario_email, password_data, servidores, puertos, ssl_tls, id_empleado_asignado, id_status, observaciones son opcionales.
-    // id_status tiene DEFAULT 1.
+    // * Extraigo los datos del body. email es obligatorio, los demás son opcionales
+    // * Valido formato de email y existencia de FKs
+    // * Manejo especial de password_data (ver advertencias de seguridad)
     const {
         email, usuario_email, password_data,
         id_empleado_asignado, id_status, observaciones
@@ -210,8 +200,7 @@ const createCuentaEmail = async (req, res, next) => { // Añadimos 'next'.
     const result = await query(sql, values);
     const newCuentaId = result.insertId; // ID del registro insertado.
 
-    // Enviamos respuesta de éxito (201 Created).
-    // NUNCA DEVOLVER LA CONTRASEÑA en la respuesta.
+    // * Devuelvo el ID y datos clave de la nueva cuenta (sin contraseña)
     res.status(201).json({
       message: 'Cuenta de email creada exitosamente',
       id: newCuentaId,
@@ -220,6 +209,7 @@ const createCuentaEmail = async (req, res, next) => { // Añadimos 'next'.
     });
 
   } catch (error) {
+    // ! Si hay error, lo paso al middleware global
     console.error('Error al crear cuenta de email:', error);
     // === Manejo de Errores Específicos ===
     // Si hay duplicación del email (UNIQUE constraint).
@@ -234,12 +224,10 @@ const createCuentaEmail = async (req, res, next) => { // Añadimos 'next'.
   }
 };
 
-// [PUT] /api/cuentas-email/:id
-// Actualiza un registro existente en la tabla 'cuentas_email_corporativo' por su ID.
-// Permite actualizar el campo password_data (VER NOTAS DE SEGURIDAD).
-const updateCuentaEmail = async (req, res, next) => { // Añadimos 'next'.
+// * [PUT] /api/cuentas-email/:id - Actualiza una cuenta de email por su ID
+const updateCuentaEmail = async (req, res, next) => {
   try {
-    // Obtenemos ID y datos del body.
+    // * Extraigo el ID y los datos a actualizar
     const { id } = req.params;
     const {
         email, usuario_email, password_data,
@@ -349,6 +337,7 @@ const updateCuentaEmail = async (req, res, next) => { // Añadimos 'next'.
     }
 
   } catch (error) {
+    // ! Si hay error, lo paso al middleware global
     console.error(`Error al actualizar cuenta de email con ID ${req.params.id}:`, error);
     // === Manejo de Errores Específicos ===
     // Si hay duplicación del email.
@@ -363,11 +352,10 @@ const updateCuentaEmail = async (req, res, next) => { // Añadimos 'next'.
   }
 };
 
-// [DELETE] /api/cuentas-email/:id
-// Elimina un registro de la tabla 'cuentas_email_corporativo' por su ID.
-const deleteCuentaEmail = async (req, res, next) => { // Añadimos 'next'.
+// * [DELETE] /api/cuentas-email/:id - Elimina una cuenta de email por su ID
+const deleteCuentaEmail = async (req, res, next) => {
   try {
-    // Obtenemos el ID de la cuenta a eliminar.
+    // * Extraigo el ID de la cuenta a eliminar
     const { id } = req.params;
 
     // Consulta SQL para eliminar por ID.
@@ -386,6 +374,7 @@ const deleteCuentaEmail = async (req, res, next) => { // Añadimos 'next'.
     }
 
   } catch (error) {
+    // ! Si hay error, lo paso al middleware global
     console.error(`Error al eliminar cuenta de email con ID ${req.params.id}:`, error);
      // === Manejo de Errores Específicos ===
      // Manejar el error si está siendo usada por notas (ON DELETE CASCADE).
@@ -404,7 +393,7 @@ const deleteCuentaEmail = async (req, res, next) => { // Añadimos 'next'.
   }
 };
 
-// Exportamos las funciones del controlador.
+// * Exporto todas las funciones del controlador para usarlas en las rutas
 module.exports = {
   getAllCuentasEmail,
   getCuentaEmailById,

@@ -1,7 +1,8 @@
 // public/js/main.js
-// Este es el archivo JavaScript principal de tu frontend.
-// Se encarga de la inicialización general, la configuración de eventos globales (ej. navegación),
-// y la orquestación de la carga de diferentes vistas en el área de contenido principal.
+// ! Archivo principal JS del frontend
+// * Aquí inicializo la app, configuro eventos globales y orquesto la carga de vistas SPA.
+// * Uso importaciones modulares para mantener el código organizado.
+// * Los TODO son recordatorios personales de mejoras o refactorizaciones.
 
 console.log('Frontend JavaScript principal cargado. Configurando aplicación...');
 

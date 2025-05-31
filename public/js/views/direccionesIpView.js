@@ -1,5 +1,7 @@
 // public/js/views/direccionesIpView.js
-// Lógica específica para la vista de listado de Direcciones IP.
+// ! Vista de listado de Direcciones IP
+// * Aquí gestiono la lógica de renderizado, eventos y consumo de API para la tabla de direcciones IP.
+// * Los TODO son recordatorios personales para refactorizar o mejorar la UX/UI.
 
 // Importamos las funciones de la API que necesitamos.
 import { getDireccionesIp, deleteDireccionIp } from '../api.js'; // Asegúrate que getDireccionesIp y deleteDireccionIp existan en api.js

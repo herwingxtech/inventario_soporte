@@ -1,6 +1,7 @@
 // src/controllers/usuariosSistema.controller.js
-// Controlador para manejar las operaciones CRUD de la entidad Usuarios del Sistema.
-// Incluye lógica para el hashing seguro de contraseñas usando bcrypt.
+// ! Controlador para la entidad Usuarios del Sistema
+// * Aquí gestiono todo lo relacionado con usuarios del sistema: creación, consulta, actualización y eliminación.
+// * Incluye lógica para el hashing seguro de contraseñas usando bcrypt y validaciones de negocio.
 
 const { query } = require('../config/db'); // Importamos la función de consulta DB.
 const bcrypt = require('bcrypt'); // Importamos la librería bcrypt para hashing.
@@ -10,15 +11,14 @@ const bcrypt = require('bcrypt'); // Importamos la librería bcrypt para hashing
 const saltRounds = 10;
 
 // ===============================================================
-// FUNCIONES CONTROLADORAS
+// * Funciones controladoras para cada endpoint de usuarios del sistema
 // ===============================================================
 
-// [GET] /api/usuarios-sistema
-// Obtiene y devuelve todos los registros de la tabla 'usuarios_sistema'.
-// Incluye nombres de empleado (si asociado), rol y estado mediante JOINs.
-// IMPORTANTE: NUNCA devolver el password_hash en la respuesta.
-const getAllUsuariosSistema = async (req, res, next) => { // 'next' para manejo de errores.
+// * [GET] /api/usuarios-sistema - Trae todos los usuarios del sistema con JOINs a empleados, roles y status
+const getAllUsuariosSistema = async (req, res, next) => {
   try {
+    // * Consulta SQL con JOINs para traer toda la info relevante de cada usuario
+    // * NUNCA devuelvo el password_hash
     // Consulta SQL para seleccionar usuarios.
     // Hacemos JOINs con 'empleados', 'roles' y 'status'.
     // Usamos LEFT JOIN para `empleados` porque `id_empleado` es NULLable.
@@ -46,24 +46,24 @@ const getAllUsuariosSistema = async (req, res, next) => { // 'next' para manejo 
     // Ejecutamos la consulta.
     const usuarios = await query(sql);
 
+    // * Devuelvo la lista como JSON
     // Enviamos la lista de usuarios (sin hash de contraseña) como respuesta JSON (200 OK).
     res.status(200).json(usuarios);
 
   } catch (error) {
+    // ! Si hay error, lo paso al middleware global
     console.error('Error al obtener todos los usuarios del sistema:', error);
     next(error); // Pasar error al middleware global.
   }
 };
 
-// [GET] /api/usuarios-sistema/:id
-// Obtiene y devuelve un usuario del sistema específico por su ID.
-// Incluye nombres de entidades relacionadas. NUNCA devolver el password_hash.
-const getUsuarioSistemaById = async (req, res, next) => { // Añadimos 'next'.
+// * [GET] /api/usuarios-sistema/:id - Trae un usuario específico por su ID (con relaciones)
+const getUsuarioSistemaById = async (req, res, next) => {
   try {
-    // Obtenemos el ID del usuario.
+    // * Extraigo el ID desde los parámetros de la URL
     const { id } = req.params;
 
-    // Consulta SQL para seleccionar un usuario por ID con JOINs.
+    // * Consulta SQL con JOINs para traer el usuario y sus relaciones
     // SE EXCLUYE EXPLICITAMENTE el campo `password_hash`.
     const sql = `
       SELECT
@@ -89,28 +89,28 @@ const getUsuarioSistemaById = async (req, res, next) => { // Añadimos 'next'.
     const params = [id]; // El ID a buscar.
     const usuarios = await query(sql, params); // query siempre devuelve un array.
 
-    // === Verificación de Resultado ===
+    // * Si no existe, devuelvo 404
     if (usuarios.length === 0) {
       // Si el array está vacío, el usuario no fue encontrado (404 Not Found).
       res.status(404).json({ message: `Usuario del sistema con ID ${id} no encontrado.` });
     } else {
+      // * Si existe, devuelvo el objeto
       // Si se encontró, devolvemos el primer (y único) resultado (200 OK).
       res.status(200).json(usuarios[0]);
     }
 
   } catch (error) {
+    // ! Si hay error, lo paso al middleware global
     console.error(`Error al obtener usuario del sistema con ID ${req.params.id}:`, error);
     next(error); // Pasar error al manejador global.
   }
 };
 
-// [POST] /api/usuarios-sistema
-// Crea un nuevo registro en la tabla 'usuarios_sistema'.
-// *** CRÍTICO: Hashea la contraseña antes de guardarla. ***
-const createUsuarioSistema = async (req, res, next) => { // Añadimos 'next'.
+// * [POST] /api/usuarios-sistema - Crea un nuevo usuario con hashing seguro de contraseña
+const createUsuarioSistema = async (req, res, next) => {
   try {
-    // Obtenemos los datos del body. username, password y id_rol son obligatorios.
-    // email, id_empleado, id_status son opcionales (id_status tiene DEFAULT).
+    // * Extraigo los datos del body. username, password e id_rol son obligatorios
+    // * Valido existencia de FKs y formato de email
     const {
         username, password, email, id_empleado, id_rol, id_status
     } = req.body;
@@ -190,7 +190,7 @@ const createUsuarioSistema = async (req, res, next) => { // Añadimos 'next'.
     const result = await query(sql, values);
     const newUsuarioId = result.insertId; // ID del registro insertado.
 
-    // Enviamos respuesta de éxito (201 Created).
+    // * Devuelvo el ID y datos clave del nuevo usuario (sin contraseña ni hash)
     // NUNCA DEVOLVER LA CONTRASEÑA (texto plano o hash) en la respuesta.
     res.status(201).json({
       message: 'Usuario del sistema creado exitosamente',
@@ -201,6 +201,7 @@ const createUsuarioSistema = async (req, res, next) => { // Añadimos 'next'.
     });
 
   } catch (error) {
+    // ! Si hay error, lo paso al middleware global
     console.error('Error al crear usuario del sistema:', error);
     // === Manejo de Errores Específicos ===
     // Si hay duplicación del username o id_empleado (UNIQUE constraints).
@@ -215,12 +216,10 @@ const createUsuarioSistema = async (req, res, next) => { // Añadimos 'next'.
   }
 };
 
-// [PUT] /api/usuarios-sistema/:id
-// Actualiza un registro existente en la tabla 'usuarios_sistema' por su ID.
-// *** CRÍTICO: Si se proporciona una nueva contraseña, la hashea. ***
-const updateUsuarioSistema = async (req, res, next) => { // Añadimos 'next'.
+// * [PUT] /api/usuarios-sistema/:id - Actualiza un usuario por su ID (hashea si cambia contraseña)
+const updateUsuarioSistema = async (req, res, next) => {
   try {
-    // Obtenemos ID y datos del body.
+    // * Extraigo el ID y los datos a actualizar
     const { id } = req.params;
     // Separamos 'password' del resto de campos.
     const {
@@ -327,17 +326,18 @@ const updateUsuarioSistema = async (req, res, next) => { // Añadimos 'next'.
     // Ejecutamos la consulta.
     const result = await query(sql, params);
 
-    // === Verificación de Resultado ===
+    // * Devuelvo mensaje de éxito o 404 si no existía
     if (result.affectedRows === 0) {
-      // Si 0 filas afectadas, el ID no fue encontrado.
+      // * Si 0 filas afectadas, el ID no fue encontrado.
       res.status(404).json({ message: `Usuario del sistema con ID ${id} no encontrado.` });
     } else {
-      // Éxito (200 OK).
+      // * Éxito (200 OK).
       res.status(200).json({ message: `Usuario del sistema con ID ${id} actualizado exitosamente.` });
-       // NUNCA DEVOLVER LA CONTRASEÑA NI EL HASH.
+       // ! NUNCA DEVOLVER LA CONTRASEÑA NI EL HASH.
     }
 
   } catch (error) {
+    // ! Si hay error, lo paso al middleware global
     console.error(`Error al actualizar usuario del sistema con ID ${req.params.id}:`, error);
     // === Manejo de Errores Específicos ===
     // Si hay duplicación del username o id_empleado.
@@ -352,12 +352,10 @@ const updateUsuarioSistema = async (req, res, next) => { // Añadimos 'next'.
   }
 };
 
-// [DELETE] /api/usuarios-sistema/:id
-// Elimina un registro de la tabla 'usuarios_sistema' por su ID.
-// NOTA: CRÍTICO - Considera las implicaciones de eliminar usuarios que crearon notas, etc.
-const deleteUsuarioSistema = async (req, res, next) => { // Añadimos 'next'.
+// * [DELETE] /api/usuarios-sistema/:id - Elimina un usuario por su ID
+const deleteUsuarioSistema = async (req, res, next) => {
   try {
-    // Obtenemos el ID del usuario a eliminar.
+    // * Extraigo el ID del usuario a eliminar
     const { id } = req.params;
 
     // Consulta SQL para eliminar por ID.
@@ -366,7 +364,7 @@ const deleteUsuarioSistema = async (req, res, next) => { // Añadimos 'next'.
     // Ejecutamos la consulta.
     const result = await query(sql, params);
 
-    // === Verificación de Resultado ===
+    // * Ejecuto el DELETE y reviso si realmente existía
     if (result.affectedRows === 0) {
       // Si 0 filas afectadas, el ID no existía.
       res.status(404).json({ message: `Usuario del sistema con ID ${id} no encontrado.` });
@@ -376,6 +374,7 @@ const deleteUsuarioSistema = async (req, res, next) => { // Añadimos 'next'.
     }
 
   } catch (error) {
+    // ! Si hay error, lo paso al middleware global
     console.error(`Error al eliminar usuario del sistema con ID ${req.params.id}:`, error);
      // === Manejo de Errores Específicos ===
      // Manejar el error si está siendo usado por notas (ON DELETE SET NULL).
@@ -392,7 +391,7 @@ const deleteUsuarioSistema = async (req, res, next) => { // Añadimos 'next'.
   }
 };
 
-// Exportamos las funciones del controlador.
+// * Exporto todas las funciones del controlador para usarlas en las rutas
 module.exports = {
   getAllUsuariosSistema,
   getUsuarioSistemaById,

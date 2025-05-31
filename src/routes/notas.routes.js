@@ -13,24 +13,21 @@ const notasController = require('../controllers/notas.controller');
 // Montadas bajo /api/notas en server.js.
 // ===============================================================
 
-// [GET] /api/notas
-// Ruta para obtener todos los registros de notas.
+// ! Rutas para la entidad Notas
+
+// * [GET] /api/notas - Trae todas las notas
 router.get('/', notasController.getAllNotas);
 
-// [GET] /api/notas/:id
-// Ruta para obtener un registro de nota específico por su ID.
+// * [GET] /api/notas/:id - Trae una nota específica por su ID
 router.get('/:id', notasController.getNotaById);
 
-// [POST] /api/notas
-// Ruta para crear un nuevo registro de nota.
+// * [POST] /api/notas - Crea una nueva nota
 router.post('/', notasController.createNota);
 
-// [PUT] /api/notas/:id
-// Ruta para actualizar un registro de nota existente por su ID.
+// * [PUT] /api/notas/:id - Actualiza una nota por su ID
 router.put('/:id', notasController.updateNota);
 
-// [DELETE] /api/notas/:id
-// Ruta para eliminar un registro de nota por su ID.
+// * [DELETE] /api/notas/:id - Elimina una nota por su ID
 router.delete('/:id', notasController.deleteNota);
 
 // Exportamos el router.

@@ -1,5 +1,7 @@
 // public/js/views/equiposView.js
-// Lógica específica para la vista de listado de equipos.
+// ! Vista de listado de equipos
+// * Aquí gestiono la lógica de renderizado, eventos y consumo de API para la tabla de equipos.
+// * Los TODO son recordatorios personales para refactorizar o mejorar la UX/UI.
 
 // Importamos las funciones de la API que necesitamos.
 import { getEquipos, deleteEquipo } from '../api.js';

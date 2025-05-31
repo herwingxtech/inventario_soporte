@@ -1,27 +1,27 @@
-// src/routes/areas.routes.js
+// ! Rutas para la entidad Áreas
 
 const express = require('express');
-const router = express.Router();
+const router = express.Router(); // * Instancia del enrutador de Express
 
-// Importamos el controlador de areas
+// * Importo el controlador de áreas
 const areasController = require('../controllers/areas.controller');
 
-// Definimos las rutas para areas
+// * Defino las rutas para áreas y les asigno el controlador correspondiente
 
-// GET /api/areas - Obtener todas las areas
+// * [GET] /api/areas - Trae todas las áreas
 router.get('/', areasController.getAllAreas);
 
-// GET /api/areas/:id - Obtener un area por ID
+// * [GET] /api/areas/:id - Trae un área específica por su ID
 router.get('/:id', areasController.getAreaById);
 
-// POST /api/areas - Crear una nueva area
+// * [POST] /api/areas - Crea una nueva área
 router.post('/', areasController.createArea);
 
-// PUT /api/areas/:id - Actualizar un area por ID
+// * [PUT] /api/areas/:id - Actualiza un área por su ID
 router.put('/:id', areasController.updateArea);
 
-// DELETE /api/areas/:id - Eliminar un area por ID
+// * [DELETE] /api/areas/:id - Elimina un área por su ID
 router.delete('/:id', areasController.deleteArea);
 
-// Exportamos el enrutador
+// * Exporto el enrutador para usarlo en server.js
 module.exports = router;

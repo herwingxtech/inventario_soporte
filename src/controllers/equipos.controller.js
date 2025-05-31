@@ -1,5 +1,7 @@
 // src/controllers/equipos.controller.js
-// Controlador para manejar las operaciones CRUD de la entidad Equipos.
+// ! Controlador para la entidad Equipos
+// * Aquí gestiono todo lo relacionado con los equipos físicos del inventario: creación, consulta, actualización y eliminación.
+// * Incluye validaciones de negocio y relaciones con sucursales, tipos y status.
 
 // Importamos la función de ayuda para ejecutar consultas a la base de datos.
 const { query } = require('../config/db');
@@ -179,11 +181,11 @@ const getEquipoById = async (req, res, next) => { // Añadimos 'next'.
   }
 };
 
-// [POST] /api/equipos
-// Crea un nuevo registro en la tabla 'equipos'.
-// Incluye validaciones para campos obligatorios, formatos y FKs.
-const createEquipo = async (req, res, next) => { // Añadimos 'next'.
+// * [POST] /api/equipos - Crea un nuevo equipo con validaciones
+const createEquipo = async (req, res, next) => {
   try {
+    // * Construyo la consulta SQL dinámicamente según los campos presentes en el body
+    // * Valido y agrego cada campo opcional si está presente
     // Obtenemos los datos del body.
     // numero_serie, id_tipo_equipo, id_sucursal_actual son obligatorios.
     // Los demás son opcionales (id_status tiene DEFAULT).
@@ -269,7 +271,7 @@ const createEquipo = async (req, res, next) => { // Añadimos 'next'.
     const result = await query(sql, values);
     const newEquipoId = result.insertId; // ID del registro insertado.
 
-    // Enviamos respuesta de éxito (201 Created).
+    // * Devuelvo el ID y datos clave del nuevo equipo
     res.status(201).json({
       message: 'Equipo creado exitosamente',
       id: newEquipoId,
@@ -278,8 +280,9 @@ const createEquipo = async (req, res, next) => { // Añadimos 'next'.
     });
 
   } catch (error) {
+    // ! Si hay error, lo paso al middleware global
     console.error('Error al crear equipo:', error);
-    // === Manejo de Errores Específicos ===
+    // * Manejo específico de errores de duplicidad
     // Si hay duplicación de numero_serie o mac_address (UNIQUE constraints).
     if (error.code === 'ER_DUP_ENTRY') {
        res.status(409).json({ // 409 Conflict.
@@ -292,12 +295,10 @@ const createEquipo = async (req, res, next) => { // Añadimos 'next'.
   }
 };
 
-// [PUT] /api/equipos/:id
-// Actualiza un registro existente en la tabla 'equipos' por su ID.
-// Incluye validaciones para formatos, FKs y campos únicos.
-const updateEquipo = async (req, res, next) => { // Añadimos 'next'.
+// * [PUT] /api/equipos/:id - Actualiza un equipo por su ID
+const updateEquipo = async (req, res, next) => {
   try {
-    // Obtenemos ID y datos del body.
+    // * Extraigo el ID y los datos a actualizar
     const { id } = req.params;
     const {
         numero_serie, nombre_equipo, marca, modelo, id_tipo_equipo,
@@ -305,8 +306,7 @@ const updateEquipo = async (req, res, next) => { // Añadimos 'next'.
         mac_address, otras_caracteristicas, fecha_compra, id_status
     } = req.body;
 
-    // === Validaciones ===
-    // Validar si se envió al menos un campo para actualizar.
+    // * Valido que al menos un campo sea enviado
     const updatesCount = Object.keys(req.body).length;
     if (updatesCount === 0) {
          return res.status(400).json({ message: 'Se debe proporcionar al menos un campo para actualizar.' });
@@ -362,7 +362,7 @@ const updateEquipo = async (req, res, next) => { // Añadimos 'next'.
 
     // fecha_actualizacion se actualiza automáticamente en la DB.
 
-    // Construir la consulta UPDATE dinámicamente.
+    // * Construyo la consulta UPDATE dinámicamente
     let sql = 'UPDATE equipos SET ';
     const params = [];
     const updates = []; // Partes de la sentencia SET.
@@ -401,7 +401,7 @@ const updateEquipo = async (req, res, next) => { // Añadimos 'next'.
     // Ejecutamos la consulta.
     const result = await query(sql, params);
 
-    // === Verificación de Resultado ===
+    // * Devuelvo mensaje de éxito o 404 si no existía
     if (result.affectedRows === 0) {
       // Si 0 filas afectadas, el ID no fue encontrado.
       res.status(404).json({ message: `Equipo con ID ${id} no encontrado.` });
@@ -411,8 +411,9 @@ const updateEquipo = async (req, res, next) => { // Añadimos 'next'.
     }
 
   } catch (error) {
+    // ! Si hay error, lo paso al middleware global
     console.error(`Error al actualizar equipo con ID ${req.params.id}:`, error);
-    // === Manejo de Errores Específicos ===
+    // * Manejo específico de errores de duplicidad
     // Si hay duplicación de numero_serie o mac_address.
      if (error.code === 'ER_DUP_ENTRY') {
        res.status(409).json({ // 409 Conflict.
@@ -425,11 +426,10 @@ const updateEquipo = async (req, res, next) => { // Añadimos 'next'.
   }
 };
 
-// [DELETE] /api/equipos/:id
-// Elimina un registro de la tabla 'equipos' por su ID.
-const deleteEquipo = async (req, res, next) => { // Añadimos 'next'.
+// * [DELETE] /api/equipos/:id - Elimina un equipo por su ID
+const deleteEquipo = async (req, res, next) => {
   try {
-    // Obtenemos el ID del equipo a eliminar.
+    // * Extraigo el ID del equipo a eliminar
     const { id } = req.params;
 
     // Consulta SQL para eliminar por ID.
@@ -438,7 +438,7 @@ const deleteEquipo = async (req, res, next) => { // Añadimos 'next'.
     // Ejecutamos la consulta.
     const result = await query(sql, params);
 
-    // === Verificación de Resultado ===
+    // * Ejecuto el DELETE y reviso si realmente existía
     if (result.affectedRows === 0) {
       // Si 0 filas afectadas, el ID no existía.
       res.status(404).json({ message: `Equipo con ID ${id} no encontrado.` });
@@ -448,8 +448,9 @@ const deleteEquipo = async (req, res, next) => { // Añadimos 'next'.
     }
 
   } catch (error) {
+    // ! Si hay error, lo paso al middleware global
     console.error(`Error al eliminar equipo con ID ${req.params.id}:`, error);
-     // === Manejo de Errores Específicos ===
+     // * Manejo específico de errores de integridad referencial
      // Manejar el error si está siendo usado por otras tablas (asignaciones, mantenimientos, notas, o como equipo padre en asignaciones).
      // La mayoría de las FKs a equipos son ON DELETE CASCADE (mantenimientos, notas, asignaciones.id_equipo_padre),
      // lo que significa que al eliminar el equipo, esos registros dependientes también se eliminan automáticamente.
@@ -465,7 +466,7 @@ const deleteEquipo = async (req, res, next) => { // Añadimos 'next'.
   }
 };
 
-// Exportamos las funciones del controlador.
+// * Exporto todas las funciones del controlador para usarlas en las rutas
 module.exports = {
   getAllEquipos,
   getEquipoById,

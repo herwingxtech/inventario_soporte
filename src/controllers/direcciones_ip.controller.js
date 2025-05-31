@@ -1,13 +1,15 @@
 // src/controllers/direccionesIp.controller.js
-// Controlador para manejar las operaciones CRUD de la entidad Direcciones IP.
+// ! Controlador para la entidad Direcciones IP
+// * Aquí gestiono todo lo relacionado con las direcciones IP del inventario: creación, consulta, actualización y eliminación.
+// * Incluye validaciones de formato y relaciones con sucursales y status.
 
 // Importamos la función de ayuda para ejecutar consultas a la base de datos.
 const { query } = require('../config/db');
 
 // Función de ayuda para validar formato básico de IPv4/IPv6 (simplificado)
-// Esto es una validación básica del formato, no garantiza que la IP sea asignable o ruteable.
-// Para validación más robusta, usarías una librería específica.
+// * Nota: Esto solo valida el formato, no garantiza que la IP sea asignable o ruteable.
 function isValidIpAddress(ip) {
+    // * Permito null o vacío si el campo no es obligatorio.
     if (!ip || typeof ip !== 'string') return false;
     ip = ip.trim();
     // Regex simple para IPv4 o IPv6 no comprimido
@@ -22,15 +24,14 @@ function isValidIpAddress(ip) {
 
 
 // ===============================================================
-// FUNCIONES CONTROLADORAS
+// * Funciones controladoras para cada endpoint de direcciones IP
 // ===============================================================
 
 // [GET] /api/direcciones-ip
-// Obtiene y devuelve todos los registros de la tabla 'direcciones_ip'.
-// Incluye el nombre de la sucursal y estado asociados mediante JOINs.
-const getAllDireccionesIp = async (req, res, next) => { // 'next' para manejo de errores.
+// * Trae todas las direcciones IP con JOINs a sucursales y status
+const getAllDireccionesIp = async (req, res, next) => {
   try {
-    // Consulta SQL con JOINs a 'sucursales' y 'status'.
+    // * Consulta SQL con JOINs para traer toda la info relevante de cada IP
     // LEFT JOIN para `sucursales` porque `id_sucursal` es NULLable.
     const sql = `
       SELECT
@@ -50,24 +51,24 @@ const getAllDireccionesIp = async (req, res, next) => { // 'next' para manejo de
     // Ejecutamos la consulta.
     const direcciones = await query(sql);
 
-    // Enviamos la lista de direcciones IP como respuesta JSON (200 OK).
+    // * Devuelvo la lista como JSON
     res.status(200).json(direcciones);
 
   } catch (error) {
+    // ! Si hay error, lo paso al middleware global
     console.error('Error al obtener todas las direcciones IP:', error);
     next(error); // Pasar error al middleware global.
   }
 };
 
 // [GET] /api/direcciones-ip/:id
-// Obtiene y devuelve una dirección IP específica por su ID.
-// Incluye nombres de entidades relacionadas.
-const getDireccionIpById = async (req, res, next) => { // Añadimos 'next'.
+// * Trae una dirección IP específica por su ID (con relaciones)
+const getDireccionIpById = async (req, res, next) => {
   try {
-    // Obtenemos el ID de la dirección IP.
+    // * Extraigo el ID desde los parámetros de la URL
     const { id } = req.params;
 
-    // Consulta SQL para seleccionar una dirección IP por ID con JOINs (usando LEFT JOIN).
+    // * Consulta SQL con JOINs para traer la IP y sus relaciones
     const sql = `
       SELECT
         di.id,
@@ -87,31 +88,30 @@ const getDireccionIpById = async (req, res, next) => { // Añadimos 'next'.
     const params = [id]; // El ID a buscar.
     const direcciones = await query(sql, params); // query siempre devuelve un array.
 
-    // === Verificación de Resultado ===
+    // * Si no existe, devuelvo 404
     if (direcciones.length === 0) {
       // Si el array está vacío, la dirección IP no fue encontrada (404 Not Found).
       res.status(404).json({ message: `Dirección IP con ID ${id} no encontrada.` });
     } else {
-      // Si se encontró, devolvemos el primer (y único) resultado (200 OK).
+      // * Si existe, devuelvo el objeto
       res.status(200).json(direcciones[0]);
     }
 
   } catch (error) {
+    // ! Si hay error, lo paso al middleware global
     console.error(`Error al obtener dirección IP con ID ${req.params.id}:`, error);
     next(error); // Pasar error al manejador global.
   }
 };
 
 // [POST] /api/direcciones-ip
-// Crea un nuevo registro en la tabla 'direcciones_ip'.
-// Incluye validaciones para campo obligatorio (direccion_ip), formato y FKs.
-const createDireccionIp = async (req, res, next) => { // Añadimos 'next'.
+// * Crea una nueva dirección IP con validaciones
+const createDireccionIp = async (req, res, next) => {
   try {
-    // Obtenemos los datos del body. direccion_ip es obligatorio.
-    // id_sucursal, comentario, id_status son opcionales (id_status tiene DEFAULT).
+    // * Extraigo los datos del body. Algunos campos son obligatorios, otros opcionales.
     const { direccion_ip, id_sucursal, comentario, id_status } = req.body;
 
-    // === Validaciones ===
+    // * Validaciones de campos obligatorios y formatos
     // Validar campo obligatorio: direccion_ip.
     if (!direccion_ip) {
       return res.status(400).json({ message: 'El campo direccion_ip es obligatorio.' });
@@ -121,6 +121,7 @@ const createDireccionIp = async (req, res, next) => { // Añadimos 'next'.
          return res.status(400).json({ message: `La dirección IP "${direccion_ip}" no tiene un formato válido.` });
     }
 
+    // * Valido existencia de FKs (sucursal, status)
     // Validar si id_sucursal proporcionado existe (si el usuario lo envió y no es NULL).
     if (id_sucursal !== undefined && id_sucursal !== null) {
         const sucursalExists = await query('SELECT id FROM sucursales WHERE id = ?', [id_sucursal]);
@@ -139,7 +140,7 @@ const createDireccionIp = async (req, res, next) => { // Añadimos 'next'.
          return res.status(400).json({ message: 'El campo id_status no puede ser nulo.' });
      }
 
-    // Consulta SQL para insertar. Construimos dinámicamente.
+    // * Construyo la consulta SQL dinámicamente según los campos presentes
     let sql = 'INSERT INTO direcciones_ip (direccion_ip';
     const values = [direccion_ip];
     const placeholders = ['?'];
@@ -164,6 +165,7 @@ const createDireccionIp = async (req, res, next) => { // Añadimos 'next'.
     });
 
   } catch (error) {
+    // ! Si hay error, lo paso al middleware global
     console.error('Error al crear dirección IP:', error);
     // === Manejo de Errores Específicos ===
     // Si hay duplicación de la direccion_ip (UNIQUE constraint).
@@ -179,11 +181,10 @@ const createDireccionIp = async (req, res, next) => { // Añadimos 'next'.
 };
 
 // [PUT] /api/direcciones-ip/:id
-// Actualiza un registro existente en la tabla 'direcciones_ip' por su ID.
-// Incluye validaciones para formato de IP y FKs.
-const updateDireccionIp = async (req, res, next) => { // Añadimos 'next'.
+// * Actualiza una dirección IP por su ID
+const updateDireccionIp = async (req, res, next) => {
   try {
-    // Obtenemos ID y datos del body.
+    // * Extraigo el ID y los datos a actualizar
     const { id } = req.params;
     const { direccion_ip, id_sucursal, comentario, id_status } = req.body;
 
@@ -229,7 +230,7 @@ const updateDireccionIp = async (req, res, next) => { // Añadimos 'next'.
 
     // fecha_actualizacion se actualiza automáticamente en la DB.
 
-    // Construir la consulta UPDATE dinámicamente.
+    // * Construyo la consulta UPDATE dinámicamente
     let sql = 'UPDATE direcciones_ip SET ';
     const params = [];
     const updates = []; // Partes de la sentencia SET.
@@ -262,6 +263,7 @@ const updateDireccionIp = async (req, res, next) => { // Añadimos 'next'.
     }
 
   } catch (error) {
+    // ! Si hay error, lo paso al middleware global
     console.error(`Error al actualizar dirección IP con ID ${req.params.id}:`, error);
     // === Manejo de Errores Específicos ===
     // Si hay duplicación de la direccion_ip.
@@ -277,10 +279,10 @@ const updateDireccionIp = async (req, res, next) => { // Añadimos 'next'.
 };
 
 // [DELETE] /api/direcciones-ip/:id
-// Elimina un registro de la tabla 'direcciones_ip' por su ID.
-const deleteDireccionIp = async (req, res, next) => { // Añadimos 'next'.
+// * Elimina una dirección IP por su ID
+const deleteDireccionIp = async (req, res, next) => {
   try {
-    // Obtenemos el ID de la dirección IP a eliminar.
+    // * Extraigo el ID de la IP a eliminar
     const { id } = req.params;
 
     // Consulta SQL para eliminar por ID.
@@ -299,6 +301,7 @@ const deleteDireccionIp = async (req, res, next) => { // Añadimos 'next'.
     }
 
   } catch (error) {
+    // ! Si hay error, lo paso al middleware global
     console.error(`Error al eliminar dirección IP con ID ${req.params.id}:`, error);
      // === Manejo de Errores Específicos ===
      // Manejar el error si está siendo usada por asignaciones (ON DELETE SET NULL).
@@ -314,7 +317,7 @@ const deleteDireccionIp = async (req, res, next) => { // Añadimos 'next'.
   }
 };
 
-// Exportamos las funciones del controlador.
+// * Exporto todas las funciones del controlador para usarlas en las rutas
 module.exports = {
   getAllDireccionesIp,
   getDireccionIpById,

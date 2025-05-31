@@ -1,27 +1,27 @@
-// src/routes/empresas.routes.js
+// ! Rutas para la entidad Empresas
 
 const express = require('express');
-const router = express.Router();
+const router = express.Router(); // * Instancia del enrutador de Express
 
-// Importamos el controlador de empresas
+// * Importo el controlador de empresas
 const empresasController = require('../controllers/empresas.controller');
 
-// Definimos las rutas para empresas
+// * Defino las rutas para empresas y les asigno el controlador correspondiente
 
-// GET /api/empresas - Obtener todas las empresas
+// * [GET] /api/empresas - Trae todas las empresas
 router.get('/', empresasController.getAllEmpresas);
 
-// GET /api/empresas/:id - Obtener una empresa por ID
+// * [GET] /api/empresas/:id - Trae una empresa específica por su ID
 router.get('/:id', empresasController.getEmpresaById);
 
-// POST /api/empresas - Crear una nueva empresa
+// * [POST] /api/empresas - Crea una nueva empresa
 router.post('/', empresasController.createEmpresa);
 
-// PUT /api/empresas/:id - Actualizar una empresa por ID
+// * [PUT] /api/empresas/:id - Actualiza una empresa por su ID
 router.put('/:id', empresasController.updateEmpresa);
 
-// DELETE /api/empresas/:id - Eliminar una empresa por ID
+// * [DELETE] /api/empresas/:id - Elimina una empresa por su ID
 router.delete('/:id', empresasController.deleteEmpresa);
 
-// Exportamos el enrutador
+// * Exporto el enrutador para usarlo en server.js
 module.exports = router;

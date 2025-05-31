@@ -1,20 +1,18 @@
 // src/controllers/notas.controller.js
-// Controlador para manejar las operaciones CRUD de la entidad Notas.
-// Permite adjuntar notas a equipos, mantenimientos o cuentas de email.
+// ! Controlador para la entidad Notas
+// * Aquí gestiono todo lo relacionado con notas adjuntas a equipos, mantenimientos o cuentas de email: creación, consulta, actualización y eliminación.
+// * Incluye validaciones de negocio para asegurar que cada nota esté asociada a una entidad y que los campos sean correctos.
 
 const { query } = require('../config/db'); // Importamos la función de consulta DB.
 
 // ===============================================================
-// FUNCIONES CONTROLADORAS
+// * Funciones controladoras para cada endpoint de notas
 // ===============================================================
 
-// [GET] /api/notas
-// Obtiene y devuelve todos los registros de la tabla 'notas'.
-// Incluye detalles básicos de las entidades asociadas (equipo, mantenimiento, email, usuario creador).
-const getAllNotas = async (req, res, next) => { // 'next' para manejo de errores.
+// * [GET] /api/notas - Trae todas las notas con JOINs a entidades asociadas
+const getAllNotas = async (req, res, next) => {
   try {
-    // Consulta SQL con LEFT JOINs para las entidades opcionales asociadas.
-    // Incluimos nombre de usuario creador, detalles básicos del equipo, etc.
+    // * Consulta SQL con LEFT JOINs para traer toda la info relevante de cada nota
     const sql = `
       SELECT
         n.id,
@@ -40,24 +38,23 @@ const getAllNotas = async (req, res, next) => { // 'next' para manejo de errores
     // Ejecutamos la consulta.
     const notas = await query(sql);
 
-    // Enviamos la lista de notas como respuesta JSON (200 OK).
+    // * Devuelvo la lista como JSON
     res.status(200).json(notas);
 
   } catch (error) {
+    // ! Si hay error, lo paso al middleware global
     console.error('Error al obtener todas las notas:', error);
     next(error); // Pasar error al middleware global.
   }
 };
 
-// [GET] /api/notas/:id
-// Obtiene y devuelve un registro de nota específico por su ID.
-// Incluye detalles básicos de las entidades asociadas.
-const getNotaById = async (req, res, next) => { // Añadimos 'next'.
+// * [GET] /api/notas/:id - Trae una nota específica por su ID (con relaciones)
+const getNotaById = async (req, res, next) => {
   try {
-    // Obtenemos el ID de la nota.
+    // * Extraigo el ID desde los parámetros de la URL
     const { id } = req.params;
 
-    // Consulta SQL para seleccionar una nota por ID con LEFT JOINs.
+    // * Consulta SQL con LEFT JOINs para traer la nota y sus relaciones
     const sql = `
       SELECT
         n.id,
@@ -84,29 +81,26 @@ const getNotaById = async (req, res, next) => { // Añadimos 'next'.
     const params = [id]; // El ID a buscar.
     const notas = await query(sql, params); // query siempre devuelve un array.
 
-    // === Verificación de Resultado ===
+    // * Si no existe, devuelvo 404
     if (notas.length === 0) {
       // Si el array está vacío, la nota no fue encontrada (404 Not Found).
       res.status(404).json({ message: `Nota con ID ${id} no encontrada.` });
     } else {
-      // Si se encontró, devolvemos el primer (y único) resultado (200 OK).
+      // * Si existe, devuelvo el objeto
       res.status(200).json(notas[0]);
     }
 
   } catch (error) {
+    // ! Si hay error, lo paso al middleware global
     console.error(`Error al obtener nota con ID ${req.params.id}:`, error);
     next(error); // Pasar error al manejador global.
   }
 };
 
-// [POST] /api/notas
-// Crea un nuevo registro en la tabla 'notas'.
-// Incluye validaciones para campos obligatorios y FKs.
-// Requiere que al menos una de las FKs de entidad (equipo, mantenimiento, email) esté presente.
-const createNota = async (req, res, next) => { // Añadimos 'next'.
+// * [POST] /api/notas - Crea una nueva nota con validaciones
+const createNota = async (req, res, next) => {
   try {
-    // Obtenemos los datos del body. contenido es obligatorio.
-    // titulo, id_equipo, id_mantenimiento, id_cuenta_email, id_usuario_creacion son opcionales.
+    // * Extraigo los datos del body. contenido es obligatorio, los demás son opcionales.
     const {
         titulo, contenido, id_equipo, id_mantenimiento,
         id_cuenta_email, id_usuario_creacion
@@ -184,7 +178,7 @@ const createNota = async (req, res, next) => { // Añadimos 'next'.
     const result = await query(sql, values);
     const newNotaId = result.insertId; // ID del registro insertado.
 
-    // Enviamos respuesta de éxito (201 Created).
+    // * Devuelvo el ID y un preview del contenido
     res.status(201).json({
       message: 'Nota creada exitosamente',
       id: newNotaId,
@@ -194,18 +188,17 @@ const createNota = async (req, res, next) => { // Añadimos 'next'.
     });
 
   } catch (error) {
+    // ! Si hay error, lo paso al middleware global
     console.error('Error al crear nota:', error);
     // No hay UNIQUE constraints en esta tabla. Cualquier error será probablemente de la DB o SQL.
     next(error); // Pasar error al manejador global.
   }
 };
 
-// [PUT] /api/notas/:id
-// Actualiza un registro existente en la tabla 'notas' por su ID.
-// Incluye validaciones y mantiene la regla de asociación a entidad.
-const updateNota = async (req, res, next) => { // Añadimos 'next'.
+// * [PUT] /api/notas/:id - Actualiza una nota por su ID
+const updateNota = async (req, res, next) => {
   try {
-    // Obtenemos ID y datos del body.
+    // * Extraigo el ID y los datos a actualizar
     const { id } = req.params;
     const {
         titulo, contenido, id_equipo, id_mantenimiento,
@@ -305,7 +298,7 @@ const updateNota = async (req, res, next) => { // Añadimos 'next'.
     // Ejecutamos la consulta.
     const result = await query(sql, params);
 
-    // === Verificación de Resultado ===
+    // * Devuelvo mensaje de éxito o 404 si no existía
     if (result.affectedRows === 0 && !currentNota) { // Si no encontramos la nota al inicio, ya devolvimos 404.
         // Si llegamos aquí y affectedRows es 0, significa que el ID existía, pero no se cambió nada,
         // o hubo algún otro problema que la DB no reportó como error.
@@ -322,17 +315,17 @@ const updateNota = async (req, res, next) => { // Añadimos 'next'.
 
 
   } catch (error) {
+    // ! Si hay error, lo paso al middleware global
     console.error(`Error al actualizar nota con ID ${req.params.id}:`, error);
     // No hay UNIQUE constraints. Cualquier error será de la DB o SQL (ej. FK inválida no capturada).
     next(error); // Pasar error al manejador global.
   }
 };
 
-// [DELETE] /api/notas/:id
-// Elimina un registro de la tabla 'notas' por su ID.
-const deleteNota = async (req, res, next) => { // Añadimos 'next'.
+// * [DELETE] /api/notas/:id - Elimina una nota por su ID
+const deleteNota = async (req, res, next) => {
   try {
-    // Obtenemos el ID de la nota a eliminar.
+    // * Extraigo el ID de la nota a eliminar
     const { id } = req.params;
 
     // Consulta SQL para eliminar por ID.
@@ -341,7 +334,7 @@ const deleteNota = async (req, res, next) => { // Añadimos 'next'.
     // Ejecutamos la consulta.
     const result = await query(sql, params);
 
-    // === Verificación de Resultado ===
+    // * Ejecuto el DELETE y reviso si realmente existía
     if (result.affectedRows === 0) {
       // Si 0 filas afectadas, el ID no existía.
       res.status(404).json({ message: `Nota con ID ${id} no encontrada.` });
@@ -351,6 +344,7 @@ const deleteNota = async (req, res, next) => { // Añadimos 'next'.
     }
 
   } catch (error) {
+    // ! Si hay error, lo paso al middleware global
     console.error(`Error al eliminar nota con ID ${req.params.id}:`, error);
      // No hay FKs que restrinjan la eliminación de una nota (las FKs van *desde* notas).
      // Este catch atraparía errores de la DB o SQL no relacionados con FK referenciada.
@@ -358,7 +352,7 @@ const deleteNota = async (req, res, next) => { // Añadimos 'next'.
   }
 };
 
-// Exportamos las funciones del controlador.
+// * Exporto todas las funciones del controlador para usarlas en las rutas
 module.exports = {
   getAllNotas,
   getNotaById,

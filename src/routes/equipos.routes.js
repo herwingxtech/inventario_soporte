@@ -2,10 +2,10 @@
 // Define las rutas HTTP para la entidad 'equipos'.
 
 const express = require('express');
-// Creamos una instancia del enrutador de Express.
+// * Instancia del enrutador de Express
 const router = express.Router();
 
-// Importamos las funciones controladoras que contienen la lógica para manejar estas rutas.
+// * Importo las funciones controladoras de equipos
 const equiposController = require('../controllers/equipos.controller');
 
 // ===============================================================
@@ -14,26 +14,20 @@ const equiposController = require('../controllers/equipos.controller');
 // Estas rutas se montarán bajo el prefijo /api/equipos en server.js.
 // ===============================================================
 
-// [GET] /api/equipos
-// Ruta para obtener todos los equipos.
+// * [GET] /api/equipos - Trae todos los equipos
 router.get('/', equiposController.getAllEquipos);
 
-// [GET] /api/equipos/:id
-// Ruta para obtener un equipo específico por su ID.
+// * [GET] /api/equipos/:id - Trae un equipo específico por su ID
 router.get('/:id', equiposController.getEquipoById);
 
-// [POST] /api/equipos
-// Ruta para crear un nuevo equipo.
+// * [POST] /api/equipos - Crea un nuevo equipo
 router.post('/', equiposController.createEquipo);
 
-// [PUT] /api/equipos/:id
-// Ruta para actualizar un equipo existente por su ID.
+// * [PUT] /api/equipos/:id - Actualiza un equipo por su ID
 router.put('/:id', equiposController.updateEquipo);
 
-// [DELETE] /api/equipos/:id
-// Ruta para eliminar un equipo por su ID.
+// * [DELETE] /api/equipos/:id - Elimina un equipo por su ID
 router.delete('/:id', equiposController.deleteEquipo);
 
-// Exportamos el objeto router.
-// Esto permite que sea importado y "montado" por el archivo principal del servidor (server.js).
+// * Exporto el enrutador para usarlo en server.js
 module.exports = router;

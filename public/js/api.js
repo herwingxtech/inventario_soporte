@@ -1,5 +1,8 @@
 // public/js/api.js
-// Centraliza todas las llamadas HTTP al backend API.
+// ! Módulo central de llamadas HTTP al backend
+// * Aquí centralizo todas las funciones para consumir la API REST del backend.
+// * Uso una función genérica para peticiones y manejo de errores, y funciones específicas para cada entidad.
+// * Los TODO y advertencias son recordatorios personales para futuras mejoras (ej: autenticación, manejo de tokens, etc).
 
 // URL base de tu API backend.
 const API_URL = 'http://localhost:3000/api'; // Asegúrate de que coincida con el puerto de tu server.js

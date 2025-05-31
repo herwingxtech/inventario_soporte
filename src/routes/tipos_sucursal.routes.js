@@ -2,10 +2,10 @@
 // Define las rutas HTTP para la entidad 'tipos_sucursal'.
 
 const express = require('express');
-// Creamos una instancia del enrutador de Express. Este objeto nos permite definir rutas.
+// * Instancia del enrutador de Express
 const router = express.Router();
 
-// Importamos las funciones controladoras que contienen la lógica para manejar estas rutas.
+// * Importo las funciones controladoras de tipos de sucursal
 const tiposSucursalController = require('../controllers/tipos_sucursal.controller');
 
 // ===============================================================
@@ -14,28 +14,20 @@ const tiposSucursalController = require('../controllers/tipos_sucursal.controlle
 // Estas rutas se montarán bajo el prefijo /api/tipos-sucursal en server.js.
 // ===============================================================
 
-// [GET] /api/tipos-sucursal
-// Ruta para obtener todos los tipos de sucursal.
+// * [GET] /api/tipos-sucursal - Trae todos los tipos de sucursal
 router.get('/', tiposSucursalController.getAllTiposSucursal);
 
-// [GET] /api/tipos-sucursal/:id
-// Ruta para obtener un tipo de sucursal específico por su ID.
-// ':id' es un parámetro de ruta que será capturado en req.params.id.
+// * [GET] /api/tipos-sucursal/:id - Trae un tipo de sucursal específico por su ID
 router.get('/:id', tiposSucursalController.getTiposSucursalById);
 
-// [POST] /api/tipos-sucursal
-// Ruta para crear un nuevo tipo de sucursal.
+// * [POST] /api/tipos-sucursal - Crea un nuevo tipo de sucursal
 router.post('/', tiposSucursalController.createTiposSucursal);
 
-// [PUT] /api/tipos-sucursal/:id
-// Ruta para actualizar un tipo de sucursal existente por su ID.
+// * [PUT] /api/tipos-sucursal/:id - Actualiza un tipo de sucursal por su ID
 router.put('/:id', tiposSucursalController.updateTiposSucursal);
 
-// [DELETE] /api/tipos-sucursal/:id
-// Ruta para eliminar un tipo de sucursal por su ID.
+// * [DELETE] /api/tipos-sucursal/:id - Elimina un tipo de sucursal por su ID
 router.delete('/:id', tiposSucursalController.deleteTiposSucursal);
 
-
-// Exportamos el objeto router.
-// Esto permite que sea importado y "montado" por el archivo principal del servidor (server.js).
+// * Exporto el enrutador para usarlo en server.js
 module.exports = router;

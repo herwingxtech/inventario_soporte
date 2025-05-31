@@ -2,10 +2,10 @@
 // Define las rutas HTTP para la entidad 'roles'.
 
 const express = require('express');
-// Creamos una instancia del enrutador de Express.
+// * Instancia del enrutador de Express
 const router = express.Router();
 
-// Importamos las funciones controladoras que contienen la lógica para manejar estas rutas.
+// * Importo las funciones controladoras de roles
 const rolesController = require('../controllers/roles.controller');
 
 // ===============================================================
@@ -14,28 +14,19 @@ const rolesController = require('../controllers/roles.controller');
 // Estas rutas se montarán bajo el prefijo /api/roles en server.js.
 // ===============================================================
 
-// [GET] /api/roles
-// Ruta para obtener todos los roles.
+// * [GET] /api/roles - Trae todos los roles
 router.get('/', rolesController.getAllRoles);
 
-// [GET] /api/roles/:id
-// Ruta para obtener un rol específico por su ID.
-// ':id' es un parámetro de ruta.
+// * [GET] /api/roles/:id - Trae un rol específico por su ID
 router.get('/:id', rolesController.getRoleById);
 
-// [POST] /api/roles
-// Ruta para crear un nuevo rol.
-// NOTA: Los roles suelen ser fijos. Considera si necesitas esta ruta en tu aplicación final.
+// * [POST] /api/roles - Crea un nuevo rol (en la práctica, los roles suelen ser fijos)
 router.post('/', rolesController.createRole);
 
-// [PUT] /api/roles/:id
-// Ruta para actualizar un rol existente por su ID.
-// NOTA: Los roles suelen ser fijos. Considera si necesitas esta ruta en tu aplicación final.
+// * [PUT] /api/roles/:id - Actualiza un rol por su ID (en la práctica, los roles suelen ser fijos)
 router.put('/:id', rolesController.updateRole);
 
-// [DELETE] /api/roles/:id
-// Ruta para eliminar un rol por su ID.
-// NOTA: Los roles suelen ser fijos y no deben eliminarse si están en uso por usuarios.
+// * [DELETE] /api/roles/:id - Elimina un rol por su ID (no debe eliminarse si está en uso)
 router.delete('/:id', rolesController.deleteRole);
 
 // Exportamos el objeto router.
