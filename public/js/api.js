@@ -1,19 +1,18 @@
 // public/js/api.js
 // ! Módulo central de llamadas HTTP al backend
 // * Si cambias la URL base o agregas autenticación, hazlo aquí. Si la API cambia, revisa los endpoints y métodos aquí primero.
-// ? ADVERTENCIA: Si el backend cambia de puerto o de ruta base, este archivo dejará de funcionar correctamente.
+// ! ADVERTENCIA: Si el backend cambia de puerto o de ruta base, este archivo dejará de funcionar correctamente.
 // * Aquí centralizo todas las funciones para consumir la API REST del backend.
 // * Uso una función genérica para peticiones y manejo de errores, y funciones específicas para cada entidad.
 // * Los TODO y advertencias son recordatorios personales para futuras mejoras (ej: autenticación, manejo de tokens, etc).
 
 // * URL base de la API backend.
-// * ¡Si mueves el backend a producción, no olvides cambiar esto!
-const API_URL = 'http://localhost:3000/api'; // * Asegúrate de que coincida con el puerto de tu server.js
+const API_URL = 'http://localhost:3000/api';
 
 // * Función genérica para manejar peticiones HTTP y errores.
-// * Aquí se centraliza el manejo de errores y el parseo de respuestas.
-// * Recibe la ruta (ej: '/equipos'), el método (ej: 'GET', 'POST'), y el cuerpo si es necesario.
-// * Retorna los datos de la respuesta si es exitosa (status 2xx) o lanza un error si no.
+// * Aquí centralizo el manejo de errores y el parseo de respuestas.
+// * Recibo la ruta (ej: '/equipos'), el método (ej: 'GET', 'POST'), y el cuerpo si es necesario.
+// * Retorno los datos de la respuesta si es exitosa (status 2xx) o lanza un error si no.
 async function request(endpoint, method = 'GET', body = null) {
   const url = `${API_URL}${endpoint}`; // * Construye la URL completa.
   const options = {

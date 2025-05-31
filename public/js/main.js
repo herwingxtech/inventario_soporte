@@ -23,12 +23,6 @@ import { loadDireccionesIpList } from './views/direccionesIpView.js';
 const contentArea = document.getElementById('content-area');
 const mobileMenu = document.getElementById('mobile-menu');
 
-
-// ===============================================================
-// * MAPEO DE VISTAS (actualizado)
-// * Relaciono nombres de vista con funciones para facilitar la navegación SPA.
-// ===============================================================
-
 // * Función para renderizar el contenido inicial de la vista 'home'.
 function renderHomeView() {
     console.log('Renderizando vista Home.'); // * Log para saber cuándo se renderiza la vista home
@@ -51,11 +45,9 @@ function renderHomeView() {
                 <p class="text-purple-700 text-sm">Rastrea dónde y a quién están asignados los equipos.</p>
                  <button class="mt-3 bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-600/90" data-view="asignacionesList">Ver Asignaciones</button>
             </div>
-            <!-- TODO: Añadir más tarjetas para otras secciones si lo deseas, con data-view -->
         </div>
     `;
 }
-
 
 // * Objeto que mapea nombres de vista (del atributo data-view) a las funciones que las cargan/renderizan.
 const viewsMap = {
@@ -63,10 +55,6 @@ const viewsMap = {
     'equiposList': loadEquiposList,
     'empleadosList': loadEmpleadosList,
     'direccionesIpList': loadDireccionesIpList,
-    // <------------------->
-    // TODO: Añadir mapeos para las otras vistas a medida que las crees:
-    // 'asignacionesList': loadAsignacionesList,
-    // ... etc.
 };
 
 
