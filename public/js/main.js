@@ -15,6 +15,7 @@ import { loadDireccionesIpList } from './views/direccionesIpView.js';
 import { loadCuentasEmailList } from './views/cuentasEmailView.js'; 
 import { loadMantenimientosList } from './views/mantenimientosView.js';
 import { loadNotasList } from './views/notasView.js';
+import { loadAsignacionesList } from './views/asignacionesView.js';
 
 
 
@@ -61,7 +62,9 @@ const viewsMap = {
     'direccionesIpList': loadDireccionesIpList,
     'cuentasEmailList': loadCuentasEmailList,
     'mantenimientosList': loadMantenimientosList,
-    'notasList': loadNotasList
+    'notasList': loadNotasList,
+    'asignacionesList': loadAsignacionesList
+
 };
 
 

@@ -37,20 +37,20 @@ const getAllAsignaciones = async (req, res, next) => {
       SELECT
         a.id,
         a.id_equipo,
-        e.numero_serie AS equipo_numero_serie, // * Info del equipo asignado
+        e.numero_serie AS equipo_numero_serie,
         e.nombre_equipo AS equipo_nombre,
         a.id_empleado,
-        emp.nombres AS empleado_nombres, // * Info del empleado asignado
+        emp.nombres AS empleado_nombres,
         emp.apellidos AS empleado_apellidos,
         a.id_sucursal_asignado,
-        s.nombre AS sucursal_asignada_nombre, // * Info de la sucursal asignada
+        s.nombre AS sucursal_asignada_nombre,
         a.id_area_asignado,
-        ar.nombre AS area_asignada_nombre, // * Info del área asignada
+        ar.nombre AS area_asignada_nombre,
         a.id_equipo_padre,
-        ep.numero_serie AS equipo_padre_numero_serie, // * Info del equipo padre
+        ep.numero_serie AS equipo_padre_numero_serie,
         ep.nombre_equipo AS equipo_padre_nombre,
         a.id_ip,
-        ip.direccion_ip AS ip_direccion, // * Info de la IP asignada
+        ip.direccion_ip AS ip_direccion,
         a.fecha_asignacion,
         a.fecha_fin_asignacion,
         a.observacion,
