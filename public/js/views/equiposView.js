@@ -35,13 +35,6 @@ function showEquiposError(message) {
 function renderEquiposTable(equipos) {
     // * Limpia el contenido anterior antes de renderizar la tabla.
     contentArea.innerHTML = '';
-
-    if (!equipos || equipos.length === 0) {
-        // ! No hay equipos registrados en la base de datos.
-        contentArea.innerHTML = '<p>No hay equipos registrados en el inventario.</p>';
-        return;
-    }
-
     // * Renderiza el título de la vista
     const title = document.createElement('h2');
     title.classList.add('text-2xl', 'font-bold', 'text-gray-800', 'mb-6');
@@ -55,11 +48,24 @@ function renderEquiposTable(equipos) {
     createButton.classList.add('bg-blue-500', 'hover:bg-blue-600', 'text-white', 'font-bold', 'py-2', 'px-4', 'rounded');
     createButton.textContent = 'Nuevo Equipo';
     createButton.addEventListener('click', () => {
-        // TODO: Implementar formulario de creación de Equipo
-        console.log('Mostrar formulario para crear nuevo Equipo');
+        if (typeof window.navigateTo === 'function') {
+            window.navigateTo('equipoForm'); // Llama a navigateTo para mostrar el formulario
+        } else {
+            console.error('La función navigateTo no está disponible globalmente. Revisa main.js.');
+        }
+        console.log('Herwing quiere mostrar el formulario para crear un nuevo equipo.');
     });
     createButtonContainer.appendChild(createButton);
     contentArea.appendChild(createButtonContainer);
+
+    if (!equipos || equipos.length === 0) {
+        // ! No hay equipos registrados en la base de datos.
+        const noData = document.createElement('p');
+        noData.textContent = 'No hay equipos registrados en el inventario.';
+        contentArea.appendChild(noData);
+        return;
+    }
+
 
     // * Crea el elemento tabla y le añade clases de estilo.
     const table = document.createElement('table');
@@ -129,8 +135,13 @@ function renderEquiposTable(equipos) {
                 viewButton.classList.add('w-6', 'h-6', 'mr-2', 'transform', 'hover:text-blue-500', 'hover:scale-110');
                 viewButton.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>';
                 viewButton.addEventListener('click', () => {
-                    // TODO: Implementar la navegación a la vista de detalles del equipo con su ID.
-                    console.log('Ver detalles de equipo con ID:', equipo.id);
+                   console.log('Herwing quiere ver los detalles del equipo con ID:', equipo.id);
+                    // * Navego a la vista de detalles del equipo, pasando el ID.
+                    if (typeof window.navigateTo === 'function') {
+                        window.navigateTo('equipoDetails', { id: equipo.id }); // <-- PASO EL ID AQUÍ
+                    } else {
+                        console.error('La función navigateTo no está disponible globalmente. Revisa main.js.');
+                    }
                 });
 
                 // * Botón Editar equipo. Implementación pendiente.
@@ -138,8 +149,13 @@ function renderEquiposTable(equipos) {
                 editButton.classList.add('w-6', 'h-6', 'mr-2', 'transform', 'hover:text-yellow-500', 'hover:scale-110');
                 editButton.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>';
                 editButton.addEventListener('click', () => {
-                    // TODO: Implementar la navegación al formulario de edición del equipo con su ID.
-                    console.log('Editar equipo con ID:', equipo.id);
+                  console.log('Herwing quiere editar el equipo con ID:', equipo.id);
+                    // * Navego a la vista del formulario de equipo, pasando el ID del equipo a editar.
+                    if (typeof window.navigateTo === 'function') {
+                        window.navigateTo('equipoForm', { id: equipo.id }); // <-- PASO EL ID AQUÍ
+                    } else {
+                        console.error('La función navigateTo no está disponible globalmente. Revisa main.js.');
+                    }
                 });
 
                 // * Botón Eliminar equipo. Muestra confirmación antes de llamar a la API.

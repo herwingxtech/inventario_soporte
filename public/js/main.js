@@ -10,6 +10,8 @@ console.log('Frontend JavaScript principal cargado. Configurando aplicación...'
 // ===============================================================
 
 import { loadEquiposList } from './views/equiposView.js';
+import { showEquipoForm } from './views/equipoFormView.js';
+import { showEquipoDetails } from './views/equipoDetailsView.js';
 import { loadEmpleadosList } from './views/empleadosView.js';
 import { loadDireccionesIpList } from './views/direccionesIpView.js';
 import { loadCuentasEmailList } from './views/cuentasEmailView.js'; 
@@ -30,9 +32,9 @@ const mobileMenu = document.getElementById('mobile-menu');
 
 // * Función para renderizar el contenido inicial de la vista 'home'.
 function renderHomeView() {
-    console.log('Renderizando vista Home.'); // * Log para saber cuándo se renderiza la vista home
+  console.log('Renderizando vista Home por Herwing.');
     contentArea.innerHTML = `
-        <h2 class="text-2xl font-bold text-gray-800 mb-4">Bienvenido a tu Inventario</h2>
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Bienvenido a tu Inventario IT</h2>
         <p class="text-gray-700 mb-6">Selecciona una opción del menú para empezar a gestionar tus activos.</p>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div class="bg-blue-100 p-4 rounded-lg shadow-md">
@@ -44,11 +46,37 @@ function renderHomeView() {
                 <h3 class="font-semibold text-green-800 mb-2">Gestión de Empleados</h3>
                 <p class="text-green-700 text-sm">Información del personal asociado a los activos.</p>
                  <button class="mt-3 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-600/90" data-view="empleadosList">Ver Empleados</button>
+                 <!-- //TODO: Botón "Nuevo Empleado" con data-view="empleadoForm" -->
             </div>
              <div class="bg-purple-100 p-4 rounded-lg shadow-md">
-                <h3 class="font-semibold text-purple-800 mb-2">Gestión de Direcciones IP</h3>
-                <p class="text-purple-700 text-sm">Rastrea a quién están asignadas las direcciones IP.</p>
-                 <button class="mt-3 bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-600/90" data-view="direccionesIpList">Ver Direcciones IP</button>
+                <h3 class="font-semibold text-purple-800 mb-2">Asignaciones y Ubicaciones</h3>
+                <p class="text-purple-700 text-sm">Rastrea dónde y a quién están asignados los equipos.</p>
+                 <button class="mt-3 bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-600/90" data-view="asignacionesList">Ver Asignaciones</button>
+                 <!-- //TODO: Botón "Nueva Asignación" con data-view="asignacionForm" -->
+            </div>
+            <div class="bg-yellow-100 p-4 rounded-lg shadow-md">
+                <h3 class="font-semibold text-yellow-800 mb-2">Direcciones IP</h3>
+                <p class="text-yellow-700 text-sm">Gestión de direcciones IP de la red.</p>
+                 <button class="mt-3 bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-600/90" data-view="direccionesIpList">Ver IPs</button>
+                 <!-- //TODO: Botón "Nueva IP" con data-view="direccionIpForm" -->
+            </div>
+            <div class="bg-indigo-100 p-4 rounded-lg shadow-md">
+                <h3 class="font-semibold text-indigo-800 mb-2">Cuentas de Email</h3>
+                <p class="text-indigo-700 text-sm">Inventario de cuentas de correo corporativas.</p>
+                 <button class="mt-3 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-600/90" data-view="cuentasEmailList">Ver Emails</button>
+                 <!-- //TODO: Botón "Nueva Cuenta Email" con data-view="cuentaEmailForm" -->
+            </div>
+            <div class="bg-orange-100 p-4 rounded-lg shadow-md">
+                <h3 class="font-semibold text-orange-800 mb-2">Mantenimientos</h3>
+                <p class="text-orange-700 text-sm">Historial de servicio de los equipos.</p>
+                 <button class="mt-3 bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-600/90" data-view="mantenimientosList">Ver Mantenimientos</button>
+                 <!-- //TODO: Botón "Nuevo Mantenimiento" con data-view="mantenimientoForm" -->
+            </div>
+            <div class="bg-cyan-100 p-4 rounded-lg shadow-md">
+                <h3 class="font-semibold text-cyan-800 mb-2">Notas</h3>
+                <p class="text-cyan-700 text-sm">Notas y apuntes generales del sistema.</p>
+                 <button class="mt-3 bg-cyan-600 text-white px-4 py-2 rounded hover:bg-cyan-600/90" data-view="notasList">Ver Notas</button>
+                 <!-- //TODO: Botón "Nueva Nota" con data-view="notaForm" -->
             </div>
         </div>
     `;
@@ -58,6 +86,8 @@ function renderHomeView() {
 const viewsMap = {
     'home': renderHomeView,
     'equiposList': loadEquiposList,
+    'equipoForm': showEquipoForm,
+    'equipoDetails': showEquipoDetails,
     'empleadosList': loadEmpleadosList,
     'direccionesIpList': loadDireccionesIpList,
     'cuentasEmailList': loadCuentasEmailList,
@@ -92,6 +122,9 @@ function navigateTo(viewName, params = null) {
         mobileMenu.classList.add('max-h-0');
     }
 }
+
+// Hacer navigateTo global para que otros módulos puedan usarla
+window.navigateTo = navigateTo;
 
 
 // ===============================================================

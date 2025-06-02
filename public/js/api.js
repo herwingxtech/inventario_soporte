@@ -158,6 +158,8 @@ const createAsignacion = (asignacionData) => request('/asignaciones', 'POST', as
 const updateAsignacion = (id, asignacionData) => request(`/asignaciones/${id}`, 'PUT', asignacionData); 
 const deleteAsignacion = (id) => request(`/asignaciones/${id}`, 'DELETE'); 
 
+// --- Sucursales ---
+const getSucursales = () => request('/sucursales'); 
 
 // * Exporto solo lo necesario.
 // * Si alguna función no se usa, elimínala para mantener el código limpio.
@@ -190,4 +192,6 @@ export {
   getNotas, getNotaById, createNota, updateNota, deleteNota,
   // Asignaciones
   getAsignaciones, getAsignacionById, createAsignacion, updateAsignacion, deleteAsignacion,
+  // Sucursales
+  getSucursales,
 };
