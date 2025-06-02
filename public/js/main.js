@@ -12,6 +12,9 @@ console.log('Frontend JavaScript principal cargado. Configurando aplicación...'
 import { loadEquiposList } from './views/equiposView.js';
 import { loadEmpleadosList } from './views/empleadosView.js';
 import { loadDireccionesIpList } from './views/direccionesIpView.js';
+import { loadCuentasEmailList } from './views/cuentasEmailView.js'; 
+import { loadMantenimientosList } from './views/mantenimientosView.js';
+
 
 
 /* 
@@ -55,6 +58,8 @@ const viewsMap = {
     'equiposList': loadEquiposList,
     'empleadosList': loadEmpleadosList,
     'direccionesIpList': loadDireccionesIpList,
+    'cuentasEmailList': loadCuentasEmailList,
+    'mantenimientosList': loadMantenimientosList
 };
 
 
