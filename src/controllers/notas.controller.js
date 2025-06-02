@@ -36,14 +36,14 @@ const getAllNotas = async (req, res, next) => {
         e.numero_serie AS equipo_numero_serie,
         n.id_mantenimiento,
         m.fecha_inicio AS mantenimiento_fecha_inicio,
-        n.id_usuario_sistema,
+        n.id_usuario_creacion AS id_usuario_sistema,
         us.username AS usuario_creador,
-        n.fecha_registro,
+        n.fecha_creacion AS fecha_registro,
         n.fecha_actualizacion
       FROM notas AS n
       LEFT JOIN equipos AS e ON n.id_equipo = e.id
       LEFT JOIN mantenimientos AS m ON n.id_mantenimiento = m.id
-      LEFT JOIN usuarios_sistema AS us ON n.id_usuario_sistema = us.id
+      LEFT JOIN usuarios_sistema AS us ON n.id_usuario_creacion = us.id
     `;
     const notas = await query(sql);
     res.status(200).json(notas);
