@@ -185,12 +185,17 @@ async function renderEquipoForm(equipoToEdit = null) {
         // * Pasamos equipoToEdit para saber si estamos editando o creando.
         document.getElementById('equipoForm').addEventListener('submit', (event) => handleEquipoFormSubmit(event, equipoId));
         // * Listener para el botón Cancelar
-        document.getElementById('cancelEquipoForm').addEventListener('click', () => {
+        document.getElementById('cancelEquipoForm').addEventListener('click', async () => {
              //TODO: Decidir a dónde navegar al cancelar (ej. a la lista de equipos)
              // navigateTo('equiposList');
              console.log('Herwing canceló el formulario de equipo.');
              // Por ahora, solo limpiamos el área como si fuera a la vista home.
              // Esto es un placeholder, la navegación real se hará con main.js
+             await showInfoModal({
+                title: 'Cancelado',
+                message: 'El formulario de equipo ha sido cancelado.'
+            });
+            // * Navego a la lista de equipos.
              if (typeof window.navigateTo === 'function') {
                 window.navigateTo('equiposList');
             } else {
