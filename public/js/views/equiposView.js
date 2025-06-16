@@ -7,7 +7,8 @@
 
 // * Importo las funciones de la API que necesito para obtener y eliminar equipos.
 import { getEquipos, deleteEquipo } from '../api.js';
-
+import { showConfirmationModal } from '../ui/modal.js'; // Importo la función del modal.    
+import { showInfoModal } from '../ui/modal.js'; // Importo la función del modal.
 
 // ===============================================================
 // * ELEMENTOS DEL DOM RELACIONADOS CON ESTA VISTA
@@ -138,7 +139,7 @@ function renderEquiposTable(equipos) {
                    console.log('Herwing quiere ver los detalles del equipo con ID:', equipo.id);
                     // * Navego a la vista de detalles del equipo, pasando el ID.
                     if (typeof window.navigateTo === 'function') {
-                        window.navigateTo('equipoDetails', { id: equipo.id }); // <-- PASO EL ID AQUÍ
+                        window.navigateTo('equipoDetails', String(equipo.id)); // <-- PASO EL ID COMO STRING
                     } else {
                         console.error('La función navigateTo no está disponible globalmente. Revisa main.js.');
                     }
@@ -152,7 +153,7 @@ function renderEquiposTable(equipos) {
                   console.log('Herwing quiere editar el equipo con ID:', equipo.id);
                     // * Navego a la vista del formulario de equipo, pasando el ID del equipo a editar.
                     if (typeof window.navigateTo === 'function') {
-                        window.navigateTo('equipoForm', { id: equipo.id }); // <-- PASO EL ID AQUÍ
+                        window.navigateTo('equipoForm', String(equipo.id)); // <-- PASO EL ID COMO STRING
                     } else {
                         console.error('La función navigateTo no está disponible globalmente. Revisa main.js.');
                     }
@@ -163,18 +164,38 @@ function renderEquiposTable(equipos) {
                 deleteButton.classList.add('w-6', 'h-6', 'transform', 'hover:text-red-500', 'hover:scale-110');
                 deleteButton.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m14 0H5m2 0V5a2 2 0 012-2h6a2 2 0 012 2v2"></path></svg>';
                 deleteButton.addEventListener('click', async () => {
-                    // ! Confirmación crítica: Asegurarse que el usuario realmente quiere eliminar.
-                    if (confirm(`¿Estás seguro de eliminar el equipo con Número de Serie "${equipo.numero_serie}" (ID: ${equipo.id})?`)) {
+                    console.log('Herwing quiere eliminar el equipo con ID:', equipo.id);
+
+                    // * Muestro el modal de confirmación.
+                    // * `showConfirmationModal` retorna una Promise que se resuelve a true o false.
+                    const confirmed = await showConfirmationModal({
+                        title: 'Confirmar Eliminación',
+                        message: `¿Estás realmente seguro de que quieres eliminar el equipo con Número de Serie "${equipo.numero_serie}" (ID: ${equipo.id})? Esta acción no se puede deshacer.`,
+                        confirmButtonText: 'Sí, Eliminar',
+                        confirmButtonClass: 'bg-red-600 hover:bg-red-700 text-white' // Clases para el botón de confirmación
+                    });
+
+                    if (confirmed) {
+                        console.log('Eliminación confirmada por Herwing para equipo ID:', equipo.id);
                         try {
-                            // * Llama a la función de la API para eliminar el equipo.
-                            await deleteEquipo(equipo.id);
-                            // * Recarga la lista de equipos tras eliminar para reflejar el cambio.
-                            loadEquiposList();
-                            // TODO: Mostrar un mensaje de éxito más amigable al usuario (ej. toast notification).
+                            await deleteEquipo(equipo.id); // Uso la función de api.js
+                            console.log('Equipo eliminado exitosamente:', equipo.id);
+                            //TODO: Mostrar un mensaje de éxito con un toast/info modal.
+                            showInfoModal({
+                                title: 'Éxito',
+                                message: 'El equipo ha sido eliminado correctamente.'
+                            });
+                            loadEquiposList(); // Recargo la lista para reflejar el cambio.
                         } catch (error) {
-                            // ! Error al eliminar equipo. Muestra mensaje de error al usuario.
-                            alert('Error al eliminar el equipo: ' + error.message);
+                            console.error('Error al eliminar equipo:', error);
+                            //TODO: Mostrar el error con un info modal.
+                            showInfoModal({
+                                title: 'Error',
+                                message: `Error al eliminar el equipo: ${error.message}`
+                            });
                         }
+                    } else {
+                        console.log('Eliminación cancelada por Herwing para equipo ID:', equipo.id);
                     }
                 });
 

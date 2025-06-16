@@ -117,6 +117,9 @@ function renderMantenimientosTable(mantenimientos) {
                     //TODO: Implementar la navegación a la vista de detalles del mantenimiento.
                     // Ejemplo: navigateTo('mantenimientoDetails', { id: mantenimiento.id });
                     console.log('Herwing quiere ver los detalles del mantenimiento con ID:', mantenimiento.id);
+                    if (typeof window.navigateTo === 'function') {
+                        window.navigateTo('mantenimientoDetails', String(mantenimiento.id));
+                    }
                 });
 
                 // * Botón Editar.
@@ -127,6 +130,9 @@ function renderMantenimientosTable(mantenimientos) {
                     //TODO: Implementar la navegación al formulario de edición del mantenimiento.
                     // Ejemplo: navigateTo('mantenimientoForm', { id: mantenimiento.id });
                     console.log('Herwing quiere editar el mantenimiento con ID:', mantenimiento.id);
+                    if (typeof window.navigateTo === 'function') {
+                        window.navigateTo('mantenimientoForm', String(mantenimiento.id));
+                    }
                 });
 
                 // * Botón Eliminar.

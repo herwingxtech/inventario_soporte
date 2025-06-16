@@ -95,7 +95,7 @@ function renderEquipoDetails(equipo) {
     editButton.addEventListener('click', () => {
         // Navegar al formulario de edición
         if (typeof window.navigateTo === 'function') {
-            window.navigateTo('equipoForm', { id: equipo.id });
+            window.navigateTo('equipoForm', String(equipo.id));
         }
     });
 
@@ -122,25 +122,20 @@ function renderEquipoDetails(equipo) {
 // FUNCIÓN PRINCIPAL DE CARGA DE LA VISTA DE DETALLES
 // `params` debe contener `{ id: equipoId }`.
 // ===============================================================
-async function showEquipoDetails(params) {
+export async function showEquipoDetails(params) {
     console.log('Herwing va a mostrar los detalles de un equipo. Parámetros:', params);
-
-    if (!params || params.id === undefined) {
-        showEquipoDetailsError('No se proporcionó un ID de equipo para mostrar los detalles.');
+    // Extraer el ID del parámetro. Si params es un string, usarlo directamente; si es un objeto, extraer params.id.
+    const equipoId = typeof params === 'string' ? params : (params && params.id);
+    if (!equipoId) {
+        console.error('No se proporcionó un ID de equipo para mostrar los detalles.');
+        contentArea.innerHTML = '<p class="text-red-500">Error al cargar detalles del equipo: No se proporcionó un ID de equipo para mostrar los detalles.</p>';
         return;
     }
-    const equipoId = params.id;
-    showEquipoDetailsLoading(equipoId); // Muestro carga.
-
     try {
-        const equipo = await getEquipoById(equipoId); // Llamo a la API.
-        renderEquipoDetails(equipo); // Renderizo los detalles.
+        const equipo = await getEquipoById(equipoId);
+        renderEquipoDetails(equipo);
     } catch (error) {
-        showEquipoDetailsError(error.message); // Muestro un error si algo falla.
+        console.error('Error al cargar los detalles del equipo:', error);
+        contentArea.innerHTML = `<p class="text-red-500">Error al cargar detalles del equipo: ${error.message}</p>`;
     }
 }
-
-// ===============================================================
-// EXPORTAR FUNCIONES DE LA VISTA
-// ===============================================================
-export { showEquipoDetails };

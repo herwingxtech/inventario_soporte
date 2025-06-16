@@ -5,6 +5,7 @@
 //? Para poblar los selects, necesito 'getTiposEquipo', 'getSucursales', 'getStatuses'.
 import { createEquipo, getTiposEquipo, getSucursales, getStatuses, getEquipoById, updateEquipo } from '../api.js';
 
+import { showInfoModal } from '../ui/modal.js'; // Importo la función del modal.
 // * Referencia al contenedor principal donde se renderizará esta vista/formulario.
 const contentArea = document.getElementById('content-area');
 
@@ -34,9 +35,11 @@ function showEquipoFormError(message, action = 'procesar') {
 // * Renderiza el formulario HTML para crear o editar un equipo.
 // * `equipoToEdit` es opcional. Si se proporciona, el formulario se llena para edición.
 async function renderEquipoForm(equipoToEdit = null) {
-    console.log('Herwing está renderizando el formulario de equipo. Editando:', equipoToEdit ? equipoToEdit.id : 'No (Nuevo)');
-    const isEditing = equipoToEdit !== null;
-    const formTitle = isEditing ? `Editar Equipo (ID: ${equipoToEdit.id})` : 'Registrar Nuevo Equipo';
+    // Extraer el ID del parámetro. Si equipoToEdit es un string, usarlo directamente; si es un objeto, extraer equipoToEdit.id.
+    const equipoId = typeof equipoToEdit === 'string' ? equipoToEdit : (equipoToEdit && equipoToEdit.id);
+    console.log('Herwing está renderizando el formulario de equipo. Editando:', equipoId ? equipoId : 'No (Nuevo)');
+    const isEditing = equipoId !== null;
+    const formTitle = isEditing ? `Editar Equipo (ID: ${equipoId})` : 'Registrar Nuevo Equipo';
 
     showEquipoFormLoading(isEditing ? 'Editar' : 'Crear'); // Muestro carga mientras se obtienen los datos de los selects.
 
@@ -152,7 +155,7 @@ async function renderEquipoForm(equipoToEdit = null) {
                     <select id="id_status" name="id_status" required
                             class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                         <option value="">Seleccione un estado...</option>
-                        ${statusesCache.map(status => `<option value="${status.id}" ${isEditing && equipoToEdit.id_status === status.id ? 'selected' : ( !isEditing && status.id === 1 ? 'selected' : '') }>${status.nombre_status}</option>`).join('')}
+                        ${statusesCache.map(status => `<option value="${status.id}" ${isEditing && equipoToEdit.id_status === status.id ? 'selected' : ( !isEditing && status.id === 1 ? 'selected' :'') }>${status.nombre_status}</option>`).join('')}
                         <!-- Para nuevo, selecciono "Activo" (ID 1) por defecto si existe -->
                     </select>
                 </div>
@@ -180,7 +183,7 @@ async function renderEquipoForm(equipoToEdit = null) {
 
         // * Añado el event listener al formulario después de que se haya insertado en el DOM.
         // * Pasamos equipoToEdit para saber si estamos editando o creando.
-        document.getElementById('equipoForm').addEventListener('submit', (event) => handleEquipoFormSubmit(event, equipoToEdit ? equipoToEdit.id : null));
+        document.getElementById('equipoForm').addEventListener('submit', (event) => handleEquipoFormSubmit(event, equipoId));
         // * Listener para el botón Cancelar
         document.getElementById('cancelEquipoForm').addEventListener('click', () => {
              //TODO: Decidir a dónde navegar al cancelar (ej. a la lista de equipos)
@@ -188,13 +191,18 @@ async function renderEquipoForm(equipoToEdit = null) {
              console.log('Herwing canceló el formulario de equipo.');
              // Por ahora, solo limpiamos el área como si fuera a la vista home.
              // Esto es un placeholder, la navegación real se hará con main.js
-             contentArea.innerHTML = '<p>Operación cancelada.</p>';
+             if (typeof window.navigateTo === 'function') {
+                window.navigateTo('equiposList');
+            } else {
+                contentArea.innerHTML = `<p class="text-green-500">Por favor, navega manualmente a la lista.</p>`;
+            }   
+        
          });
 
 
     } catch (error) {
-        console.error('Error al renderizar el formulario de equipo:', error);
-        showEquipoFormError(error.message, 'cargar');
+        console.error('Error al cargar datos del formulario:', error);
+        showEquipoFormError(error.message);
     }
 }
 
@@ -251,29 +259,34 @@ async function handleEquipoFormSubmit(event, editingId = null) {
             await updateEquipo(editingId, equipoData); // Llamo a la función de API para actualizar.
             responseMessage = `Equipo con ID ${editingId} actualizado exitosamente.`;
             console.log(responseMessage);
+            await showInfoModal({
+                title: 'Éxito',
+                message: responseMessage
+            });
         } else {
             // * Estamos creando un nuevo equipo.
             const nuevoEquipo = await createEquipo(equipoData); // Llamo a la función de API para crear.
             responseMessage = `Equipo "${nuevoEquipo.numero_serie}" (ID: ${nuevoEquipo.id}) creado exitosamente.`;
             console.log(responseMessage);
+            await showInfoModal({
+                title: 'Éxito',
+                message: responseMessage
+            });
         }
 
         //TODO: Mostrar un mensaje de éxito más elegante (ej. un toast/modal).
-        alert(responseMessage);
 
         //TODO: Decidir a dónde navegar después de un éxito (ej. a la lista de equipos).
         // navigateTo('equiposList');
-        contentArea.innerHTML = `<p class="text-green-500">${responseMessage} Volviendo a la lista en 3 segundos...</p>`;
-        setTimeout(() => {
              // Aquí llamaríamos a la función para cargar la lista de equipos.
              // Esto es un placeholder hasta que implementemos la navegación completa con main.js.
-             if (typeof loadEquiposListGlobal === 'function') { // Si loadEquiposListGlobal está definida globalmente por main.js
-                 loadEquiposListGlobal();
-             } else {
-                 console.warn("Función para recargar lista de equipos no disponible globalmente.");
-                 contentArea.innerHTML += "<p>Por favor, navega manualmente a la lista de equipos.</p>";
-             }
-        }, 3000);
+              // * Después de éxito, navego de vuelta a la lista de empleados.
+        if (typeof window.navigateTo === 'function') {
+            window.navigateTo('equiposList');
+        } else {
+            contentArea.innerHTML = `<p class="text-green-500">${responseMessage} Por favor, navega manualmente a la lista.</p>`;
+        }   
+    
 
 
     } catch (error) {
@@ -293,14 +306,24 @@ async function handleEquipoFormSubmit(event, editingId = null) {
 async function showEquipoForm(params = null) {
     console.log('Herwing va a mostrar el formulario de equipo. Parámetros:', params);
     let equipoToEdit = null;
+    let equipoId = null;
+    if (typeof params === 'string') {
+        equipoId = params;
+    } else if (params && params.id) {
+        equipoId = params.id;
+    }
 
-    if (params && params.id) {
+    if (equipoId) {
         // * Si se proporciona un ID, estamos editando. Primero, obtengo los datos del equipo.
         showEquipoFormLoading('Editar');
         try {
-            equipoToEdit = await getEquipoById(params.id);
+            equipoToEdit = await getEquipoById(equipoId);
+            // Ajuste: soportar respuestas anidadas
+            if (equipoToEdit && (equipoToEdit.data || equipoToEdit.equipo)) {
+                equipoToEdit = equipoToEdit.data || equipoToEdit.equipo;
+            }
             if (!equipoToEdit) {
-                showEquipoFormError(`No se encontró el equipo con ID ${params.id}.`, 'cargar');
+                showEquipoFormError(`No se encontró el equipo con ID ${equipoId}.`, 'cargar');
                 return;
             }
         } catch (error) {

@@ -161,6 +161,13 @@ const deleteAsignacion = (id) => request(`/asignaciones/${id}`, 'DELETE');
 // --- Sucursales ---
 const getSucursales = () => request('/sucursales'); 
 
+// --- Areas ---
+const getAreas = () => request('/areas'); 
+const getAreaById = (id) => request(`/areas/${id}`); 
+const createArea = (areaData) => request('/areas', 'POST', areaData); 
+const updateArea = (id, areaData) => request(`/areas/${id}`, 'PUT', areaData); 
+const deleteArea = (id) => request(`/areas/${id}`, 'DELETE'); 
+
 // * Exporto solo lo necesario.
 // * Si alguna función no se usa, elimínala para mantener el código limpio.
 // * Exportamos todas las funciones de la API para que puedan ser importadas
@@ -194,4 +201,6 @@ export {
   getAsignaciones, getAsignacionById, createAsignacion, updateAsignacion, deleteAsignacion,
   // Sucursales
   getSucursales,
+  // Areas
+  getAreas, getAreaById, createArea, updateArea, deleteArea,
 };

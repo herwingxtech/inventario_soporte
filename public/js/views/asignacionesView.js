@@ -27,11 +27,6 @@ function showAsignacionesError(message) {
 function renderAsignacionesTable(asignaciones) {
     contentArea.innerHTML = ''; // Limpio cualquier contenido previo.
 
-    if (!asignaciones || asignaciones.length === 0) {
-        contentArea.innerHTML = '<p>No hay registros de asignación en el sistema.</p>';
-        return; // No hay nada más que hacer si no hay datos.
-    }
-
     // * Creo el título para esta vista.
     const title = document.createElement('h2');
     title.classList.add('text-2xl', 'font-bold', 'text-gray-800', 'mb-6');
@@ -40,10 +35,10 @@ function renderAsignacionesTable(asignaciones) {
 
     // * Botón para "Crear Nueva Asignación".
     const createButtonContainer = document.createElement('div');
-    createButtonContainer.classList.add('mb-4', 'text-right');
+    createButtonContainer.classList.add('mb-4');
     const createButton = document.createElement('button');
     // Usando un color púrpura para este botón, como en la tarjeta del home.
-    createButton.classList.add('bg-purple-500', 'hover:bg-purple-600', 'text-white', 'font-bold', 'py-2', 'px-4', 'rounded');
+    createButton.classList.add('bg-blue-500', 'hover:bg-blue-600', 'text-white', 'font-bold', 'py-2', 'px-4', 'rounded');
     createButton.textContent = 'Nueva Asignación';
     createButton.addEventListener('click', () => {
         //TODO: Implementar la navegación al formulario de creación de asignaciones.
@@ -52,6 +47,13 @@ function renderAsignacionesTable(asignaciones) {
     });
     createButtonContainer.appendChild(createButton);
     contentArea.appendChild(createButtonContainer);
+
+    if (!asignaciones || asignaciones.length === 0) {
+        const noData = document.createElement('p');
+        noData.textContent = 'No hay asignaciones registradas en el sistema.';
+        contentArea.appendChild(noData);
+        return; // No hay nada más que hacer si no hay datos.
+    }
 
     // * Creación de la tabla y sus elementos.
     const table = document.createElement('table');
@@ -135,6 +137,9 @@ function renderAsignacionesTable(asignaciones) {
                     //TODO: Implementar la navegación a la vista de detalles de la asignación.
                     // Ejemplo: navigateTo('asignacionDetails', { id: asignacion.id });
                     console.log('Herwing quiere ver los detalles de la asignación con ID:', asignacion.id);
+                    if (typeof window.navigateTo === 'function') {
+                        window.navigateTo('asignacionDetails', String(asignacion.id));
+                    }
                 });
 
                 // * Botón Editar (o Finalizar si es activa).
@@ -151,6 +156,9 @@ function renderAsignacionesTable(asignaciones) {
                     //TODO: Implementar la navegación al formulario de edición/finalización.
                     // Ejemplo: navigateTo('asignacionForm', { id: asignacion.id, finalizar: isActiva });
                     console.log('Herwing quiere editar/finalizar la asignación con ID:', asignacion.id);
+                    if (typeof window.navigateTo === 'function') {
+                        window.navigateTo('asignacionForm', String(asignacion.id));
+                    }
                 });
 
                 // * Botón Eliminar (usualmente no se eliminan asignaciones históricas, pero por completitud).

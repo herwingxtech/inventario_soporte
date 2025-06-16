@@ -13,13 +13,15 @@ import { loadEquiposList } from './views/equiposView.js';
 import { showEquipoForm } from './views/equipoFormView.js';
 import { showEquipoDetails } from './views/equipoDetailsView.js';
 import { loadEmpleadosList } from './views/empleadosView.js';
+import { showEmpleadoForm } from './views/empleadosFormView.js';
+import { showEmpleadoDetails } from './views/empleadosDetailsView.js';
 import { loadDireccionesIpList } from './views/direccionesIpView.js';
 import { loadCuentasEmailList } from './views/cuentasEmailView.js'; 
 import { loadMantenimientosList } from './views/mantenimientosView.js';
 import { loadNotasList } from './views/notasView.js';
 import { loadAsignacionesList } from './views/asignacionesView.js';
 
-
+import { closeCurrentModal } from './ui/modal.js'; // Importo la función para cerrar modales.
 
 /* 
 * ===============================================================
@@ -89,6 +91,8 @@ const viewsMap = {
     'equipoForm': showEquipoForm,
     'equipoDetails': showEquipoDetails,
     'empleadosList': loadEmpleadosList,
+    'empleadoForm': showEmpleadoForm,
+    'empleadoDetails': showEmpleadoDetails,
     'direccionesIpList': loadDireccionesIpList,
     'cuentasEmailList': loadCuentasEmailList,
     'mantenimientosList': loadMantenimientosList,
@@ -103,13 +107,18 @@ const viewsMap = {
 // * Esta función se encarga de cambiar de vista y cerrar el menú móvil si está abierto.
 // ===============================================================
 
-function navigateTo(viewName, params = null) {
+function navigateTo(viewName, params = null, pushState = true) {
     console.log(`Navegando a la vista: "${viewName}" con parámetros:`, params); // * Log para rastrear la navegación
-
+    closeCurrentModal();
     const loadViewFunction = viewsMap[viewName];
 
     if (loadViewFunction) {
         loadViewFunction(params);
+        // Actualiza la URL usando pushState si corresponde
+        if (pushState) {
+            const url = viewName === 'home' ? '/' : `/${viewName}${params ? `/${params}` : ''}`;
+            window.history.pushState({ viewName, params }, '', url);
+        }
     } else {
         // ! Error: Vista desconocida o no implementada
         console.error(`Vista desconocida o no implementada: "${viewName}"`);
@@ -140,12 +149,32 @@ document.addEventListener('DOMContentLoaded', () => {
         element.addEventListener('click', (event) => {
             event.preventDefault(); // * Evita el comportamiento por defecto del enlace
             const viewName = element.dataset.view;
-            const params = null;
-            navigateTo(viewName, params);
+            const params = element.dataset.id || null; // Extrae el ID si existe
+            navigateTo(viewName, params, true);
         });
     });
 
-    renderHomeView(); // * Carga la vista Home al iniciar la aplicación
+    // Determina la vista inicial según la URL (para rutas limpias)
+    const path = window.location.pathname.replace(/^\//, '');
+    const parts = path.split('/');
+    const initialView = parts[0] === '' ? 'home' : parts[0];
+    const initialParams = parts.length > 1 ? parts[1] : null;
+    navigateTo(initialView, initialParams, false);
+});
+
+// Maneja la navegación con los botones del navegador (adelante/atrás)
+window.addEventListener('popstate', (event) => {
+    const state = event.state;
+    if (state && state.viewName) {
+        navigateTo(state.viewName, state.params, false);
+    } else {
+        // Si no hay estado, carga la vista según la URL
+        const path = window.location.pathname.replace(/^\//, '');
+        const parts = path.split('/');
+        const viewName = parts[0] === '' ? 'home' : parts[0];
+        const params = parts.length > 1 ? parts[1] : null;
+        navigateTo(viewName, params, false);
+    }
 });
 
 // * Script básico para el menú hamburguesa (permite abrir/cerrar el menú en móvil)

@@ -123,6 +123,9 @@ function renderCuentasEmailTable(cuentasEmail) {
                     //TODO: Implementar la navegación a la vista de detalles de la cuenta de email.
                     // Ejemplo: navigateTo('cuentaEmailDetails', { id: cuenta.id });
                     console.log('Herwing quiere ver los detalles de la cuenta de email con ID:', cuenta.id);
+                    if (typeof window.navigateTo === 'function') {
+                        window.navigateTo('cuentaEmailDetails', String(cuenta.id));
+                    }
                 });
 
                 // * Botón Editar.
@@ -133,6 +136,9 @@ function renderCuentasEmailTable(cuentasEmail) {
                     //TODO: Implementar la navegación al formulario de edición de la cuenta de email.
                     // Ejemplo: navigateTo('cuentaEmailForm', { id: cuenta.id });
                     console.log('Herwing quiere editar la cuenta de email con ID:', cuenta.id);
+                    if (typeof window.navigateTo === 'function') {
+                        window.navigateTo('cuentaEmailForm', String(cuenta.id));
+                    }
                 });
 
                 // * Botón Eliminar.

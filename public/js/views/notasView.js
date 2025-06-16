@@ -130,6 +130,9 @@ function renderNotasListTable(notas) {
                     //TODO: Implementar la navegación a la vista de detalles de la nota.
                     // Ejemplo: navigateTo('notaDetails', { id: nota.id });
                     console.log('Herwing quiere ver los detalles de la nota con ID:', nota.id);
+                    if (typeof window.navigateTo === 'function') {
+                        window.navigateTo('notaDetails', String(nota.id));
+                    }
                 });
 
                 // * Botón Editar.
@@ -140,6 +143,9 @@ function renderNotasListTable(notas) {
                     //TODO: Implementar la navegación al formulario de edición de la nota.
                     // Ejemplo: navigateTo('notaForm', { id: nota.id });
                     console.log('Herwing quiere editar la nota con ID:', nota.id);
+                    if (typeof window.navigateTo === 'function') {
+                        window.navigateTo('notaForm', String(nota.id));
+                    }
                 });
 
                 // * Botón Eliminar.
