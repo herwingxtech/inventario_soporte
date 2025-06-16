@@ -66,9 +66,10 @@ app.use('/api/mantenimientos', mantenimientosRoutes); // * Mantenimientos
 app.use('/api/notas/', notasRoutes); // * Notas
 app.use('/api/asignaciones/', asignacionesRoutes); // * Asignaciones
 
-// ! Middleware para manejar rutas no encontradas (404)
-app.use((req, res, next) => {
-  res.status(404).json({ message: 'Ruta no encontrada' });
+// Middleware para rutas limpias de SPA: sirve index.html para cualquier ruta que no sea API ni archivo estático
+const path = require('path');
+app.get(/^\/(?!api\/|.*\..*$).*/, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // ! Middleware global para manejo de errores
