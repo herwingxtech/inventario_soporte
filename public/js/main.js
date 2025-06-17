@@ -27,8 +27,8 @@ import { loadMantenimientosList } from './views/mantenimientosView.js';
 import { loadNotasList } from './views/notasView.js';
 //TODO: Crear e importar showNotaForm y showNotaDetails
 import { loadAsignacionesList } from './views/asignacionesView.js';
-//TODO: Crear e importar showAsignacionForm y showAsignacionDetails
-
+import { showAsignacionForm } from './views/asignacionesFormView.js';   
+import { showAsignacionDetails } from './views/asignacionesDetailsView.js';
 //? ¿Necesitaré una función para cerrar modales aquí? Si los modales son globales.
 // import { closeCurrentModal } from './ui/modal.js'; // Asumo que esto existe o lo crearás.
 
@@ -109,7 +109,8 @@ const viewsMap = {
     'notasList': loadNotasList,
     //TODO: 'notaForm': showNotaForm, 'notaDetails': showNotaDetails,
     'asignacionesList': loadAsignacionesList,
-    //TODO: 'asignacionForm': showAsignacionForm, 'asignacionDetails': showAsignacionDetails,
+    'asignacionForm': showAsignacionForm,       
+    'asignacionDetails': showAsignacionDetails, 
     //TODO: 'usuariosList': loadUsuariosList, 'usuarioForm': showUsuarioForm, 'usuarioDetails': showUsuarioDetails
 };
 
