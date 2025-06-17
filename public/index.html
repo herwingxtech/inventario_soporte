@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,17 +9,24 @@
     <link rel="stylesheet" href="/css/style.css">
     <link rel="icon" href="./assets/logo-white.svg" type="image/svg+xml">
 </head>
+
 <body class="bg-gray-100 font-sans">
     <header class="bg-blue-600 text-white p-4 shadow-md">
         <div class="container mx-auto flex justify-between items-center">
             <a href="#" class="text-2xl font-bold cursor-pointer" data-view="home">
                 <img src="/assets/logo-white.svg" alt="Inventario Linea Digital Logo" class="h-12 inline-block">
             </a>
-            <nav class="hidden md:flex space-x-4">
+            <nav id="home-header" class="hidden md:flex space-x-4">
+                <!-- TODO: Implementar lógica real de autenticación y nombre de usuario -->
+                <a href="#" class="hover:underline" data-view="profile">Herwing Eduardo (Admin)</a>
+                <!-- TODO: Implementar lógica de logout -->
+                <button class="hover:underline" data-action="logout">Salir</button>
+            </nav>
+            <nav id="main-header" class="hidden md:flex space-x-4">
                 <a href="#" class="hover:underline" data-view="equiposList">Equipos</a>
                 <a href="#" class="hover:underline" data-view="empleadosList">Empleados</a>
-                <a href="#" class="hover:underline" data-view="asignacionesList">Asignaciones</a>
                 <a href="#" class="hover:underline" data-view="direccionesIpList">Direcciones IP</a>
+                <a href="#" class="hover:underline" data-view="asignacionesList">Asignaciones</a>
                 <a href="#" class="hover:underline" data-view="cuentasEmailList">Cuentas Email</a>
                 <a href="#" class="hover:underline" data-view="mantenimientosList">Mantenimientos</a>
                 <a href="#" class="hover:underline" data-view="notasList">Notas</a>
@@ -40,31 +48,33 @@
                 </button>
             </div>
         </div>
+        <!-- Menú desplegable móvil  -->
+        <div id="mobile-menu"
+            class="md:hidden bg-blue-700 text-white text-center transition-all duration-300 ease-in-out max-h-0 overflow-hidden">
+            <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="equiposList">Equipos</a>
+            <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="empleadosList">Empleados</a>
+            <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="asignacionesList">Asignaciones</a>
+            <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="usuariosList">Usuarios</a>
+            <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="direccionesIpList">Direcciones IP</a>
+            <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="cuentasEmailList">Cuentas Email</a>
+            <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="mantenimientosList">Mantenimientos</a>
+            <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="notasList">Notas</a>
+            <a href="#" class="block py-2 px-4 hover:bg-blue-800 mt-2 border-t border-blue-600" data-view="profile">Herwing
+                Eduardo (Admin)</a>
+            <button class="block w-full text-left py-2 px-4 hover:bg-blue-800" data-action="logout">Salir</button>
+        </div>
     </header>
-    <!-- Menú desplegable móvil  -->
-    <div id="mobile-menu"
-        class="md:hidden bg-blue-700 text-white text-center transition-all duration-300 ease-in-out max-h-0 overflow-hidden">
-        <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="equiposList">Equipos</a>
-        <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="empleadosList">Empleados</a>
-        <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="asignacionesList">Asignaciones</a>
-        <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="usuariosList">Usuarios</a>
-        <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="direccionesIpList">Direcciones IP</a>
-        <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="cuentasEmailList">Cuentas Email</a>
-        <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="mantenimientosList">Mantenimientos</a>
-        <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="notasList">Notas</a>
-        <a href="#" class="block py-2 px-4 hover:bg-blue-800 mt-2 border-t border-blue-600" data-view="profile">Herwing
-            Eduardo (Admin)</a>
-        <button class="block w-full text-left py-2 px-4 hover:bg-blue-800" data-action="logout">Salir</button>
-    </div>
 
     <main class="container mx-auto mt-8 p-6 bg-white rounded-lg shadow-md overflow-x-auto">
         <div id="content-area" class="mt-6">
 
         </div>
     </main>
+    
     <footer class="mt-8 p-4 text-center text-gray-600 text-sm">
         <p>© 2025 Inventario LDS. Todos los derechos reservados.</p>
     </footer>
     <script src="/js/main.js" type="module"></script>
 </body>
+
 </html>

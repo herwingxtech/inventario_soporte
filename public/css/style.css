@@ -1,3 +1,11 @@
 /* ! Archivo de estilos CSS personalizados
    * Aquí agrego reglas que no cubre Tailwind o que necesito sobreescribir.
    * Uso comentarios para recordar por qué agrego cada regla o ejemplo. */
+/* * public/css/style.css */
+/* * ... (tus estilos existentes) ... */
+
+/* * Clase para ocultar el header */
+.header-hidden {
+   display: none !important; 
+   /* ! Usamos !important para asegurar que sobreescriba otras clases de display de Tailwind si es necesario */
+}
