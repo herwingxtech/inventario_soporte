@@ -12,6 +12,8 @@ import {
     getAreas
 } from '../api.js';
 
+import { showInfoModal } from '../ui/modal.js';
+
 // * Referencia al contenedor principal donde se renderizará este formulario.
 const contentArea = document.getElementById('content-area');
 
@@ -191,13 +193,19 @@ async function renderEmpleadoForm(empleadoToEdit = null) {
         // * Paso el ID del empleado si estamos editando.
         document.getElementById('empleadoForm').addEventListener('submit', (event) => handleEmpleadoFormSubmit(event, empleadoId));
         // * Listener para el botón Cancelar.
-        document.getElementById('cancelEmpleadoForm').addEventListener('click', () => {
+        document.getElementById('cancelEmpleadoForm').addEventListener('click', async () => {
+
+            await showInfoModal({
+                title: 'Cancelado',
+                message: 'El formulario de empleado ha sido cancelado.'
+            });
+
+             // * Navego a la lista de equipos.
              if (typeof window.navigateTo === 'function') {
-                 window.navigateTo('empleadosList'); // Regreso a la lista de empleados.
-             } else {
-                 console.warn("Función navigateTo no disponible globalmente.");
-                 contentArea.innerHTML = '<p>Operación cancelada.</p>';
-             }
+                window.navigateTo('empleadosList');
+            } else {
+                contentArea.innerHTML = `<p class="text-green-500">Por favor, navega manualmente a la lista.</p>`;
+            }   
          });
 
     } catch (error) {
@@ -246,26 +254,39 @@ async function handleEmpleadoFormSubmit(event, editingId = null) {
     try {
         let responseMessage = '';
         if (editingId) {
-            // * Modo Edición.
-            await updateEmpleado(editingId, empleadoData); // Llama a la API para actualizar.
+            // * Estamos editando un equipo existente.
+            await updateEmpleado(editingId, empleadoData); // Llamo a la función de API para actualizar.
             responseMessage = `Empleado con ID ${editingId} actualizado exitosamente.`;
             console.log(responseMessage);
+            await showInfoModal({
+                title: 'Éxito',
+                message: responseMessage
+            });
         } else {
-            // * Modo Creación.
-            const nuevoEmpleado = await createEmpleado(empleadoData); // Llama a la API para crear.
-            responseMessage = `Empleado "${nuevoEmpleado.nombres} ${nuevoEmpleado.apellidos}" (ID: ${nuevoEmpleado.id}) creado exitosamente.`;
+            // * Estamos creando un nuevo equipo.
+            const nuevoEmpleado = await createEmpleado(empleadoData); // Llamo a la función de API para crear.
+            responseMessage = `Empleado "${nuevoEmpleado.nombres} ${nuevoEmpleado.apellidos} " (ID: ${nuevoEmpleado.id}) creado exitosamente.`;
             console.log(responseMessage);
+            await showInfoModal({
+                title: 'Éxito',
+                message: responseMessage
+            });
         }
 
-        //TODO: Usar un sistema de notificaciones (toast/modal) para el mensaje de éxito.
-        alert(responseMessage);
+        //TODO: Mostrar un mensaje de éxito más elegante (ej. un toast/modal).
 
-        // * Después de éxito, navego de vuelta a la lista de empleados.
+        //TODO: Decidir a dónde navegar después de un éxito (ej. a la lista de equipos).
+        // navigateTo('equiposList');
+             // Aquí llamaríamos a la función para cargar la lista de equipos.
+             // Esto es un placeholder hasta que implementemos la navegación completa con main.js.
+              // * Después de éxito, navego de vuelta a la lista de empleados.
         if (typeof window.navigateTo === 'function') {
             window.navigateTo('empleadosList');
         } else {
             contentArea.innerHTML = `<p class="text-green-500">${responseMessage} Por favor, navega manualmente a la lista.</p>`;
-        }
+        }   
+    
+
 
     } catch (error) {
         console.error('Error al enviar el formulario de empleado:', error);

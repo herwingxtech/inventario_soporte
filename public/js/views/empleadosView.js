@@ -2,6 +2,8 @@
 // * Lógica específica para la vista de listado de Empleados.
 
 import { getEmpleados, deleteEmpleado } from '../api.js';
+import { showConfirmationModal } from '../ui/modal.js'; // Importo la función del modal.    
+import { showInfoModal } from '../ui/modal.js'; // Importo la función del modal.
 
 const contentArea = document.getElementById('content-area');
 
@@ -119,13 +121,34 @@ function renderEmpleadosTable(empleados) {
                 deleteButton.classList.add('w-6', 'h-6', 'transform', 'hover:text-red-500', 'hover:scale-110');
                 deleteButton.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m14 0H5m2 0V5a2 2 0 012-2h6a2 2 0 012 2v2"></path></svg>';
                 deleteButton.addEventListener('click', async () => {
-                    if (confirm(`¿Estás seguro de eliminar al empleado "${empleado.nombres} ${empleado.apellidos}" (ID: ${empleado.id})?`)) {
+                    const confirmed = await showConfirmationModal({
+                        title: 'Confirmar Eliminación',
+                        message: `¿Estás realmente seguro de que quieres eliminar al empleado ${empleado.nombres} ${empleado.apellidos} (ID: ${empleado.id})? Esta acción no se puede deshacer.`,
+                        confirmButtonText: 'Sí, Eliminar',
+                        confirmButtonClass: 'bg-red-600 hover:bg-red-700 text-white' // Clases para el botón de confirmación
+                    });
+
+                    if (confirmed) {
+                        console.log('Eliminación confirmada por Herwing para empleado ID:', empleado.id);
                         try {
-                            await deleteEmpleado(empleado.id);
-                            loadEmpleadosList();
+                            await deleteEmpleado(empleado.id); // Uso la función de api.js
+                            console.log('Empleado eliminado exitosamente:', empleado.id);
+                            //TODO: Mostrar un mensaje de éxito con un toast/info modal.
+                            showInfoModal({
+                                title: 'Éxito',
+                                message: 'El empleado ha sido eliminado correctamente.'
+                            });
+                            loadEmpleadosList(); // Recargo la lista para reflejar el cambio.
                         } catch (error) {
-                            alert('Error al eliminar el empleado: ' + error.message);
+                            console.error('Error al eliminar empleado:', error);
+                            //TODO: Mostrar el error con un info modal.
+                            showInfoModal({
+                                title: 'Error',
+                                message: `Error al eliminar el empleado: ${error.message}`
+                            });
                         }
+                    } else {
+                        console.log('Eliminación cancelada por Herwing para el empleado con ID:', empleado.id);
                     }
                 });
 
