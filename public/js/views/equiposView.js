@@ -1,253 +1,209 @@
-// ! Vista de listado de equipos
-// * Si la API cambia, revisa los headers y los nombres de las propiedades. Si la UX se siente lenta, revisa el renderizado de la tabla.
-// * Consejo: Si agregas más columnas o cambias la estructura de equipos, actualiza el array 'headers'.
-// * ADVERTENCIA: No olvides manejar los errores de red, especialmente si el backend está caído o el equipo tiene asignaciones activas.
-// * Si la tabla crece mucho, considera paginación o virtualización para no saturar el DOM.
-// * Aquí gestiono la lógica de renderizado, eventos y consumo de API para la tabla de equipos. Los TODO son recordatorios personales para refactorizar o mejorar la UX/UI.
-
-// * Importo las funciones de la API que necesito para obtener y eliminar equipos.
+// public/js/views/equiposView.js
+// * Usando Grid.js y Delegación de Eventos para las acciones.
+// import { esES } from "gridjs/l10n"; // Eliminado, ahora usamos el global del CDN
 import { getEquipos, deleteEquipo } from '../api.js';
-import { showConfirmationModal } from '../ui/modal.js'; // Importo la función del modal.    
-import { showInfoModal } from '../ui/modal.js'; // Importo la función del modal.
+import { showConfirmationModal, showInfoModal } from '../ui/modal.js';
 
-// ===============================================================
-// * ELEMENTOS DEL DOM RELACIONADOS CON ESTA VISTA
-// * Referencia al área principal donde se renderiza la tabla y mensajes.
-// ===============================================================
 const contentArea = document.getElementById('content-area');
+let equiposGridInstance = null;
+let gridContainerGlobal = null; // Para acceder al contenedor del grid desde el listener.
 
-
-// ===============================================================
-// * FUNCIONES DE RENDERIZADO ESPECÍFICAS DE ESTA VISTA
-// * Funciones para mostrar estado (carga, error) y renderizar la tabla de datos.
-// ===============================================================
-
-function showEquiposLoading() {
-    // * Muestra mensaje de carga en el área principal de equipos.
-    contentArea.innerHTML = '<p>Cargando lista de equipos...</p>';
-}
-
-function showEquiposError(message) {
-    // ! Error al cargar equipos, se muestra mensaje destacado al usuario.
-    contentArea.innerHTML = `<p class="text-red-500 font-bold">Error al cargar equipos:</p><p class="text-red-500">${message}</p>`;
-}
-
-// * Renderiza la lista de equipos en una tabla HTML. Incluye lógica para mostrar N/A y botones de acción.
-function renderEquiposTable(equipos) {
-    // * Limpia el contenido anterior antes de renderizar la tabla.
+function renderEquiposListViewLayout() {
     contentArea.innerHTML = '';
-    // * Renderiza el título de la vista
     const title = document.createElement('h2');
     title.classList.add('text-2xl', 'font-bold', 'text-gray-800', 'mb-6');
     title.textContent = 'Lista de Equipos';
     contentArea.appendChild(title);
 
-    // * Botón para crear nuevo equipo
     const createButtonContainer = document.createElement('div');
-    createButtonContainer.classList.add('mb-4');
+    createButtonContainer.classList.add('mb-4', 'text-right');
     const createButton = document.createElement('button');
     createButton.classList.add('bg-blue-500', 'hover:bg-blue-600', 'text-white', 'font-bold', 'py-2', 'px-4', 'rounded');
     createButton.textContent = 'Nuevo Equipo';
-    createButton.addEventListener('click', () => {
-        if (typeof window.navigateTo === 'function') {
-            window.navigateTo('equipoForm'); // Llama a navigateTo para mostrar el formulario
-        } else {
-            console.error('La función navigateTo no está disponible globalmente. Revisa main.js.');
-        }
-        console.log('Herwing quiere mostrar el formulario para crear un nuevo equipo.');
-    });
+    createButton.dataset.view = 'equipoForm'; // Para que el listener global de main.js lo maneje
+    // Ya no necesitamos un listener específico aquí si main.js maneja [data-view]
+    // createButton.addEventListener('click', () => { ... });
     createButtonContainer.appendChild(createButton);
     contentArea.appendChild(createButtonContainer);
 
-    if (!equipos || equipos.length === 0) {
-        // ! No hay equipos registrados en la base de datos.
-        const noData = document.createElement('p');
-        noData.textContent = 'No hay equipos registrados en el inventario.';
-        contentArea.appendChild(noData);
-        return;
-    }
-
-
-    // * Crea el elemento tabla y le añade clases de estilo.
-    const table = document.createElement('table');
-    table.classList.add('min-w-full', 'bg-white', 'border', 'border-gray-200', 'shadow-md', 'rounded-lg', 'overflow-hidden');
-
-    // * Crea la cabecera de la tabla y le añade clases de estilo.
-    const thead = document.createElement('thead');
-    thead.classList.add('bg-gray-200', 'text-gray-600', 'uppercase', 'text-sm', 'leading-normal');
-    const headerRow = document.createElement('tr');
-
-    // * Define las columnas de la cabecera (Texto visible, Nombre de la propiedad en los datos).
-    const headers = [
-        { text: 'ID', prop: 'id' },
-        { text: 'Número Serie', prop: 'numero_serie' },
-        { text: 'Nombre Equipo', prop: 'nombre_equipo' },
-        { text: 'Tipo', prop: 'nombre_tipo_equipo' },
-        { text: 'Ubicación Actual', prop: 'nombre_sucursal_actual' },
-        { text: 'Estado', prop: 'status_nombre' },
-        { text: 'Acciones', prop: null }
-    ];
-
-    headers.forEach(header => {
-        const th = document.createElement('th');
-        th.classList.add('py-3', 'px-6', 'text-left', 'border-b', 'border-gray-200');
-        // * Centra el texto en la columna de Acciones.
-        if (!header.prop) th.classList.add('text-center');
-        th.textContent = header.text;
-        headerRow.appendChild(th);
-    });
-    thead.appendChild(headerRow);
-    table.appendChild(thead);
-
-    // * Crea el cuerpo de la tabla y le añade clases de estilo.
-    const tbody = document.createElement('tbody');
-    tbody.classList.add('text-gray-600', 'text-sm', 'font-light');
-
-    // * Itera sobre cada equipo para crear una fila en la tabla.
-    equipos.forEach(equipo => {
-        const row = document.createElement('tr');
-        row.classList.add('border-b', 'border-gray-200', 'hover:bg-gray-100');
-        // * Guarda el ID del equipo en el atributo data-id de la fila para referencia.
-        row.dataset.id = equipo.id;
-
-        // * Itera sobre las columnas para crear celdas en la fila.
-        headers.forEach(header => {
-            const td = document.createElement('td');
-            td.classList.add('py-3', 'px-6', 'text-left', 'whitespace-nowrap');
-
-            if (header.prop) {
-                // * Si la columna es fecha (basado en el nombre de la propiedad), muestra solo la parte de fecha.
-                if (header.prop.includes('fecha') && equipo[header.prop]) {
-                    // TODO: Implementar un formateo de fechas más amigable si es necesario para el usuario final.
-                    td.textContent = equipo[header.prop].split('T')[0];
-                } else {
-                    // * Muestra el valor de la propiedad o 'N/A' si es nulo/vacío.
-                    td.textContent = equipo[header.prop] || 'N/A';
-                }
-                // * Centra el texto en la columna ID para destacarlo.
-                if (header.prop === 'id') td.classList.add('font-semibold', 'text-gray-800', 'text-center');
-            } else {
-                // * Renderiza los botones de acción (Ver, Editar, Eliminar).
-                const actionsContainer = document.createElement('div');
-                actionsContainer.classList.add('flex', 'item-center', 'justify-center');
-
-                // * Botón Ver Detalles del equipo. Implementación pendiente.
-                const viewButton = document.createElement('button');
-                viewButton.classList.add('w-6', 'h-6', 'mr-2', 'transform', 'hover:text-blue-500', 'hover:scale-110');
-                viewButton.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>';
-                viewButton.addEventListener('click', () => {
-                   console.log('Herwing quiere ver los detalles del equipo con ID:', equipo.id);
-                    // * Navego a la vista de detalles del equipo, pasando el ID.
-                    if (typeof window.navigateTo === 'function') {
-                        window.navigateTo('equipoDetails', String(equipo.id)); // <-- PASO EL ID COMO STRING
-                    } else {
-                        console.error('La función navigateTo no está disponible globalmente. Revisa main.js.');
-                    }
-                });
-
-                // * Botón Editar equipo. Implementación pendiente.
-                const editButton = document.createElement('button');
-                editButton.classList.add('w-6', 'h-6', 'mr-2', 'transform', 'hover:text-yellow-500', 'hover:scale-110');
-                editButton.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>';
-                editButton.addEventListener('click', () => {
-                  console.log('Herwing quiere editar el equipo con ID:', equipo.id);
-                    // * Navego a la vista del formulario de equipo, pasando el ID del equipo a editar.
-                    if (typeof window.navigateTo === 'function') {
-                        window.navigateTo('equipoForm', String(equipo.id)); // <-- PASO EL ID COMO STRING
-                    } else {
-                        console.error('La función navigateTo no está disponible globalmente. Revisa main.js.');
-                    }
-                });
-
-                // * Botón Eliminar equipo. Muestra confirmación antes de llamar a la API.
-                const deleteButton = document.createElement('button');
-                deleteButton.classList.add('w-6', 'h-6', 'transform', 'hover:text-red-500', 'hover:scale-110');
-                deleteButton.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m14 0H5m2 0V5a2 2 0 012-2h6a2 2 0 012 2v2"></path></svg>';
-                deleteButton.addEventListener('click', async () => {
-                    console.log('Herwing quiere eliminar el equipo con ID:', equipo.id);
-
-                    // * Muestro el modal de confirmación.
-                    // * `showConfirmationModal` retorna una Promise que se resuelve a true o false.
-                    const confirmed = await showConfirmationModal({
-                        title: 'Confirmar Eliminación',
-                        message: `¿Estás realmente seguro de que quieres eliminar el equipo con Número de Serie "${equipo.numero_serie}" (ID: ${equipo.id})? Esta acción no se puede deshacer.`,
-                        confirmButtonText: 'Sí, Eliminar',
-                        confirmButtonClass: 'bg-red-600 hover:bg-red-700 text-white' // Clases para el botón de confirmación
-                    });
-
-                    if (confirmed) {
-                        console.log('Eliminación confirmada por Herwing para equipo ID:', equipo.id);
-                        try {
-                            await deleteEquipo(equipo.id); // Uso la función de api.js
-                            console.log('Equipo eliminado exitosamente:', equipo.id);
-                            //TODO: Mostrar un mensaje de éxito con un toast/info modal.
-                            showInfoModal({
-                                title: 'Éxito',
-                                message: 'El equipo ha sido eliminado correctamente.'
-                            });
-                            loadEquiposList(); // Recargo la lista para reflejar el cambio.
-                        } catch (error) {
-                            console.error('Error al eliminar equipo:', error);
-                            //TODO: Mostrar el error con un info modal.
-                            showInfoModal({
-                                title: 'Error',
-                                message: `Error al eliminar el equipo: ${error.message}`
-                            });
-                        }
-                    } else {
-                        console.log('Eliminación cancelada por Herwing para equipo ID:', equipo.id);
-                    }
-                });
-
-                // * Agrega los botones de acción al contenedor.
-                actionsContainer.appendChild(viewButton);
-                actionsContainer.appendChild(editButton);
-                actionsContainer.appendChild(deleteButton);
-                td.appendChild(actionsContainer);
-            }
-
-            // * Agrega la celda a la fila.
-            row.appendChild(td);
-        });
-
-        // * Agrega la fila al cuerpo de la tabla.
-        tbody.appendChild(row);
-    });
-
-    // * Agrega el cuerpo a la tabla.
-    table.appendChild(tbody);
-
-    // * Agrega la tabla al área de contenido principal del DOM.
-    contentArea.appendChild(table);
-
-    // * Log de confirmación de renderizado.
-    console.log('Tabla de equipos renderizada.');
+    const gridContainer = document.createElement('div');
+    gridContainer.id = 'equipos-grid-container';
+    contentArea.appendChild(gridContainer);
+    gridContainerGlobal = gridContainer; // Guardo la referencia globalmente en este módulo.
+    return gridContainer;
 }
 
-// ===============================================================
-// * FUNCIÓN PRINCIPAL DE CARGA DE LA VISTA
-// * Orquesta la obtención de datos de la API y el renderizado de la lista de equipos.
-// ===============================================================
+function showEquiposLoading(container) {
+    const target = container || gridContainerGlobal || contentArea;
+    target.innerHTML = '<p>Cargando lista de equipos...</p>';
+}
+
+function showEquiposError(message, container) {
+    const target = container || gridContainerGlobal || contentArea;
+    target.innerHTML = `<p class="text-red-500 font-bold">Error al cargar equipos:</p><p class="text-red-500">${message}</p>`;
+}
+
+// * Función para formatear la celda de acciones en Grid.js
+// * Ahora añadimos atributos data-* para la delegación de eventos.
+function formatActionsCell(cell, row) {
+    const equipoId = row.cells[0].data; // Asumo que ID es la primera columna.
+    const equipoNumeroSerie = row.cells[1].data; // Asumo que Número Serie es la segunda.
+
+    // Usamos template literals para construir el HTML de los botones con data-attributes.
+    // `gridjs.html()` es necesario para que Grid.js interprete esto como HTML.
+    return gridjs.html(`
+        <div class="flex items-center justify-center space-x-2">
+            <button title="Ver Detalles del Equipo"
+                    class="btn-action-view w-6 h-6 transform hover:text-blue-500 hover:scale-110"
+                    data-action="view" data-id="${equipoId}">
+                <svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+            </button>
+            <button title="Editar Equipo"
+                    class="btn-action-edit w-6 h-6 transform hover:text-yellow-500 hover:scale-110"
+                    data-action="edit" data-id="${equipoId}">
+                <svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+            </button>
+            <button title="Eliminar Equipo"
+                    class="btn-action-delete w-6 h-6 transform hover:text-red-500 hover:scale-110"
+                    data-action="delete" data-id="${equipoId}" data-numero-serie="${equipoNumeroSerie}">
+                <svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m14 0H5m2 0V5a2 2 0 012-2h6a2 2 0 012 2v2"></path></svg>
+            </button>
+        </div>
+    `);
+}
+
+// * Listener de eventos delegado para los botones de acción en la tabla.
+// * Este listener se añade al contenedor del grid DESPUÉS de que Grid.js lo renderice.
+function handleGridActions(event) {
+    const button = event.target.closest('button[data-action]'); // Encuentra el botón más cercano con data-action.
+    if (!button) return; // Si el clic no fue en un botón de acción, no hago nada.
+
+    const action = button.dataset.action;
+    const equipoId = button.dataset.id;
+    // Necesito el número de serie para el mensaje de confirmación de eliminación.
+    const equipoNumeroSerie = button.dataset.numeroSerie;
+
+
+    console.log(`Herwing - Acción detectada: ${action} para equipo ID: ${equipoId}`);
+
+    if (action === 'view') {
+        if (typeof window.navigateTo === 'function') {
+            window.navigateTo('equipoDetails', String(equipoId));
+        }
+    } else if (action === 'edit') {
+        if (typeof window.navigateTo === 'function') {
+            window.navigateTo('equipoForm', String(equipoId));
+        }
+    } else if (action === 'delete') {
+        // Uso async aquí para el modal de confirmación.
+        (async () => {
+            const confirmed = await showConfirmationModal({
+                title: 'Confirmar Eliminación',
+                message: `¿Estás realmente seguro de que quieres eliminar el equipo con Número de Serie "${equipoNumeroSerie}" (ID: ${equipoId})? Esta acción no se puede deshacer.`,
+                confirmButtonText: 'Sí, Eliminar'
+            });
+            if (confirmed) {
+                try {
+                    await deleteEquipo(equipoId);
+                    await showInfoModal({ title: 'Éxito', message: 'Equipo eliminado correctamente.'});
+                    // * Para refrescar Grid.js, la forma más simple si los datos son locales
+                    // * es forzar una nueva carga de la vista de lista.
+                    // * Si la paginación/búsqueda fuera en servidor, se necesitaría una estrategia más fina.
+                    if (typeof window.navigateTo === 'function') {
+                        window.navigateTo('equiposList'); // Recarga la vista actual
+                    }
+                } catch (error) {
+                    await showInfoModal({ title: 'Error', message: `Error al eliminar el equipo: ${error.message}`});
+                }
+            }
+        })(); // IIFE para poder usar async/await dentro del listener síncrono.
+    }
+}
+
 
 async function loadEquiposList() {
-    // * Muestra mensaje de carga y luego intenta obtener los datos y renderizar.
-    console.log('Cargando vista de lista de equipos...');
-    showEquiposLoading();
+    console.log('Herwing está cargando la vista de lista de equipos con Grid.js...');
+    const gridContainer = renderEquiposListViewLayout();
+    showEquiposLoading(gridContainer);
+
     try {
-        // * Llama a la función de la API para obtener los datos de los equipos.
         const equipos = await getEquipos();
-        // * Si tiene éxito, renderiza la tabla con los datos obtenidos.
-        renderEquiposTable(equipos);
+        gridContainer.innerHTML = ''; // Limpio el mensaje de carga.
+
+        if (!equipos || equipos.length === 0) {
+            showEquiposError('No hay equipos registrados en el inventario.', gridContainer);
+            return;
+        }
+
+        if (equiposGridInstance) {
+            // * Si ya existe una instancia, la destruyo para evitar duplicados o errores.
+            // * Opcionalmente, podría intentar actualizar los datos (`.updateConfig({data: ...}).forceRender()`)
+            // * pero destruir y recrear es más simple para empezar.
+            // equiposGridInstance.destroy(); // Grid.js no tiene un método destroy() simple.
+            // Simplemente limpio el contenedor.
+        }
+
+
+        equiposGridInstance = new gridjs.Grid({
+            columns: [
+                { id: 'id', name: 'ID', width: '80px', sort: true },
+                { id: 'numero_serie', name: 'Número Serie', sort: true },
+                { id: 'nombre_equipo', name: 'Nombre Equipo', sort: true },
+                { id: 'nombre_tipo_equipo', name: 'Tipo', sort: true },
+                { id: 'nombre_sucursal_actual', name: 'Ubicación', sort: true },
+                { id: 'status_nombre', name: 'Estado', sort: true },
+                {
+                    name: 'Acciones',
+                    sort: false,
+                    width: '120px',
+                    formatter: formatActionsCell // Mi función formatter
+                }
+            ],
+            data: equipos.map(eq => [
+                eq.id,
+                eq.numero_serie,
+                eq.nombre_equipo || 'N/A',
+                eq.nombre_tipo_equipo || 'N/A',
+                eq.nombre_sucursal_actual || 'N/A',
+                eq.status_nombre || 'N/A',
+                null // La columna de acciones no necesita un valor de datos aquí, el formatter lo genera.
+            ]),
+            search: true,
+            pagination: {
+                enabled: true,
+                limit: 10,
+                summary: true
+            },
+            sort: true,
+            style: { /* ... (tus estilos de Tailwind para Grid.js) ... */
+                table: 'min-w-full bg-white border-gray-200 shadow-md rounded-lg',
+                thead: 'bg-gray-200',
+                th: 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200',
+                tbody: 'text-gray-600 text-sm font-light',
+                tr: 'border-b border-gray-200 hover:bg-gray-100',
+                td: 'px-6 py-4 whitespace-nowrap',
+                footer: 'p-4 bg-gray-50 border-t border-gray-200',
+                search: 'p-2 mb-4 border border-gray-300 rounded-md w-full sm:w-auto',
+                paginationButton: 'mx-1 px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-100',
+                paginationButtonCurrent: 'bg-blue-500 text-white border-blue-500',
+                paginationSummary: 'text-sm text-gray-700'
+            },
+            language: window.gridjs.l10n.esES
+        }).render(gridContainer);
+
+        // * AÑADO EL LISTENER DE EVENTOS DELEGADO AL CONTENEDOR DEL GRID DESPUÉS DE RENDERIZAR.
+        // * Solo necesito añadirlo una vez si el `gridContainer` es persistente
+        // * o re-añadirlo si `gridContainer` se recrea.
+        // * Para asegurar, lo removemos y añadimos.
+        gridContainer.removeEventListener('click', handleGridActions); // Quito listener previo si existe
+        gridContainer.addEventListener('click', handleGridActions);   // Añado el nuevo listener
+
+        console.log('Herwing renderizó la tabla de equipos con Grid.js y delegación de eventos.');
+
     } catch (error) {
-        // ! Error al cargar la lista de equipos. Muestra mensaje de error al usuario.
-        showEquiposError(error.message);
-        // TODO: Implementar un manejo de errores más robusto en el frontend (ej. reintentos, fallback UI).
+        console.error('Error al cargar o renderizar equipos con Grid.js:', error);
+        showEquiposError(error.message, gridContainer);
     }
 }
 
-
-// ===============================================================
-// * EXPORTAR FUNCIONES DE LA VISTA
-// * Exporto la función principal loadEquiposList para que pueda ser llamada desde el módulo de navegación (main.js).
-// ===============================================================
 export { loadEquiposList };

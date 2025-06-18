@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventario - Linea Digital</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://unpkg.com/gridjs/dist/theme/mermaid.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="/css/style.css">
     <link rel="icon" href="./assets/logo-white.svg" type="image/svg+xml">
 </head>
@@ -59,7 +60,8 @@
             <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="cuentasEmailList">Cuentas Email</a>
             <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="mantenimientosList">Mantenimientos</a>
             <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="notasList">Notas</a>
-            <a href="#" class="block py-2 px-4 hover:bg-blue-800 mt-2 border-t border-blue-600" data-view="profile">Herwing
+            <a href="#" class="block py-2 px-4 hover:bg-blue-800 mt-2 border-t border-blue-600"
+                data-view="profile">Herwing
                 Eduardo (Admin)</a>
             <button class="block w-full text-left py-2 px-4 hover:bg-blue-800" data-action="logout">Salir</button>
         </div>
@@ -70,10 +72,12 @@
 
         </div>
     </main>
-    
+
     <footer class="mt-8 p-4 text-center text-gray-600 text-sm">
         <p>© 2025 Inventario LDS. Todos los derechos reservados.</p>
     </footer>
+    <script src="https://unpkg.com/gridjs/dist/gridjs.umd.js"></script>
+    <script src="https://unpkg.com/gridjs/l10n/dist/l10n.umd.js"></script>
     <script src="/js/main.js" type="module"></script>
 </body>
 
