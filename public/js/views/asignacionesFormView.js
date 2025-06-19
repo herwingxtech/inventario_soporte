@@ -147,7 +147,7 @@ async function renderAsignacionForm(asignacionToEdit = null) {
                   <select id="id_area_asignado" name="id_area_asignado"
                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                       <option value="">Ninguna</option>
-                      ${areasCache.map(area => `<option value="${area.id}" ${isEditing && currentAsignacionData && currentAsignacionData.id_area_asignado === area.id ? 'selected' : ''}>${area.nombre} (Suc ID: ${area.id_sucursal})</option>`).join('')}
+                      ${areasCache.map(area => `<option value="${area.id}" ${isEditing && currentAsignacionData && currentAsignacionData.id_area_asignado === area.id ? 'selected' : ''}>${area.nombre} (Suc ID: ${area.nombre_empresa})</option>`).join('')}
                   </select>
               </div>
 

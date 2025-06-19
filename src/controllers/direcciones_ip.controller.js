@@ -31,6 +31,10 @@ const getAllDireccionesIp = async (req, res, next) => {
         di.direccion_ip,
         di.id_sucursal,
         s.nombre AS nombre_sucursal,
+        -- Si id_sucursal es NULL, s.id_empresa será NULL, y el LEFT JOIN
+        -- permitirá que la fila de IP se mantenga, con nombre_empresa como NULL.
+        s.id_empresa,
+        em.nombre AS nombre_empresa,
         di.comentario,
         di.fecha_registro,
         di.fecha_actualizacion,
@@ -38,6 +42,8 @@ const getAllDireccionesIp = async (req, res, next) => {
         st.nombre_status AS status_nombre
       FROM direcciones_ip AS di
       LEFT JOIN sucursales AS s ON di.id_sucursal = s.id
+      -- CAMBIO CLAVE: De JOIN a LEFT JOIN para incluir IPs sin sucursal/empresa
+      LEFT JOIN empresas AS em ON s.id_empresa = em.id
       JOIN status AS st ON di.id_status = st.id
     `;
     const direcciones = await query(sql);
@@ -59,6 +65,9 @@ const getDireccionIpById = async (req, res, next) => {
         di.direccion_ip,
         di.id_sucursal,
         s.nombre AS nombre_sucursal,
+        -- Añadimos la empresa aquí también si es necesario, siguiendo el patrón de getAllDireccionesIp
+        s.id_empresa,
+        em.nombre AS nombre_empresa,
         di.comentario,
         di.fecha_registro,
         di.fecha_actualizacion,
@@ -66,6 +75,8 @@ const getDireccionIpById = async (req, res, next) => {
         st.nombre_status AS status_nombre
       FROM direcciones_ip AS di
       LEFT JOIN sucursales AS s ON di.id_sucursal = s.id
+      -- Aseguramos que también aquí se use LEFT JOIN para empresas
+      LEFT JOIN empresas AS em ON s.id_empresa = em.id
       JOIN status AS st ON di.id_status = st.id
       WHERE di.id = ?
     `;
