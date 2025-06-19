@@ -38,6 +38,8 @@ const getAllEquipos = async (req, res, next) => {
         te.nombre_tipo AS nombre_tipo_equipo,
         e.id_sucursal_actual,
         s.nombre AS nombre_sucursal_actual,
+        s.id_empresa,
+        em.nombre AS nombre_empresa,
         e.procesador,
         e.ram,
         e.disco_duro,
@@ -52,6 +54,7 @@ const getAllEquipos = async (req, res, next) => {
       FROM equipos AS e
       JOIN tipos_equipo AS te ON e.id_tipo_equipo = te.id
       JOIN sucursales AS s ON e.id_sucursal_actual = s.id
+      JOIN empresas AS em ON s.id_empresa = em.id
       JOIN status AS st ON e.id_status = st.id
     `;
     const equipos = await query(sql);
@@ -108,6 +111,7 @@ const getEquipoById = async (req, res, next) => {
     next(error);
   }
 };
+
 
 // * [POST] /api/equipos - Crea un nuevo equipo con validaciones
 const createEquipo = async (req, res, next) => {

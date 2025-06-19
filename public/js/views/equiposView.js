@@ -151,6 +151,7 @@ async function loadEquiposList() {
                 { id: 'nombre_equipo', name: 'Nombre Equipo', sort: true },
                 { id: 'nombre_tipo_equipo', name: 'Tipo', sort: true },
                 { id: 'nombre_sucursal_actual', name: 'Ubicación', sort: true },
+                { id: 'nombre_empresa', name: 'Empresa' , sort: true },
                 { id: 'status_nombre', name: 'Estado', sort: true },
                 {
                     name: 'Acciones',
@@ -165,6 +166,7 @@ async function loadEquiposList() {
                 eq.nombre_equipo || 'N/A',
                 eq.nombre_tipo_equipo || 'N/A',
                 eq.nombre_sucursal_actual || 'N/A',
+                eq.nombre_empresa || 'N/A',
                 eq.status_nombre || 'N/A',
                 null // La columna de acciones no necesita un valor de datos aquí, el formatter lo genera.
             ]),
