@@ -25,8 +25,8 @@ const getAllEmpleados = async (req, res, next) => {
         e.puesto,
         e.fecha_nacimiento,
         e.fecha_ingreso,
-        e.id_sucursal,
-        s.nombre AS nombre_sucursal,
+        e.id_empresa,
+        em.nombre AS nombre_empresa,
         e.id_area,
         a.nombre AS nombre_area,
         e.fecha_registro,
@@ -34,7 +34,7 @@ const getAllEmpleados = async (req, res, next) => {
         e.id_status,
         st.nombre_status AS status_nombre
       FROM empleados AS e
-      LEFT JOIN sucursales AS s ON e.id_sucursal = s.id
+      LEFT JOIN empresas AS em ON e.id_empresa = em.id
       LEFT JOIN areas AS a ON e.id_area = a.id
       JOIN status AS st ON e.id_status = st.id
     `;

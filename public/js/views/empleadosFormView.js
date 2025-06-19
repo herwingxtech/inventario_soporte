@@ -160,7 +160,7 @@ async function renderEmpleadoForm(empleadoToEdit = null) {
                         <select id="id_area" name="id_area"
                                 class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                             <option value="">Seleccione área (Opcional)</option>
-                            ${areasCache.map(area => `<option value="${area.id}" ${isEditing && currentEmpleadoData.id_area === area.id ? 'selected' : ''}>${area.nombre} (Suc: ${area.id_sucursal})</option>`).join('')}
+                            ${areasCache.map(area => `<option value="${area.id}" ${isEditing && currentEmpleadoData.id_area === area.id ? 'selected' : ''}>${area.nombre} (Suc: ${area.nombre_empresa})</option>`).join('')}
                             <!--//? Debería filtrar las áreas según la sucursal seleccionada? -->
                         </select>
                     </div>

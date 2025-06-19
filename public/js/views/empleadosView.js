@@ -136,9 +136,9 @@ async function loadEmpleadosList() {
                 { id: 'numero_empleado', name: 'No. Empl.', sort: true, width: '120px' },
                 { id: 'nombres', name: 'Nombres', sort: true },
                 { id: 'apellidos', name: 'Apellidos', sort: true },
-                { id: 'puesto', name: 'Puesto', sort: true },
-                { id: 'nombre_sucursal', name: 'Sucursal', sort: true },
+                { id: 'nombre_empresa', name: 'Empresa', sort: true },
                 { id: 'nombre_area', name: 'Área', sort: true },
+                { id: 'puesto', name: 'Puesto', sort: true },
                 { id: 'status_nombre', name: 'Estado', sort: true },
                 {
                     name: 'Acciones',
@@ -153,7 +153,7 @@ async function loadEmpleadosList() {
                 emp.nombres,
                 emp.apellidos,
                 emp.puesto || 'N/A',
-                emp.nombre_sucursal || 'N/A',
+                emp.nombre_empresa || 'N/A',
                 emp.nombre_area || 'N/A',
                 emp.status_nombre || 'N/A',
                 null // Para la celda de acciones
