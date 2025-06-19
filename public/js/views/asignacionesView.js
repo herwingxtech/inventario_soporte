@@ -45,6 +45,9 @@ function formatAsignacionesActionsCell(cell, row) {
     const asignacionId = row.cells[0].data; // ID de la asignación
     const equipoSerie = row.cells[1].data; // Serie del equipo
 
+    // La fecha_fin_asignacion ahora estará en el índice 5 (0-indexed)
+    const fechaFinAsignacion = row.cells[5].data;
+
     return gridjs.html(`
         <div class="flex items-center justify-center space-x-2">
             <button title="Ver Detalles de la Asignación"
@@ -52,10 +55,10 @@ function formatAsignacionesActionsCell(cell, row) {
                     data-action="view" data-id="${asignacionId}">
                 <svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7S1.732 16.057 2.458 12z"></path></svg>
             </button>
-            <button title="Editar/Finalizar Asignación"
+            <button title="${!fechaFinAsignacion ? 'Finalizar Asignación' : 'Editar Asignación'}"
                     class="btn-action-edit w-6 h-6 transform hover:text-yellow-500 hover:scale-110"
                     data-action="edit" data-id="${asignacionId}">
-                ${!row.cells[5].data /* fecha_fin_asignacion */
+                ${!fechaFinAsignacion // Verifica si fechaFinAsignacion es null o vacía
                     ? '<svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>' // Icono finalizar
                     : '<svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>' // Icono editar
                 }
@@ -114,8 +117,7 @@ async function loadAsignacionesList() {
     showAsignacionesLoading(gridContainer);
 
     try {
-        //? ¿Debería filtrar por activas por defecto? const asignaciones = await getAsignaciones({ activa: 'true' });
-        const asignaciones = await getAsignaciones(); // Por ahora, traigo todas.
+        const asignaciones = await getAsignaciones();
         gridContainer.innerHTML = '';
 
         if (!asignaciones || asignaciones.length === 0) {
@@ -126,18 +128,23 @@ async function loadAsignacionesList() {
         asignacionesGridInstance = new gridjs.Grid({
             columns: [
                 { id: 'id', name: 'ID', width: '70px', sort: true },
-                { id: 'equipo_numero_serie', name: 'Equipo (Serie)', sort: true },
+                { id: 'equipo_numero_serie', name: 'Equipo', sort: true },
                 { // Columna "Asignado A" combinada
                     id: 'asignado_a',
                     name: 'Asignado A',
-                    sort: false, // Ordenar por esto es complejo, mejor individualmente
+                    sort: false,
                     formatter: (cell, row) => {
-                        // row.cells[indice_de_datos_originales].data
-                        // Necesito los nombres de las columnas originales que vienen de la API para construir esto
-                        const empNombres = row.cells[2].data; // Asumiendo que getAsignaciones devuelve estos campos y están en este orden
-                        const empApellidos = row.cells[3].data;
-                        const sucNombre = row.cells[4].data;
-                        const areaNombre = row.cells[5].data;
+                        // Accedemos a los datos por el ID de la fila original (Grid.js recomienda esto)
+                        // Asegúrate de que tu backend envíe estos campos directamente en el objeto 'asig'
+                        const originalAsigData = asignaciones.find(a => a.id === row.cells[0].data);
+                        if (!originalAsigData) return 'N/A';
+
+                        // Ahora accedemos directamente a las propiedades del objeto original
+                        const empNombres = originalAsigData.empleado_nombres;
+                        const empApellidos = originalAsigData.empleado_apellidos;
+                        const sucNombre = originalAsigData.sucursal_asignada_nombre;
+                        const areaNombre = originalAsigData.area_asignada_nombre;
+
                         let display = [];
                         if (empNombres) display.push(`Emp: ${empNombres} ${empApellidos || ''}`);
                         if (sucNombre) display.push(`Suc: ${sucNombre}`);
@@ -145,17 +152,21 @@ async function loadAsignacionesList() {
                         return display.length > 0 ? display.join('; ') : 'N/A';
                     }
                 },
-                { id: 'ip_direccion', name: 'IP Asignada', sort: true },
+                { id: 'ip_direccion', name: 'IP', sort: true },
                 {
                     id: 'fecha_asignacion',
                     name: 'Fecha Asignación',
                     sort: true,
-                    formatter: (cell) => cell ? new Date(cell).toLocaleString() : 'N/A'
+                    // Asegúrate de que el backend envía fechas en formato ISO (YYYY-MM-DDTHH:mm:ss.sssZ)
+                    // o YYYY-MM-DD para que new Date() las parse bien.
+                    formatter: (cell) => cell ? new Date(cell).toLocaleDateString() : 'N/A'
                 },
                 {
                     id: 'fecha_fin_asignacion',
                     name: 'Fecha Fin',
                     sort: true,
+                    // Asegúrate de que el backend envía fechas en formato ISO (YYYY-MM-DDTHH:mm:ss.sssZ)
+                    // o YYYY-MM-DD para que new Date() las parse bien.
                     formatter: (cell) => cell ? new Date(cell).toLocaleString() : 'ACTIVA'
                 },
                 { id: 'status_nombre', name: 'Estado Asign.', sort: true },
@@ -164,12 +175,9 @@ async function loadAsignacionesList() {
             data: asignaciones.map(asig => [
                 asig.id,
                 asig.equipo_numero_serie || 'N/A',
-                // Campos para el formatter de "Asignado A"
-                asig.empleado_nombres, // Necesito que la API devuelva estos campos incluso si son null
-                asig.empleado_apellidos,
-                asig.sucursal_asignada_nombre,
-                asig.area_asignada_nombre,
-                // Resto de campos
+                // Para la columna "Asignado A" enviamos un marcador de posición, el formatter lo gestionará.
+                // Lo importante es que haya un elemento en esta posición para que Grid.js la cuente.
+                null, // Columna 'asignado_a'
                 asig.ip_direccion || 'N/A',
                 asig.fecha_asignacion,
                 asig.fecha_fin_asignacion,
@@ -179,13 +187,13 @@ async function loadAsignacionesList() {
             search: true,
             pagination: { enabled: true, limit: 10, summary: true },
             sort: true,
-            style: { /* ... (tus estilos de Tailwind para Grid.js) ... */
+            style: {
                 table: 'min-w-full bg-white border-gray-200 shadow-md rounded-lg',
                 thead: 'bg-gray-200',
                 th: 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200',
                 tbody: 'text-gray-600 text-sm font-light',
                 tr: 'border-b border-gray-200 hover:bg-gray-100',
-                td: 'px-6 py-4 whitespace-nowrap', // Ojo, si 'Asignado A' es largo, quitar whitespace-nowrap o dar más ancho
+                td: 'px-6 py-4 whitespace-nowrap',
                 footer: 'p-4 bg-gray-50 border-t border-gray-200',
                 search: 'p-2 mb-4 border border-gray-300 rounded-md w-full sm:w-auto',
                 paginationButton: 'mx-1 px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-100',
