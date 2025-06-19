@@ -83,6 +83,14 @@ CREATE TABLE `empresas` (
     ON UPDATE CASCADE
 ) ENGINE = InnoDB;
 
+-- Insertar múltiples empresas en una sola sentencia, todas con id_status 1 (Activo)
+INSERT INTO `empresas` (`nombre`,`id_status`) VALUES
+    ('Tarjetas Moviles Telefonicas', 1),
+    ('Lidifon', 1),
+    ('Comercializadora Movil', 1),
+    ('TA3', 1);
+
+
 -- -----------------------------------------------------
 -- Table `tipos_sucursal`
 -- Nueva tabla para diferenciar tipos de sucursales (Corporativo, Tienda)
@@ -136,6 +144,14 @@ CREATE TABLE `sucursales` (
 -- DROP TABLE IF EXISTS `ubicaciones_internas`;
 
 
+-- Insertar múltiples sucursales en una sola sentencia
+INSERT INTO `sucursales` (`nombre`,`direccion`,`numero_telefono`,`id_empresa`,`id_tipo_sucursal`,`id_status`) VALUES
+    ('Corporativo Tuxtla', '1a Avenida Norte Poniente #834, Centro, CP 29000, Tuxtla Gutiérrez, Chis.', '9616189200', 1, 1, 1),
+    ('Corporativo Tuxtla', '1a Avenida Norte Poniente #834, Centro, CP 29000, Tuxtla Gutiérrez, Chis.', '9616189200', 2, 1, 1),
+    ('Corporativo Villahermosa', 'Paseo Tabasco 200, Villahermosa, Tab.', '9626255810', 1, 1, 1),
+    ('Corporativo Tapachula', '4a. Av. Nte. 70, Los Naranjos, Centro, 30700 Tapachula, Chis.', '9626255810', 1, 1, 1);
+
+
 -- -----------------------------------------------------
 -- Table `areas`
 -- Departamentos o áreas, ahora dentro de las SUCURSALES (especialmente corporativas)
@@ -162,6 +178,60 @@ CREATE TABLE `areas` (
 ) ENGINE = InnoDB;
 
 
+-- Insertar múltiples áreas, asignando todas las áreas únicas a cada sucursal
+INSERT INTO `areas` (`nombre`,`id_sucursal`,`id_status`) VALUES
+    -- Áreas para Sucursal ID 1
+    ('ATENCION Y DESARROLLO', 1, 1),
+    ('GERENCIA COMERCIAL', 1, 1),
+    ('OPERACIONES', 1, 1),
+    ('CONTABILIDAD', 1, 1),
+    ('RECURSOS HUMANOS', 1, 1),
+    ('DIRECCION GENERAL', 1, 1),
+    ('TIENDAS PROPIAS', 1, 1),
+    ('CADENAS COMERCIALES', 1, 1),
+    ('TAE', 1, 1),
+    ('INFORMATICA', 1, 1),
+    ('COMERCIAL AMIGO PAY', 1, 1),
+
+    -- Áreas para Sucursal ID 2
+    ('ATENCION Y DESARROLLO', 2, 1),
+    ('GERENCIA COMERCIAL', 2, 1),
+    ('OPERACIONES', 2, 1),
+    ('CONTABILIDAD', 2, 1),
+    ('RECURSOS HUMANOS', 2, 1),
+    ('DIRECCION GENERAL', 2, 1),
+    ('TIENDAS PROPIAS', 2, 1),
+    ('CADENAS COMERCIALES', 2, 1),
+    ('TAE', 2, 1),
+    ('INFORMATICA', 2, 1),
+    ('COMERCIAL AMIGO PAY', 2, 1),
+
+    -- Áreas para Sucursal ID 3
+    ('ATENCION Y DESARROLLO', 3, 1),
+    ('GERENCIA COMERCIAL', 3, 1),
+    ('OPERACIONES', 3, 1),
+    ('CONTABILIDAD', 3, 1),
+    ('RECURSOS HUMANOS', 3, 1),
+    ('DIRECCION GENERAL', 3, 1),
+    ('TIENDAS PROPIAS', 3, 1),
+    ('CADENAS COMERCIALES', 3, 1),
+    ('TAE', 3, 1),
+    ('INFORMATICA', 3, 1),
+    ('COMERCIAL AMIGO PAY', 3, 1),
+
+    -- Áreas para Sucursal ID 4
+    ('ATENCION Y DESARROLLO', 4, 1),
+    ('GERENCIA COMERCIAL', 4, 1),
+    ('OPERACIONES', 4, 1),
+    ('CONTABILIDAD', 4, 1),
+    ('RECURSOS HUMANOS', 4, 1),
+    ('DIRECCION GENERAL', 4, 1),
+    ('TIENDAS PROPIAS', 4, 1),
+    ('CADENAS COMERCIALES', 4, 1),
+    ('TAE', 4, 1),
+    ('INFORMATICA', 4, 1),
+    ('COMERCIAL AMIGO PAY', 4, 1);
+
 -- -----------------------------------------------------
 -- Table `empleados`
 -- Información de los empleados
@@ -177,11 +247,17 @@ CREATE TABLE `empleados` (
   `puesto` VARCHAR(100),
   `fecha_nacimiento` DATE,
   `fecha_ingreso` DATE,
+  `id_empresa` INT,
   `id_sucursal` INT, -- Sigue apuntando a Sucursal (base física o corporativa)
   `id_area` INT, -- Sigue apuntando a Area (dentro de sucursal corporativa)
   `fecha_actualizacion` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `fecha_registro` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `id_status` INT NOT NULL DEFAULT 1,
+  CONSTRAINT `fk_empleados_empresas`
+    FOREIGN KEY (`id_empresa`)
+    REFERENCES `empresas` (`id`)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE,
   CONSTRAINT `fk_empleados_sucursales`
     FOREIGN KEY (`id_sucursal`)
     REFERENCES `sucursales` (`id`)
@@ -199,7 +275,98 @@ CREATE TABLE `empleados` (
     ON UPDATE CASCADE
 ) ENGINE = InnoDB;
 
+INSERT INTO `empleados` (
+    `numero_empleado`,
+    `nombres`,
+    `apellidos`,
+    `email_personal`,
+    `telefono`,
+    `puesto`,
+    `fecha_nacimiento`,
+    `fecha_ingreso`,
+    `id_empresa`,
+    `id_sucursal`,
+    `id_area`,
+    `id_status`
+) VALUES
+    -- EMPLEADOS DE TARJETAS MOVILES TELEFONICAS (ID_EMPRESA = 10)
+    ('21', 'JOSE ALFREDO', 'ALCALA CARDONA', 'jose_alcala@linea-digital.com', NULL, 'GERENTE DE ATENCION Y DESARROLLO', NULL, '2008-08-01', 10, 11, 99, 1),
+    ('60', 'GLORIA DE JESUS', 'ALVAREZ VAZQUEZ', NULL, NULL, 'ANALISTA DE MESA DE CONTROL', NULL, '2013-09-03', 10, 11, 100, 1),
+    ('24', 'BEATRIZ', 'ARRIAGA RAMIREZ', 'beatriz_arriaga@linea-digital.com', NULL, 'JEFE DE MESA DE CONTROL', NULL, '2004-03-01', 10, 11, 101, 1),
+    ('2', 'SERGIO OMAR', 'AVENDAÑO AQUINO', 'omar_avendano@linea-digital.com', NULL, 'GERENTE DE TI', NULL, '2004-01-06', 10, 11, 108, 1),
+    ('912', 'JORGE VIDAL', 'AVENDAñO PEREZ', NULL, NULL, 'AUXILIAR DE AUDITORIA', NULL, '2023-10-30', 10, 14, 135, 1),
+    ('711', 'ISRAEL', 'BELTRAN NATURI', 'egresos@linea-digital.com', NULL, 'AUXILIAR CONTABLE', NULL, '2021-06-16', 10, 11, 102, 1),
+    ('598', 'HAROLD ABRAHAM', 'BONILLA ACOSTA', 'publicidad@linea-digital.com', NULL, 'DISEÑADOR GRAFICO', NULL, '2018-07-16', 10, 11, 106, 1),
+    ('153', 'ALEXIS', 'CAMAS ROBLES', 'alexis_camas@linea-digital.com', NULL, 'SUPERVISOR DE VENTAS', NULL, '2012-08-24', 10, 11, 100, 1),
+    ('402', 'MAURICIO ALEJANDRO', 'CHANDOMI QUINTERO', NULL, NULL, 'AUXILIAR DE ALMACEN', NULL, '2016-02-05', 10, 11, 102, 1),
+    ('54', 'EDUARDO MARTIN', 'CHANONA MAZA', NULL, NULL, 'SEGURIDAD', NULL, '2007-11-20', 10, 11, 101, 1), -- Mapeado a Operaciones
+    ('871', 'JUAN DE JESUS', 'COLMENARES LOPEZ', NULL, NULL, 'AUXILIAR DE ALMACEN', NULL, '2023-05-04', 10, 11, 101, 1), -- Mapeado a Operaciones
+    ('677', 'JOSE MANUEL', 'CRUZ OROZCO', NULL, NULL, 'SUPERVISOR DE VENTAS', NULL, '2020-02-18', 10, 14, 138, 1),
+    ('39', 'ROBERTO', 'CUEVAS PEREZ', NULL, NULL, 'DIRECTOR COMERCIAL', NULL, '2004-08-01', 10, 11, 100, 1),
+    ('43', 'MARIA DEL CARMEN', 'DE LA CRUZ VELAZQUEZ', NULL, NULL, 'JEFE ADMINISTRATIVO', NULL, '2005-06-01', 10, 11, 104, 1), -- Mapeado a Dirección General
+    ('5', 'SERGIO', 'DEL ANGEL ZAMORA', 'sergiodelangel@linea-digital.com', NULL, 'DISEÑADOR GRAFICO', NULL, '2021-03-16', 10, 11, 100, 1),
+    ('960', 'GABRIEL LEONARDO', 'DOMINGUEZ ESPINOSA', 'garantias@linea-digital.com', NULL, 'ANALISTA', NULL, '2024-04-13', 10, 11, 99, 1),
+    ('832', 'FRANCISCO JAVIER', 'DOMINGUEZ MATEOS', NULL, NULL, 'AUXILIAR DE ALMACEN', NULL, '2022-08-08', 10, 14, 134, 1), -- Mapeado a Operaciones
+    ('984', 'DULCE FATIMA', 'ESPINOSA GOMEZ', 'bolsa_trabajo1@linea-digital.com', NULL, 'AUXILIAR ADMINISTRATIVO', NULL, '2024-08-03', 10, 11, 103, 1),
+    ('939', 'JOSE EDUARDO', 'FLORES GOMEZ', NULL, NULL, 'AUXILIAR CONTABLE', NULL, '2024-02-13', 10, 14, 135, 1),
+    ('1042', 'SINDY JARET', 'FONSECA AMBROCIO', 'cajaprincipaltuxtla@linea-digital.com', NULL, 'RESPONSABLE DE CAJA', NULL, '2025-04-24', 10, 11, 102, 1),
+    ('998', 'DANIELA', 'GOMEZ ALFARO', NULL, NULL, 'AUXILIAR DE MESA DE CONTROL', NULL, '2024-11-12', 10, 11, 106, 1),
+    ('703', 'ADALBERTO', 'GONZALEZ LOPEZ', 'adalberto_gonzalez@linea-digital.com', NULL, 'GERENTE DE CONTABILIDAD', NULL, '2021-03-16', 10, 11, 102, 1),
+    ('903', 'ISAAC ABINADI', 'HERNANDEZ ESPINOSA', NULL, NULL, 'AUXILIAR DE ALMACEN', NULL, '2023-09-29', 10, 11, 101, 1), -- Mapeado a Operaciones
+    ('87', 'IRIS MARLIT', 'HERNANDEZ LIEVANO', NULL, NULL, 'SUPERVISOR DE VENTAS', NULL, '2025-03-18', 10, 11, 100, 1),
+    ('1034', 'MARCIAL PAUL', 'HERNANDEZ RASGADO', NULL, NULL, 'AUXILIAR DE ALMACEN', NULL, '2025-03-25', 10, 14, 134, 1), -- Mapeado a Operaciones
+    ('67', 'ROCIO', 'JIMENEZ ALEGRIA', 'facturas_proveedores@linea-digital.com', NULL, 'ASISTENTE', NULL, '2013-09-19', 10, 11, 102, 1),
+    ('902', 'CRISTIAN ROMEO', 'MACAL INFANZON', NULL, NULL, 'EJECUTIVO DE ATENCION Y DESARROLLO DE ASOCIADOS', NULL, '2023-09-29', 10, 11, 99, 1),
+    ('42', 'GUADALUPE', 'MACIAS VELAZQUEZ', 'gmacias@linea-digital.com', NULL, 'JEFE ADMINISTRATIVO', NULL, '2002-07-01', 10, 11, 104, 1),
+    ('317', 'ERICK ROMEO', 'MARTINEZ CORDOVA', NULL, NULL, 'GERENTE DE ATENCION Y DESARROLLO', NULL, '2015-02-17', 10, 14, 132, 1),
+    ('119', 'AMIR', 'MARTINEZ JIMENEZ', NULL, NULL, 'AUXILIAR DE AUDITORIA', NULL, '2024-12-18', 10, 11, 102, 1),
+    ('1050', 'LUIS FERNANDO', 'MEGCHUN ANTONIO', NULL, NULL, 'EJECUTIVO DE ATENCION Y DESARROLLO DE ASOCIADOS', NULL, '2025-05-19', 10, 11, 99, 1),
+    ('94', 'JOSE ALBERTO', 'MEJIA AQUINO', NULL, NULL, 'VENDEDOR DE PLANES TARIFARIOS', NULL, '2013-05-25', 10, 11, 100, 1),
+    ('571', 'LUIS ENRIQUE', 'MENCHU SANTIAGO', NULL, NULL, 'ANALISTA DE ATENCION Y DESARROLLO', NULL, '2018-02-16', 10, 14, 132, 1),
+    ('75', 'EUDELIA', 'MIGUEL VAZQUEZ', NULL, NULL, 'LIMPIEZA', NULL, '2012-05-02', 10, 14, 134, 1), -- Mapeado a Operaciones
+    ('943', 'JOSE MANUEL', 'MORALES HERNANDEZ', NULL, NULL, 'RESPONSABLE DE NOMINA', NULL, '2024-02-20', 10, 11, 102, 1),
+    ('611', 'LUIS MANUEL', 'MORALES MANDUJANO', NULL, NULL, 'EJECUTIVO DE RENOVACIONES DE PLANES TARIFARIOS', NULL, '2020-03-02', 10, 11, 100, 1),
+    ('985', 'YADIRA', 'MUÑOZ LEPE', NULL, NULL, 'AUXILIAR CONTABLE', NULL, '2024-08-09', 10, 11, 102, 1),
+    ('0', 'BRENDA NORELY', 'NUÑEZ GOMEZ', NULL, NULL, 'AUXILIAR ADMINISTRATIVO', NULL, '2025-05-14', 10, 11, 103, 1), -- Mapeado a Recursos Humanos
+    ('274', 'MANUEL DE JESUS', 'OCAñA PEREZ', NULL, NULL, 'EJECUTIVO DE ATENCION Y DESARROLLO DE ASOCIADOS', NULL, '2014-08-01', 10, 11, 99, 1),
+    ('144', 'CECIL', 'OCHOA MARROQUIN', NULL, NULL, 'ANALISTA', NULL, '2007-06-06', 10, 11, 108, 1),
+    ('716', 'ANGELITA', 'PALOMEQUE HERNANDEZ', NULL, NULL, 'JEFE ADMINISTRATIVO', NULL, '2004-03-16', 10, 14, 137, 1), -- Mapeado a Dirección General
+    ('107', 'SANDRA', 'PEREZ BARTOLON', NULL, NULL, 'AUXILIAR CONTABLE', NULL, '2018-08-01', 10, 14, 135, 1),
+    ('982', 'JORGE IVAN', 'REYES ALVARADO', NULL, NULL, 'AUXILIAR DE ALMACEN', NULL, '2024-07-22', 10, 11, 101, 1), -- Mapeado a Operaciones
+    ('177', 'MARIANO GUSTAVO', 'RINCON SANCHEZ', NULL, NULL, 'ANALISTA', NULL, '2014-03-18', 10, 11, 100, 1), -- Mapeado a Gerencia Comercial
+    ('841', 'WILLIAM IVAN', 'ROBLERO GONZALEZ', NULL, NULL, 'EJECUTIVO DE ATENCION Y DESARROLLO DE ASOCIADOS', NULL, '2022-09-22', 10, 14, 132, 1),
+    ('765', 'CARLOS ALBERTO', 'RODRIGUEZ JIMENEZ', NULL, NULL, 'AUXILIAR CONTABLE', NULL, '2021-12-20', 10, 11, 102, 1),
+    ('110', 'JOSE ANGEL', 'RODRIGUEZ MARTINEZ', NULL, NULL, 'CHOFER', NULL, '2016-04-16', 10, 11, 101, 1), -- Mapeado a Operaciones
+    ('68', 'MARIA DEL ROSARIO', 'ROSALES MENDEZ', NULL, NULL, 'EJECUTIVO DE RENOVACIONES DE PLANES TARIFARIOS', NULL, '2013-09-19', 10, 11, 100, 1),
+    ('1', 'RAFAEL OCTAVIO', 'RUIZ LOPEZ', NULL, NULL, 'DIRECTOR GENERAL', NULL, '2007-06-11', 10, 11, 104, 1),
+    ('699', 'SERGIO DE JESUS', 'RUIZ LOPEZ', NULL, NULL, 'JEFE ADMINISTRATIVO', NULL, '2021-01-16', 10, 11, 104, 1),
+    ('18', 'OSMAR YONATAN', 'RUIZ MOLINA', NULL, NULL, 'EJECUTIVO DE OPERACIONES', NULL, '2004-08-01', 10, 11, 101, 1),
+    ('1A', 'RAFAEL ABRAHAM', 'RUIZ REYES', 'abrahamruizld@gmail.com', NULL, 'DIRECTOR GENERAL', NULL, '2018-10-25', 10, 11, 104, 1), -- numero_empleado modificado a '1A'
+    ('1045', 'EBERTO DARINEL', 'SANCHEZ GAMBOA', NULL, NULL, 'AUXILIAR DE AUDITORIA', NULL, '2025-05-06', 10, 14, 135, 1),
+    ('983', 'VICTOR HUGO', 'SANTIAGO ALVAREZ', NULL, NULL, 'EJECUTIVO DE ATENCION Y DESARROLLO DE ASOCIADOS', NULL, '2024-07-22', 10, 11, 99, 1),
+    ('669', 'DANIEL ALEJANDRO', 'TELLO SANTIAGO', NULL, NULL, 'CONTROL DE BANCOS', NULL, '2019-12-17', 10, 11, 102, 1),
+    ('742', 'CITLALLI GUADALUPE', 'TOLEDO DE LEON', NULL, NULL, 'AUXILIAR CONTABLE', NULL, '2021-10-01', 10, 11, 102, 1),
+    ('917', 'ANDREA MERARI', 'URBINA PEREZ', 'recursos_humanos@linea-digital.com', NULL, 'GERENTE DE RECURSOS HUMANOS', NULL, '2023-11-10', 10, 11, 103, 1),
+    ('163', 'JULIO CESAR', 'VAZQUEZ JUAREZ', NULL, NULL, 'ANALISTA', NULL, '2012-11-20', 10, 11, 101, 1), -- Mapeado a Operaciones
+    ('972', 'HERWING EDUARDO', 'VAZQUEZ MACIAS', NULL, NULL, 'SOPORTE TECNICO', NULL, '2024-06-03', 10, 11, 108, 1),
+    ('83', 'LUIS FELIPE', 'VIDRIOS LOPEZ', NULL, NULL, 'SUPERVISOR DE EJECUTIVOS', NULL, '2013-03-11', 10, 11, 99, 1),
+    ('1047', 'BLANCA DEL ROCIO', 'VILLAFUERTE GOMEZ', NULL, NULL, 'RECEPCIONISTA', NULL, '2025-05-09', 10, 11, 103, 1), -- Mapeado a Recursos Humanos
+    ('770', 'FRANCISCO', 'VILLALOBOS RUIZ', NULL, NULL, 'EJECUTIVO DE ATENCION Y DESARROLLO DE ASOCIADOS', NULL, '2022-01-10', 10, 14, 132, 1),
+    ('55', 'CARLOS ALBERTO', 'ZAVALETA ORNELAS', NULL, NULL, 'COORDINADOR AMIGO PAY', NULL, '2015-03-06', 10, 11, 109, 1),
 
+    -- EMPLEADOS DE LIDIFON (ID_EMPRESA = 11)
+    ('973', 'BRIAN MOISES', 'GUTIERREZ OCAMPO', NULL, NULL, 'AUXILIAR DE ALMACEN', NULL, '2024-06-01', 11, 12, 112, 1), -- Mapeado a Operaciones
+    ('796', 'GABRIELA GUADALUPE', 'HERNANDEZ PEREZ', NULL, NULL, 'AUXILIAR CONTABLE', NULL, '2022-05-10', 11, 12, 113, 1),
+    ('951', 'GABRIELA GUADALUPE', 'HERNANDEZ ZOMA', 'recursos_humanos@lidifon.com', NULL, 'GERENTE DE RECURSOS HUMANOS', NULL, '2024-03-07', 11, 12, 114, 1),
+    ('158', 'ROBERTO', 'MARROQUIN OCHOA', NULL, NULL, 'JEFE DE VENTAS', NULL, '2012-09-24', 11, 12, 116, 1),
+    ('803', 'MARLONN ALEXANDRO', 'MOLINA HERNANDEZ', NULL, NULL, 'GERENTE DE CONTABILIDAD', NULL, '2022-05-16', 11, 12, 113, 1),
+    ('1525', 'ROBERTO ANTONIO', 'PEREZ FLORES', NULL, NULL, 'SUPERVISOR DE VENTAS', NULL, '2024-10-19', 11, 12, 116, 1),
+    ('1040', 'JOEL', 'RINCON LOPEZ', NULL, NULL, 'ENCARGADO DE CONTROL INTERNO', NULL, '2025-01-03', 11, 12, 112, 1), -- Mapeado a Operaciones
+    ('61', 'WINFIELD OCTAVIO', 'ROQUE RUIZ', NULL, NULL, 'COORDINADOR AMIGO PAY', NULL, '2018-11-20', 11, 12, 120, 1),
+    ('20', 'DANIEL', 'ROVELO ROJAS', NULL, NULL, 'GERENTE', NULL, '2007-02-23', 11, 12, 115, 1), -- Mapeado a Dirección General
+    ('443', 'JONATHAN DAMIAN', 'RUIZ MARTINEZ', NULL, NULL, 'SUPERVISOR DE VENTAS', NULL, '2016-06-24', 11, 12, 116, 1),
+    ('787', 'OCTAVIO ANDRES', 'RUIZ REYES', 'octavioruiz197@gmail.com', NULL, 'DIRECTOR GENERAL', NULL, '2019-10-16', 11, 12, 115, 1),
+    ('159', 'EZEQUIEL ALEJANDRO', 'RUSTRIAN LOPEZ', NULL, NULL, 'JEFE DE ALMACEN', NULL, '2012-10-03', 11, 12, 112, 1);
 -- -----------------------------------------------------
 -- Table `tipos_equipo`
 -- Catálogo para diferenciar Computadoras, Monitores, Teclados, etc.
