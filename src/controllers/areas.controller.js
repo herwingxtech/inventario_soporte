@@ -17,16 +17,13 @@ const getAllAreas = async (req, res, next) => {
       SELECT
         a.id,
         a.nombre,
-        a.id_sucursal,
-        s.nombre AS nombre_sucursal,
         e.nombre AS nombre_empresa,
         a.fecha_registro,
         a.fecha_actualizacion,
         a.id_status,
         st.nombre_status AS status_nombre
       FROM areas AS a
-      JOIN sucursales AS s ON a.id_sucursal = s.id
-      JOIN empresas AS e ON s.id_empresa = e.id
+      JOIN empresas AS e ON a.id_empresa = e.id
       JOIN status AS st ON a.id_status = st.id
     `;
     const areas = await query(sql);
@@ -46,15 +43,12 @@ const getAreaById = async (req, res, next) => {
       SELECT
         a.id,
         a.nombre,
-        a.id_sucursal,
-        s.nombre AS nombre_sucursal,
         e.nombre AS nombre_empresa,
         a.fecha_registro,
         a.fecha_actualizacion,
         a.id_status,
         st.nombre_status AS status_nombre
       FROM areas AS a
-      JOIN sucursales AS s ON a.id_sucursal = s.id
       JOIN empresas AS e ON s.id_empresa = e.id
       JOIN status AS st ON a.id_status = st.id
       WHERE a.id = ?

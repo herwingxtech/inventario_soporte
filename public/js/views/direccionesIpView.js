@@ -123,6 +123,7 @@ async function loadDireccionesIpList() {
             columns: [
                 { id: 'id', name: 'ID', width: '80px', sort: true },
                 { id: 'direccion_ip', name: 'Dirección IP', sort: true },
+                { id: 'nombre_empresa', name: 'Empresa', sort: true },
                 { id: 'nombre_sucursal', name: 'Sucursal', sort: true },
                 { id: 'comentario', name: 'Comentario', width: '250px', sort: false }, // Comentario puede ser largo
                 { id: 'status_nombre', name: 'Estado', sort: true },
@@ -131,6 +132,7 @@ async function loadDireccionesIpList() {
             data: direccionesIp.map(ip => [
                 ip.id,
                 ip.direccion_ip,
+                ip.nombre_empresa || 'N/A',
                 ip.nombre_sucursal || 'N/A',
                 ip.comentario || 'N/A',
                 ip.status_nombre || 'N/A',
