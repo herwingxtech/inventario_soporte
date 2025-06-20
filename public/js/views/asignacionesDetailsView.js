@@ -89,11 +89,19 @@ function renderAsignacionDetails(asignacion) {
     const editButton = document.createElement('button');
     editButton.classList.add('px-4', 'py-2', 'border', 'border-yellow-500', 'text-yellow-600', 'rounded-md', 'hover:bg-yellow-50');
     editButton.textContent = 'Editar Asignación';
-    editButton.addEventListener('click', () => {
-        if (typeof window.navigateTo === 'function') {
-            window.navigateTo('asignacionForm', String(asignacion.id));
-        }
-    });
+    
+    // Deshabilitar si el estado es "Finalizado"
+    if (asignacion.status_nombre && asignacion.status_nombre.toLowerCase() === 'finalizado') {
+        editButton.disabled = true;
+        editButton.classList.add('opacity-50', 'cursor-not-allowed');
+        editButton.title = 'No se puede editar una asignación finalizada';
+    } else {
+        editButton.addEventListener('click', () => {
+            if (typeof window.navigateTo === 'function') {
+                window.navigateTo('asignacionForm', String(asignacion.id));
+            }
+        });
+    }
 
     const backToListButton = document.createElement('button');
     backToListButton.classList.add('px-4', 'py-2', 'border', 'border-gray-300', 'rounded-md', 'text-gray-700', 'hover:bg-gray-50');

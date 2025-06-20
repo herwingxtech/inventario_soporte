@@ -41,35 +41,57 @@ function showAsignacionesError(message, container) {
     target.innerHTML = `<p class="text-red-500 font-bold">Error al cargar Asignaciones:</p><p class="text-red-500">${message}</p>`;
 }
 
+// * Formatea la celda de acciones para la tabla de asignaciones.
 function formatAsignacionesActionsCell(cell, row) {
-    const asignacionId = row.cells[0].data; // ID de la asignación
-    const equipoSerie = row.cells[1].data; // Serie del equipo
+    const asignacionId = row.cells[0].data; // Asumo ID de asignación
+    const equipoSerie = row.cells[1].data; // Asumo Serie del equipo
+    // * Determino si la asignación es activa basándome en si fecha_fin_asignacion (columna 5) tiene datos.
+    // * row.cells[5].data contendrá el valor de `fecha_fin_asignacion` del mapeo de datos.
+    const isActiva = !row.cells[5].data;
 
-    // La fecha_fin_asignacion ahora estará en el índice 5 (0-indexed)
-    const fechaFinAsignacion = row.cells[5].data;
+    // * Contenedor para los botones.
+    const actionsContainer = document.createElement('div');
+    actionsContainer.className = 'flex items-center justify-center space-x-2';
 
-    return gridjs.html(`
-        <div class="flex items-center justify-center space-x-2">
-            <button title="Ver Detalles de la Asignación"
-                    class="btn-action-view w-6 h-6 transform hover:text-blue-500 hover:scale-110"
-                    data-action="view" data-id="${asignacionId}">
-                <svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7S1.732 16.057 2.458 12z"></path></svg>
-            </button>
-            <button title="${!fechaFinAsignacion ? 'Finalizar Asignación' : 'Editar Asignación'}"
-                    class="btn-action-edit w-6 h-6 transform hover:text-yellow-500 hover:scale-110"
-                    data-action="edit" data-id="${asignacionId}">
-                ${!fechaFinAsignacion // Verifica si fechaFinAsignacion es null o vacía
-                    ? '<svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>' // Icono finalizar
-                    : '<svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>' // Icono editar
-                }
-            </button>
-            <button title="Eliminar Asignación"
-                    class="btn-action-delete w-6 h-6 transform hover:text-red-500 hover:scale-110"
-                    data-action="delete" data-id="${asignacionId}" data-equipo-serie="${equipoSerie}">
-                <svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m14 0H5m2 0V5a2 2 0 012-2h6a2 2 0 012 2v2"></path></svg>
-            </button>
-        </div>
-    `);
+    // * Botón Ver Detalles (siempre disponible).
+    const viewButton = document.createElement('button');
+    viewButton.className = 'btn-action-view w-6 h-6 transform hover:text-blue-500 hover:scale-110';
+    viewButton.title = 'Ver Detalles de la Asignación';
+    viewButton.dataset.action = 'view';
+    viewButton.dataset.id = asignacionId;
+    viewButton.innerHTML = '<svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7S1.732 16.057 2.458 12z"></path></svg>';
+    actionsContainer.appendChild(viewButton);
+
+    // * Botón Editar/Finalizar (su comportamiento y apariencia cambian).
+    const editButton = document.createElement('button');
+    if (isActiva) {
+        // * Si la asignación está ACTIVA, el botón permite editar/finalizar.
+        editButton.className = 'btn-action-edit w-6 h-6 transform hover:text-yellow-500 hover:scale-110';
+        editButton.title = 'Editar o Finalizar Asignación';
+        editButton.dataset.action = 'edit';
+        editButton.dataset.id = asignacionId;
+        editButton.innerHTML = '<svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>';
+    } else {
+        // * Si la asignación está FINALIZADA, el botón está deshabilitado.
+        // * Le doy un estilo diferente para que se vea claramente que no es clickeable.
+        editButton.className = 'w-6 h-6 text-gray-400 cursor-not-allowed'; // Deshabilitado visualmente
+        editButton.title = 'Esta asignación histórica no se puede editar.';
+        editButton.disabled = true; // Deshabilito el botón funcionalmente.
+        editButton.innerHTML = '<svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>';
+    }
+    actionsContainer.appendChild(editButton);
+
+    // * Botón Eliminar (sigue disponible, pero podrías deshabilitarlo también para históricos).
+  /*  const deleteButton = document.createElement('button');
+    deleteButton.className = 'btn-action-delete w-6 h-6 transform hover:text-red-500 hover:scale-110';
+    deleteButton.title = 'Eliminar Registro de Asignación';
+    deleteButton.dataset.action = 'delete';
+    deleteButton.dataset.id = asignacionId;
+    deleteButton.dataset.equipoSerie = equipoSerie;
+    deleteButton.innerHTML = '<svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m14 0H5m2 0V5a2 2 0 012-2h6a2 2 0 012 2v2"></path></svg>';
+    actionsContainer.appendChild(deleteButton);*/
+
+    return gridjs.html(actionsContainer.outerHTML);
 }
 
 function handleAsignacionesGridActions(event) {

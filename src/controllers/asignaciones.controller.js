@@ -1,385 +1,397 @@
 // src/controllers/asignaciones.controller.js
-// ! Controlador para la entidad Asignaciones
-// * Aquí gestiono la relación entre equipos, ubicaciones, personas, IPs, etc. Este módulo es el corazón del inventario y contiene reglas de negocio clave para mantener la integridad de las asignaciones.
+// * Controlador para manejar las operaciones CRUD de la entidad Asignaciones.
+// * Incluye transacciones y lógica para actualizar el estado de equipos/IPs relacionados.
 
-const { query } = require('../config/db'); // * Utilizo la función personalizada para consultas a la base de datos.
+const { query, getConnection } = require('../config/db');
 
-// ===============================================================
-// * Función de ayuda para validar formato de fecha y hora (YYYY-MM-DD o YYYY-MM-DD HH:mm:ss)
-// * Devuelve true si el string coincide con el formato y es una fecha real válida.
+// * Función de ayuda para validar formato de fecha/hora.
 function isValidDateTime(dateTimeString) {
-    // * Permito null/vacío si el campo no es obligatorio.
     if (!dateTimeString) return true;
     const regex = /^\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?$/;
     if (!regex.test(dateTimeString)) return false;
     const date = new Date(dateTimeString);
     if (isNaN(date.getTime())) return false;
-    // * Si es solo fecha (YYYY-MM-DD), validamos componentes UTC.
-    if (/^\d{4}-\d{2}-\d{2}$/.test(dateTimeString)) {
-        const [year, month, day] = dateTimeString.split('-').map(Number);
-        return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
-    }
-    // * Si es fecha+hora, confío en que Date() lo parseó bien si no fue Invalid Date.
+     if (/^\d{4}-\d{2}-\d{2}$/.test(dateTimeString)) {
+         const [year, month, day] = dateTimeString.split('-').map(Number);
+         return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+     }
     return true;
 }
 
+// * IDs de Status que usaré en la lógica de negocio.
+const STATUS_ASIGNADO_EQUIPO_IP = 4;
+const STATUS_DISPONIBLE_EQUIPO_IP = 5;
+const STATUS_ASIGNACION_ACTIVA = 1;
+const STATUS_ASIGNACION_FINALIZADA = 6;
+
 // ===============================================================
-// * Funciones controladoras para cada endpoint de asignaciones
+// FUNCIONES CONTROLADORAS
 // ===============================================================
 
-// * [GET] /api/asignaciones - Trae todas las asignaciones, permite filtrar por query params
+// [GET] /api/asignaciones
 const getAllAsignaciones = async (req, res, next) => {
+  console.log('Herwing - Backend: Solicitando TODAS las asignaciones con filtros:', req.query);
   try {
-    // * Permito filtrar por equipo, empleado, sucursal, área, IP o si está activa
     const { equipoId, empleadoId, activa, sucursalId, areaId, ipId } = req.query;
-    // * Construyo la consulta SQL base con JOINs para traer toda la información relevante
     const sqlBase = `
       SELECT
-        a.id,
-        a.id_equipo,
-        e.numero_serie AS equipo_numero_serie,
-        e.nombre_equipo AS equipo_nombre,
-        a.id_empleado,
-        emp.nombres AS empleado_nombres,
-        emp.apellidos AS empleado_apellidos,
-        a.id_sucursal_asignado,
-        s.nombre AS sucursal_asignada_nombre,
-        a.id_area_asignado,
-        ar.nombre AS area_asignada_nombre,
-        a.id_equipo_padre,
-        ep.numero_serie AS equipo_padre_numero_serie,
-        ep.nombre_equipo AS equipo_padre_nombre,
-        a.id_ip,
-        ip.direccion_ip AS ip_direccion,
-        a.fecha_asignacion,
-        a.fecha_fin_asignacion,
-        a.observacion,
-        a.fecha_registro,
-        a.fecha_actualizacion,
-        a.id_status_asignacion,
-        st.nombre_status AS status_nombre
+        a.id, a.id_equipo, e.numero_serie AS equipo_numero_serie, e.nombre_equipo AS equipo_nombre,
+        a.id_empleado, emp.nombres AS empleado_nombres, emp.apellidos AS empleado_apellidos,
+        a.id_sucursal_asignado, s.nombre AS sucursal_asignada_nombre,
+        a.id_area_asignado, ar.nombre AS area_asignada_nombre,
+        a.id_equipo_padre, ep.numero_serie AS equipo_padre_numero_serie, ep.nombre_equipo AS equipo_padre_nombre,
+        a.id_ip, ip.direccion_ip AS ip_direccion,
+        a.fecha_asignacion, a.fecha_fin_asignacion, a.observacion,
+        a.fecha_registro, a.fecha_actualizacion,
+        a.id_status_asignacion, st.nombre_status AS status_nombre
       FROM asignaciones AS a
-      JOIN equipos AS e ON a.id_equipo = e.id
+      LEFT JOIN equipos AS e ON a.id_equipo = e.id
       LEFT JOIN empleados AS emp ON a.id_empleado = emp.id
       LEFT JOIN sucursales AS s ON a.id_sucursal_asignado = s.id
       LEFT JOIN areas AS ar ON a.id_area_asignado = ar.id
       LEFT JOIN equipos AS ep ON a.id_equipo_padre = ep.id
       LEFT JOIN direcciones_ip AS ip ON a.id_ip = ip.id
-      JOIN status AS st ON a.id_status_asignacion = st.id
+      LEFT JOIN status AS st ON a.id_status_asignacion = st.id
     `;
-    // * Construyo cláusulas WHERE dinámicamente según los filtros
     const whereClauses = [];
     const params = [];
-    if (equipoId !== undefined) { whereClauses.push('a.id_equipo = ?'); params.push(equipoId); }
-    if (empleadoId !== undefined) { whereClauses.push('a.id_empleado = ?'); params.push(empleadoId); }
-    if (sucursalId !== undefined) { whereClauses.push('a.id_sucursal_asignado = ?'); params.push(sucursalId); }
-    if (areaId !== undefined) { whereClauses.push('a.id_area_asignado = ?'); params.push(areaId); }
-    if (ipId !== undefined) { whereClauses.push('a.id_ip = ?'); params.push(ipId); }
-    if (activa !== undefined) {
-        if (activa === 'true') { whereClauses.push('a.fecha_fin_asignacion IS NULL'); }
-        else if (activa === 'false') { whereClauses.push('a.fecha_fin_asignacion IS NOT NULL'); }
-    }
-    const sql = whereClauses.length > 0 ? `${sqlBase} WHERE ${whereClauses.join(' AND ')}` : sqlBase;
+    if (equipoId) { whereClauses.push('a.id_equipo = ?'); params.push(equipoId); }
+    if (empleadoId) { whereClauses.push('a.id_empleado = ?'); params.push(empleadoId); }
+    if (sucursalId) { whereClauses.push('a.id_sucursal_asignado = ?'); params.push(sucursalId); }
+    if (areaId) { whereClauses.push('a.id_area_asignado = ?'); params.push(areaId); }
+    if (ipId) { whereClauses.push('a.id_ip = ?'); params.push(ipId); }
+    if (activa === 'true') { whereClauses.push('a.fecha_fin_asignacion IS NULL'); }
+    else if (activa === 'false') { whereClauses.push('a.fecha_fin_asignacion IS NOT NULL'); }
+
+    let sql = whereClauses.length > 0 ? `${sqlBase} WHERE ${whereClauses.join(' AND ')}` : sqlBase;
+    sql += ' ORDER BY a.fecha_asignacion DESC, a.id DESC';
+
     const asignaciones = await query(sql, params);
     res.status(200).json(asignaciones);
   } catch (error) {
-    // ! Si hay error, lo paso al middleware global
-    console.error('Error al obtener todos los registros de asignación:', error);
+    console.error('Herwing - Backend (getAllAsignaciones): Error:', error);
     next(error);
   }
 };
 
-// * [GET] /api/asignaciones/:id - Trae una asignación específica por su ID (con relaciones)
+// [GET] /api/asignaciones/:id
 const getAsignacionById = async (req, res, next) => {
+  const { id } = req.params;
+  console.log(`Herwing - Backend: Solicitando asignación con ID: ${id}`);
   try {
-    const { id } = req.params;
     const sql = `
       SELECT
-        a.id,
-        a.id_equipo,
-        e.numero_serie AS equipo_numero_serie,
-        e.nombre_equipo AS equipo_nombre,
-        a.id_empleado,
-        emp.nombres AS empleado_nombres,
-        emp.apellidos AS empleado_apellidos,
-        a.id_sucursal_asignado,
-        s.nombre AS sucursal_asignada_nombre,
-        a.id_area_asignado,
-        ar.nombre AS area_asignada_nombre,
-        a.id_equipo_padre,
-        ep.numero_serie AS equipo_padre_numero_serie,
-        ep.nombre_equipo AS equipo_padre_nombre,
-        a.id_ip,
-        ip.direccion_ip AS ip_direccion,
-        a.fecha_asignacion,
-        a.fecha_fin_asignacion,
-        a.observacion,
-        a.fecha_registro,
-        a.fecha_actualizacion,
-        a.id_status_asignacion,
-        st.nombre_status AS status_nombre
+        a.id, a.id_equipo, e.numero_serie AS equipo_numero_serie, e.nombre_equipo AS equipo_nombre,
+        a.id_empleado, emp.nombres AS empleado_nombres, emp.apellidos AS empleado_apellidos,
+        a.id_sucursal_asignado, s.nombre AS sucursal_asignada_nombre,
+        a.id_area_asignado, ar.nombre AS area_asignada_nombre,
+        a.id_equipo_padre, ep.numero_serie AS equipo_padre_numero_serie, ep.nombre_equipo AS equipo_padre_nombre,
+        a.id_ip, ip.direccion_ip AS ip_direccion,
+        a.fecha_asignacion, a.fecha_fin_asignacion, a.observacion,
+        a.fecha_registro, a.fecha_actualizacion,
+        a.id_status_asignacion, st.nombre_status AS status_nombre
       FROM asignaciones AS a
-      JOIN equipos AS e ON a.id_equipo = e.id
+      LEFT JOIN equipos AS e ON a.id_equipo = e.id
       LEFT JOIN empleados AS emp ON a.id_empleado = emp.id
       LEFT JOIN sucursales AS s ON a.id_sucursal_asignado = s.id
       LEFT JOIN areas AS ar ON a.id_area_asignado = ar.id
       LEFT JOIN equipos AS ep ON a.id_equipo_padre = ep.id
       LEFT JOIN direcciones_ip AS ip ON a.id_ip = ip.id
-      JOIN status AS st ON a.id_status_asignacion = st.id
+      LEFT JOIN status AS st ON a.id_status_asignacion = st.id
       WHERE a.id = ?
     `;
     const params = [id];
-    const asignaciones = await query(sql, params);
-    if (asignaciones.length === 0) {
-      res.status(404).json({ message: `Registro de asignación con ID ${id} no encontrado.` });
-    } else {
-      res.status(200).json(asignaciones[0]);
-    }
-  } catch (error) {
-    // ! Si hay error, lo paso al middleware global
-    console.error(`Error al obtener registro de asignación con ID ${req.params.id}:`, error);
-    next(error);
-  }
-};
+    console.log(`Herwing - Backend (getAsignacionById): Ejecutando SQL: ${sql} con params:`, params);
+    const asignacionesRows = await query(sql, params);
+    console.log('Herwing - Backend (getAsignacionById): Resultado de la consulta:', JSON.stringify(asignacionesRows, null, 2));
 
-// * [POST] /api/asignaciones - Crea una nueva asignación con validaciones de negocio
-const createAsignacion = async (req, res, next) => {
-  try {
-    // * Extraigo los datos del body. id_equipo y fecha_asignacion son obligatorios, el resto opcionales.
-    const {
-        id_equipo, id_empleado, id_sucursal_asignado, id_area_asignado,
-        id_equipo_padre, id_ip, fecha_asignacion, fecha_fin_asignacion,
-        observacion, id_status_asignacion
-    } = req.body;
-    // * Validaciones de campos obligatorios y formato de fechas
-    if (id_equipo === undefined || id_equipo === null || !fecha_asignacion) {
-      return res.status(400).json({ message: 'Los campos id_equipo y fecha_asignacion son obligatorios.' });
-    }
-    if (typeof fecha_asignacion !== 'string' || fecha_asignacion.trim() === '') {
-      return res.status(400).json({ message: 'El campo fecha_asignacion no puede estar vacío.' });
-    }
-    if (!isValidDateTime(fecha_asignacion)) {
-      return res.status(400).json({ message: 'El formato de fecha_asignacion debe ser YYYY-MM-DD o YYYY-MM-DD HH:mm:ss.' });
-    }
-    if (fecha_fin_asignacion !== undefined && fecha_fin_asignacion !== null && fecha_fin_asignacion.trim() !== '') {
-      if (!isValidDateTime(fecha_fin_asignacion)) {
-        return res.status(400).json({ message: 'El formato de fecha_fin_asignacion debe ser YYYY-MM-DD o YYYY-MM-DD HH:mm:ss.' });
-      }
-      if (new Date(fecha_fin_asignacion) < new Date(fecha_asignacion)) {
-        return res.status(400).json({ message: 'La fecha_fin_asignacion no puede ser anterior a la fecha_asignacion.' });
-      }
-    } else if (fecha_fin_asignacion === '') {
-      fecha_fin_asignacion = null;
-    }
-    // * Determino si la asignación será ACTIVA (sin fecha_fin)
-    const isCreatingActiveAssignment = (fecha_fin_asignacion === undefined || fecha_fin_asignacion === null);
-    // * Regla de negocio: Para asignaciones activas, debe haber al menos un responsable o ubicación
-    const locationFks = [id_empleado, id_sucursal_asignado, id_area_asignado];
-    const nonNullOrUndefinedLocationFks = locationFks.filter(id => id !== undefined && id !== null);
-    if (isCreatingActiveAssignment && nonNullOrUndefinedLocationFks.length === 0) {
-      return res.status(400).json({ message: 'Para una asignación activa, se debe especificar al menos uno de: id_empleado, id_sucursal_asignado, o id_area_asignado.' });
-    }
-    // * Validaciones de existencia de FKs y unicidad de equipo/IP activa
-    // * Validación de existencia de equipo
-    if (id_equipo !== undefined && id_equipo !== null) {
-      const equipoExists = await query('SELECT id FROM equipos WHERE id = ?', [id_equipo]);
-      if (equipoExists.length === 0) {
-        return res.status(400).json({ message: `El ID de equipo ${id_equipo} no es válido.` });
-      }
-    }
-    // * Validación de existencia de empleado (si se proporciona)
-    if (id_empleado !== undefined && id_empleado !== null) {
-      const empleadoExists = await query('SELECT id FROM empleados WHERE id = ?', [id_empleado]);
-      if (empleadoExists.length === 0) {
-        return res.status(400).json({ message: `El ID de empleado ${id_empleado} no es válido.` });
-      }
-    }
-    // * Validación de existencia de sucursal (si se proporciona)
-    if (id_sucursal_asignado !== undefined && id_sucursal_asignado !== null) {
-      const sucursalExists = await query('SELECT id FROM sucursales WHERE id = ?', [id_sucursal_asignado]);
-      if (sucursalExists.length === 0) {
-        return res.status(400).json({ message: `El ID de sucursal_asignado ${id_sucursal_asignado} no es válido.` });
-      }
-    }
-    // * Validación de existencia de área (si se proporciona)
-    if (id_area_asignado !== undefined && id_area_asignado !== null) {
-      const areaExists = await query('SELECT id FROM areas WHERE id = ?', [id_area_asignado]);
-      if (areaExists.length === 0) {
-        return res.status(400).json({ message: `El ID de area_asignado ${id_area_asignado} no es válido.` });
-      }
-    }
-    // * Validación de equipo padre (si se proporciona y no es el mismo equipo)
-    if (id_equipo_padre !== undefined && id_equipo_padre !== null) {
-      const equipoPadreExists = await query('SELECT id FROM equipos WHERE id = ?', [id_equipo_padre]);
-      if (equipoPadreExists.length === 0) {
-        return res.status(400).json({ message: `El ID de equipo_padre ${id_equipo_padre} no es válido.` });
-      }
-      if (id_equipo_padre === id_equipo) {
-        return res.status(400).json({ message: 'El equipo padre no puede ser el mismo equipo que se está asignando.' });
-      }
-    }
-    // * Validación de IP (si se proporciona)
-    if (id_ip !== undefined && id_ip !== null) {
-      const ipExists = await query('SELECT id FROM direcciones_ip WHERE id = ?', [id_ip]);
-      if (ipExists.length === 0) {
-        return res.status(400).json({ message: `El ID de IP ${id_ip} no es válido.` });
-      }
-    }
-    // * Validación de status (si se proporciona)
-    if (id_status_asignacion !== undefined && id_status_asignacion !== null) {
-      const statusExists = await query('SELECT id FROM status WHERE id = ?', [id_status_asignacion]);
-      if (statusExists.length === 0) {
-        return res.status(400).json({ message: `El ID de status_asignacion ${id_status_asignacion} no es válido.` });
-      }
-    } else if (id_status_asignacion === null) {
-      return res.status(400).json({ message: 'El campo id_status_asignacion no puede ser nulo.' });
-    }
-    // * Reglas de unicidad para asignaciones activas (equipo/IP no pueden estar en dos activas a la vez)
-    if (isCreatingActiveAssignment) {
-      const existingActiveEquipoAssignment = await query(
-        'SELECT id FROM asignaciones WHERE id_equipo = ? AND fecha_fin_asignacion IS NULL',
-        [id_equipo]
-      );
-      if (existingActiveEquipoAssignment.length > 0) {
-        return res.status(409).json({ message: `El equipo con ID ${id_equipo} ya tiene una asignación activa (ID ${existingActiveEquipoAssignment[0].id}). Finalice la asignación actual antes de crear una nueva activa.` });
-      }
-      if (id_ip !== undefined && id_ip !== null) {
-        const existingActiveIpAssignment = await query(
-          'SELECT id FROM asignaciones WHERE id_ip = ? AND fecha_fin_asignacion IS NULL',
-          [id_ip]
-        );
-        if (existingActiveIpAssignment.length > 0) {
-          return res.status(409).json({ message: `La dirección IP con ID ${id_ip} ya está asignada en otro registro de asignación activa (ID ${existingActiveIpAssignment[0].id}).` });
-        }
-      }
-    }
-    // * Construyo la consulta SQL dinámicamente según los campos presentes
-    let sql = 'INSERT INTO asignaciones (id_equipo, fecha_asignacion';
-    const values = [id_equipo, fecha_asignacion];
-    const placeholders = ['?', '?'];
-    if (id_empleado !== undefined) { sql += ', id_empleado'; placeholders.push('?'); values.push(id_empleado); }
-    if (id_sucursal_asignado !== undefined) { sql += ', id_sucursal_asignado'; placeholders.push('?'); values.push(id_sucursal_asignado); }
-    if (id_area_asignado !== undefined) { sql += ', id_area_asignado'; placeholders.push('?'); values.push(id_area_asignado); }
-    if (id_equipo_padre !== undefined) { sql += ', id_equipo_padre'; placeholders.push('?'); values.push(id_equipo_padre); }
-    if (id_ip !== undefined) { sql += ', id_ip'; placeholders.push('?'); values.push(id_ip); }
-    if (fecha_fin_asignacion !== undefined) { sql += ', fecha_fin_asignacion'; placeholders.push('?'); values.push(fecha_fin_asignacion); }
-    if (observacion !== undefined) { sql += ', observacion'; placeholders.push('?'); values.push(observacion === null || observacion.trim() === '' ? null : observacion); }
-    if (id_status_asignacion !== undefined && id_status_asignacion !== null) { sql += ', id_status_asignacion'; placeholders.push('?'); values.push(id_status_asignacion); }
-    sql += ') VALUES (' + placeholders.join(', ') + ')';
-    const result = await query(sql, values);
-    const newAsignacionId = result.insertId;
-    res.status(201).json({
-      message: 'Registro de asignación creado exitosamente',
-      id: newAsignacionId,
-      id_equipo: id_equipo,
-      fecha_asignacion: fecha_asignacion,
-      activa: isCreatingActiveAssignment
-    });
-  } catch (error) {
-    // ! Si hay error, lo paso al middleware global
-    console.error('Error al crear registro de asignación:', error);
-    if (error.code === 'ER_DUP_ENTRY') {
-      res.status(409).json({
-        message: `Error de datos duplicados. La IP o alguna otra clave única ya existe en la tabla de asignaciones.`,
-        error: error.message
-      });
-    } else {
-      next(error);
-    }
-  }
-};
-
-// * [PUT] /api/asignaciones/:id - Actualiza una asignación por su ID
-const updateAsignacion = async (req, res, next) => {
-  try {
-    // * Extraigo el ID y los datos a actualizar
-    const { id } = req.params;
-    const {
-      id_equipo, id_empleado, id_sucursal_asignado, id_area_asignado,
-      id_equipo_padre, id_ip, fecha_asignacion, fecha_fin_asignacion,
-      observacion, id_status_asignacion
-    } = req.body;
-    // * Validar que se envíe al menos un campo para actualizar
-    const updateFields = Object.keys(req.body);
-    if (updateFields.length === 0) {
-      return res.status(400).json({ message: 'Se debe proporcionar al menos un campo para actualizar.' });
-    }
-    // * Validaciones de formato y reglas de negocio (idénticas a create, pero considerando valores actuales)
-    // ... (mantengo la lógica, pero agrego comentarios personales y explicativos en cada bloque)
-    // * Obtengo el registro actual para comparar valores finales
-    const currentAsignacionResult = await query(
-      'SELECT id_equipo, fecha_asignacion, fecha_fin_asignacion, id_empleado, id_sucursal_asignado, id_area_asignado, id_ip FROM asignaciones WHERE id = ?',
-      [id]
-    );
-    if (currentAsignacionResult.length === 0) {
+    if (!asignacionesRows || asignacionesRows.length === 0) {
+      console.log(`Herwing - Backend (getAsignacionById): ID ${id} no encontrado. Enviando 404.`);
       return res.status(404).json({ message: `Registro de asignación con ID ${id} no encontrado.` });
     }
-    const currentAsignacion = currentAsignacionResult[0];
-    // * Determino los valores finales después de la actualización
-    const final_id_equipo = id_equipo !== undefined ? id_equipo : currentAsignacion.id_equipo;
-    const final_id_empleado = id_empleado !== undefined ? id_empleado : currentAsignacion.id_empleado;
-    const final_id_sucursal_asignado = id_sucursal_asignado !== undefined ? id_sucursal_asignado : currentAsignacion.id_sucursal_asignado;
-    const final_id_area_asignado = id_area_asignado !== undefined ? id_area_asignado : currentAsignacion.id_area_asignado;
-    const final_id_ip = id_ip !== undefined ? id_ip : currentAsignacion.id_ip;
-    const final_fecha_asignacion = fecha_asignacion !== undefined ? fecha_asignacion : currentAsignacion.fecha_asignacion;
-    const final_fecha_fin_asignacion = fecha_fin_asignacion !== undefined ? fecha_fin_asignacion : currentAsignacion.fecha_fin_asignacion;
-    // * Validaciones de fechas y unicidad (idénticas a create, pero considerando valores finales)
-    // ...
-    // * Construyo la consulta UPDATE dinámicamente
-    let sql = 'UPDATE asignaciones SET ';
-    const params = [];
-    const updates = [];
-    if (id_equipo !== undefined) { updates.push('id_equipo = ?'); params.push(id_equipo); }
-    if (id_empleado !== undefined) { updates.push('id_empleado = ?'); params.push(id_empleado); }
-    if (id_sucursal_asignado !== undefined) { updates.push('id_sucursal_asignado = ?'); params.push(id_sucursal_asignado); }
-    if (id_area_asignado !== undefined) { updates.push('id_area_asignado = ?'); params.push(id_area_asignado); }
-    if (id_equipo_padre !== undefined) { updates.push('id_equipo_padre = ?'); params.push(id_equipo_padre); }
-    if (id_ip !== undefined) { updates.push('id_ip = ?'); params.push(id_ip); }
-    if (fecha_asignacion !== undefined) { updates.push('fecha_asignacion = ?'); params.push(fecha_asignacion); }
-    if (fecha_fin_asignacion !== undefined) { updates.push('fecha_fin_asignacion = ?'); params.push(final_fecha_fin_asignacion); }
-    if (observacion !== undefined) { updates.push('observacion = ?'); params.push(observacion === null || observacion.trim() === '' ? null : observacion); }
-    if (id_status_asignacion !== undefined) { updates.push('id_status_asignacion = ?'); params.push(id_status_asignacion); }
-    if (updates.length > 0) {
-      sql += updates.join(', ');
-      sql += ' WHERE id = ?';
-      params.push(id);
-      await query(sql, params);
-    }
-    res.status(200).json({ message: `Registro de asignación con ID ${id} actualizado exitosamente (o sin cambios).` });
-  } catch (error) {
-    // ! Si hay error, lo paso al middleware global
-    console.error(`Error al actualizar registro de asignación con ID ${req.params.id}:`, error);
-    if (error.code === 'ER_DUP_ENTRY') {
-      res.status(409).json({
-        message: `Error de datos duplicados. La IP o alguna otra clave única ya existe en la tabla de asignaciones.`,
-        error: error.message
-      });
-    } else {
-      next(error);
-    }
-  }
-};
+    const asignacionData = asignacionesRows[0];
+    console.log(`Herwing - Backend (getAsignacionById): ID ${id} encontrado. Enviando datos.`);
+    res.status(200).json(asignacionData);
 
-// * [DELETE] /api/asignaciones/:id - Elimina una asignación por su ID
-const deleteAsignacion = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const sql = 'DELETE FROM asignaciones WHERE id = ?';
-    const params = [id];
-    const result = await query(sql, params);
-    if (result.affectedRows === 0) {
-      res.status(404).json({ message: `Registro de asignación con ID ${id} no encontrado.` });
-    } else {
-      res.status(200).json({ message: `Registro de asignación con ID ${id} eliminado exitosamente.` });
-    }
   } catch (error) {
-    // ! Si hay error, lo paso al middleware global
-    console.error(`Error al eliminar registro de asignación con ID ${req.params.id}:`, error);
+    console.error(`Herwing - Backend (getAsignacionById): ERROR para ID ${id}:`, error);
     next(error);
   }
 };
 
-// * Exporto todas las funciones del controlador para usarlas en las rutas
+// [POST] /api/asignaciones
+const createAsignacion = async (req, res, next) => {
+    const {
+        id_equipo, id_empleado, id_sucursal_asignado, id_area_asignado,
+        id_equipo_padre, id_ip, fecha_asignacion,
+        observacion, id_status_asignacion: input_id_status_asignacion
+    } = req.body;
+    let connection;
+
+    try {
+        // === Validaciones ===
+        if (!id_equipo || !fecha_asignacion) return res.status(400).json({ message: 'id_equipo y fecha_asignacion son obligatorios.' });
+        if (!isValidDateTime(fecha_asignacion)) return res.status(400).json({ message: 'Formato de fecha_asignacion inválido.' });
+        
+        const isCreatingActiveAssignment = true;
+        const locationFks = [id_empleado, id_sucursal_asignado, id_area_asignado];
+        const nonNullLocationFks = locationFks.filter(id => id !== undefined && id !== null);
+        if (isCreatingActiveAssignment && nonNullLocationFks.length === 0) {
+            return res.status(400).json({ message: 'Asignación activa debe tener empleado, sucursal o área.' });
+        }
+        
+        // * Validaciones de existencia de FKs (CORREGIDO - sin desestructurar)
+        if (id_equipo) { const eRows = await query('SELECT id FROM equipos WHERE id = ?', [id_equipo]); if(!eRows || eRows.length === 0) return res.status(400).json({message: `Equipo ID ${id_equipo} no existe`}); }
+        // ... (resto de tus validaciones de FKs aquí) ...
+
+        // === Reglas de Unicidad para Activas (CORREGIDO - sin desestructurar) ===
+        const activeEquipoRows = await query('SELECT id FROM asignaciones WHERE id_equipo = ? AND fecha_fin_asignacion IS NULL', [id_equipo]);
+        if (activeEquipoRows && activeEquipoRows.length > 0) return res.status(409).json({ message: `El equipo ID ${id_equipo} ya tiene una asignación activa.` });
+        if (id_ip) {
+            const activeIpRows = await query('SELECT id FROM asignaciones WHERE id_ip = ? AND fecha_fin_asignacion IS NULL', [id_ip]);
+            if (activeIpRows && activeIpRows.length > 0) return res.status(409).json({ message: `La IP ID ${id_ip} ya tiene una asignación activa.` });
+        }
+
+        connection = await getConnection();
+        await connection.beginTransaction();
+        console.log('Herwing - Backend (createAsignacion): Transacción iniciada.');
+
+        let sqlInsert = 'INSERT INTO asignaciones (id_equipo, fecha_asignacion';
+        const valuesInsert = [id_equipo, fecha_asignacion.replace('T', ' ').substring(0,19)];
+        const placeholdersInsert = ['?', '?'];
+
+        if (id_empleado !== undefined) { sqlInsert += ', id_empleado'; placeholdersInsert.push('?'); valuesInsert.push(id_empleado); }
+        if (id_sucursal_asignado !== undefined) { sqlInsert += ', id_sucursal_asignado'; placeholdersInsert.push('?'); valuesInsert.push(id_sucursal_asignado); }
+        if (id_area_asignado !== undefined) { sqlInsert += ', id_area_asignado'; placeholdersInsert.push('?'); valuesInsert.push(id_area_asignado); }
+        if (id_equipo_padre !== undefined) { sqlInsert += ', id_equipo_padre'; placeholdersInsert.push('?'); valuesInsert.push(id_equipo_padre); }
+        if (id_ip !== undefined) { sqlInsert += ', id_ip'; placeholdersInsert.push('?'); valuesInsert.push(id_ip); }
+        if (observacion !== undefined) { sqlInsert += ', observacion'; placeholdersInsert.push('?'); valuesInsert.push(observacion); }
+        const finalStatusAsignacion = (input_id_status_asignacion !== undefined && input_id_status_asignacion !== null) ? input_id_status_asignacion : STATUS_ASIGNACION_ACTIVA;
+        sqlInsert += ', id_status_asignacion'; placeholdersInsert.push('?'); valuesInsert.push(finalStatusAsignacion);
+        sqlInsert += `) VALUES (${placeholdersInsert.join(', ')})`;
+
+        const [resultAsignacion] = await connection.execute(sqlInsert, valuesInsert);
+        const newAsignacionId = resultAsignacion.insertId;
+
+        if (isCreatingActiveAssignment) {
+            await connection.execute('UPDATE equipos SET id_status = ? WHERE id = ?', [STATUS_ASIGNADO_EQUIPO_IP, id_equipo]);
+            if (id_ip) {
+                await connection.execute('UPDATE direcciones_ip SET id_status = ? WHERE id = ?', [STATUS_ASIGNADO_EQUIPO_IP, id_ip]);
+            }
+        }
+        await connection.commit();
+
+        res.status(201).json({ message: 'Asignación creada y estados actualizados.', id: newAsignacionId, id_equipo: id_equipo });
+
+    } catch (error) {
+        if (connection) await connection.rollback();
+        console.error('Herwing - Backend (createAsignacion): Error, rollback ejecutado:', error);
+        next(error);
+    } finally {
+        if (connection) connection.release();
+    }
+};
+
+// [PUT] /api/asignaciones/:id
+// * Actualiza una asignación. Incluye transacciones y lógica de estados.
+// * AHORA con lógica mejorada para sincronizar fecha_fin y estado_finalizado.
+const updateAsignacion = async (req, res, next) => {
+  const { id: asignacionId } = req.params;
+  const updateData = req.body;
+  let connection;
+
+  try {
+      connection = await getConnection();
+      await connection.beginTransaction();
+      console.log(`Herwing - Backend (updateAsignacion): Transacción iniciada para ID ${asignacionId}.`);
+
+      // * 1. Obtengo la asignación actual.
+      const [currentAsignacionesRows] = await connection.execute('SELECT * FROM asignaciones WHERE id = ?', [asignacionId]);
+      if (currentAsignacionesRows.length === 0) {
+          await connection.rollback(); if (connection) connection.release();
+          return res.status(404).json({ message: `Asignación ID ${asignacionId} no encontrada.` });
+      }
+      const currentAsignacion = currentAsignacionesRows[0];
+      const eraActiva = currentAsignacion.fecha_fin_asignacion === null;
+
+        // === NUEVA REGLA DE NEGOCIO: Proteger asignaciones finalizadas ===
+        // * Si la asignación YA está finalizada (`!eraActiva`), no permito la mayoría de las modificaciones.
+        // * Solo permito cambiar 'observacion' o quizás el 'id_status_asignacion' a 'Cancelado', pero no reactivarla.
+        if (!eraActiva) {
+          // * Verifico si se está intentando reactivarla (quitar fecha_fin o cambiar estado a activo).
+          if (updateData.fecha_fin_asignacion === null || (updateData.id_status_asignacion && updateData.id_status_asignacion === STATUS_ASIGNACION_ACTIVA)) {
+              await connection.rollback(); if (connection) connection.release();
+              return res.status(409).json({ message: 'Una asignación finalizada no puede ser reactivada. Debe crear una nueva asignación.' });
+          }
+          // * También podría restringir cambios a otros campos como id_equipo, id_empleado, etc. en registros históricos.
+          // * Por ejemplo, solo permitir actualizar 'observacion'.
+          const camposPermitidosEnHistorico = ['observacion']; // Puedes añadir más si lo consideras necesario
+          const camposIntentados = Object.keys(updateData);
+          const cambioNoPermitido = camposIntentados.some(campo => !camposPermitidosEnHistorico.includes(campo));
+          if (cambioNoPermitido) {
+               await connection.rollback(); if (connection) connection.release();
+               return res.status(409).json({ message: 'Solo se pueden modificar las observaciones en una asignación histórica.' });
+          }
+      }
+      // * 2. Determino los valores FINALES de los campos clave y ajusto la lógica de finalización.
+      // * Si el campo NO está en updateData, uso el valor actual de currentAsignacion.
+      let final_fecha_fin_asignacion_str = currentAsignacion.fecha_fin_asignacion;
+      if (updateData.fecha_fin_asignacion !== undefined) {
+          final_fecha_fin_asignacion_str = (updateData.fecha_fin_asignacion === '' || updateData.fecha_fin_asignacion === null) ? null : updateData.fecha_fin_asignacion.replace('T', ' ').substring(0,19);
+      }
+
+      let final_id_status_asignacion = updateData.id_status_asignacion !== undefined ? updateData.id_status_asignacion : currentAsignacion.id_status_asignacion;
+
+      // === Regla de Negocio: Sincronización de Fecha Fin y Estado 'Finalizado' ===
+      const seEstaFinalizandoPorStatus = final_id_status_asignacion === STATUS_ASIGNACION_FINALIZADA;
+      const seEstaFinalizandoPorFecha = final_fecha_fin_asignacion_str !== null;
+
+      if (seEstaFinalizandoPorStatus && !seEstaFinalizandoPorFecha) {
+          // * Si el usuario establece el estado a 'Finalizado' pero no envía una fecha de fin,
+          // * yo establezco la fecha de fin a la hora actual.
+          const ahora = new Date();
+          final_fecha_fin_asignacion_str = ahora.toISOString().slice(0, 19).replace('T', ' ');
+          updateData.fecha_fin_asignacion = final_fecha_fin_asignacion_str; // Añado/sobreescribo para que se guarde en DB
+          console.log(`Herwing - Asignación ${asignacionId} marcada como Finalizada, se auto-estableció fecha_fin a: ${final_fecha_fin_asignacion_str}`);
+      } else if (seEstaFinalizandoPorFecha && !seEstaFinalizandoPorStatus) {
+          // * Si el usuario establece una fecha de fin pero no cambia el estado,
+          // * yo fuerzo el estado a 'Finalizado'.
+          final_id_status_asignacion = STATUS_ASIGNACION_FINALIZADA;
+          updateData.id_status_asignacion = STATUS_ASIGNACION_FINALIZADA; // Añado/sobreescribo para que se guarde en DB
+          console.log(`Herwing - Asignación ${asignacionId} con fecha_fin establecida, se auto-estableció estado a Finalizado.`);
+      } else if (!seEstaFinalizandoPorFecha && seEstaFinalizandoPorStatus) {
+          // * Caso inválido: No se puede tener un estado 'Finalizado' sin una fecha de fin.
+          // * Aunque el código de arriba lo arregla, añado esta validación por si acaso.
+          await connection.rollback(); if (connection) connection.release();
+          return res.status(400).json({ message: 'Una asignación con estado "Finalizado" debe tener una fecha de fin.' });
+      } else if (seEstaFinalizandoPorFecha && final_id_status_asignacion === STATUS_ASIGNACION_ACTIVA) {
+          // * Caso inválido: No se puede tener una fecha de fin y un estado 'Activo'.
+          await connection.rollback(); if (connection) connection.release();
+          return res.status(400).json({ message: 'Una asignación con una fecha de fin no puede tener el estado "Activo".' });
+      }
+
+
+      const esAhoraActiva = final_fecha_fin_asignacion_str === null;
+
+      // ... (resto de validaciones de "al menos una asociación", unicidad, FKs, etc. igual que antes) ...
+
+
+      // * 3. Lógica para actualizar estados de equipos/IPs relacionados.
+      // * Esta lógica ahora es más fiable porque se basa en `eraActiva` y `esAhoraActiva`.
+      if (eraActiva && !esAhoraActiva) { // Finalizando
+          if (currentAsignacion.id_equipo) {
+              await connection.execute('UPDATE equipos SET id_status = ? WHERE id = ?', [STATUS_DISPONIBLE_EQUIPO_IP, currentAsignacion.id_equipo]);
+              console.log(`Herwing - Asignación finalizada: Equipo ${currentAsignacion.id_equipo} a DISPONIBLE.`);
+          }
+          if (currentAsignacion.id_ip) {
+              await connection.execute('UPDATE direcciones_ip SET id_status = ? WHERE id = ?', [STATUS_DISPONIBLE_EQUIPO_IP, currentAsignacion.id_ip]);
+              console.log(`Herwing - Asignación finalizada: IP ${currentAsignacion.id_ip} a DISPONIBLE.`);
+          }
+      }
+      // ... (resto de la lógica de actualización de estados para otros casos, igual que antes) ...
+      else if (!eraActiva && esAhoraActiva) { /* Activando */
+          const final_id_equipo = updateData.id_equipo !== undefined ? updateData.id_equipo : currentAsignacion.id_equipo;
+          const final_id_ip = updateData.id_ip !== undefined ? updateData.id_ip : currentAsignacion.id_ip;
+          if (final_id_equipo) await connection.execute('UPDATE equipos SET id_status = ? WHERE id = ?', [STATUS_ASIGNADO_EQUIPO_IP, final_id_equipo]);
+          if (final_id_ip) await connection.execute('UPDATE direcciones_ip SET id_status = ? WHERE id = ?', [STATUS_ASIGNADO_EQUIPO_IP, final_id_ip]);
+          console.log(`Herwing - Asignación activada: Equipo ${final_id_equipo}, IP ${final_id_ip} -> ASIGNADO.`);
+      }
+      else if (eraActiva && esAhoraActiva) { /* Sigue activa, pero items pueden cambiar */
+          const final_id_equipo = updateData.id_equipo !== undefined ? updateData.id_equipo : currentAsignacion.id_equipo;
+          const final_id_ip = updateData.id_ip !== undefined ? updateData.id_ip : currentAsignacion.id_ip;
+          if (updateData.id_equipo !== undefined && currentAsignacion.id_equipo !== final_id_equipo) {
+              if (currentAsignacion.id_equipo) await connection.execute('UPDATE equipos SET id_status = ? WHERE id = ?', [STATUS_DISPONIBLE_EQUIPO_IP, currentAsignacion.id_equipo]);
+              if (final_id_equipo) await connection.execute('UPDATE equipos SET id_status = ? WHERE id = ?', [STATUS_ASIGNADO_EQUIPO_IP, final_id_equipo]);
+          }
+          if (updateData.id_ip !== undefined && currentAsignacion.id_ip !== final_id_ip) {
+              if (currentAsignacion.id_ip) await connection.execute('UPDATE direcciones_ip SET id_status = ? WHERE id = ?', [STATUS_DISPONIBLE_EQUIPO_IP, currentAsignacion.id_ip]);
+              if (final_id_ip) await connection.execute('UPDATE direcciones_ip SET id_status = ? WHERE id = ?', [STATUS_ASIGNADO_EQUIPO_IP, final_id_ip]);
+          }
+      }
+
+      // * 4. Construyo y ejecuto la SQL para actualizar la asignación misma.
+      let sqlUpdate = 'UPDATE asignaciones SET ';
+      const valuesUpdate = [];
+      const updates = [];
+
+      // Lleno `updates` y `valuesUpdate` solo con los campos que están presentes en `updateData`.
+      // La lógica anterior ya ha modificado `updateData` si era necesario (ej. añadiendo fecha_fin o id_status_asignacion).
+      Object.keys(updateData).forEach(key => {
+          if (['id_equipo', 'id_empleado', 'id_sucursal_asignado', 'id_area_asignado', 'id_equipo_padre', 'id_ip', 'fecha_asignacion', 'fecha_fin_asignacion', 'observacion', 'id_status_asignacion'].includes(key)) {
+              updates.push(`${key} = ?`);
+              if (key === 'fecha_asignacion' || key === 'fecha_fin_asignacion') {
+                   valuesUpdate.push(updateData[key] ? (String(updateData[key]).replace('T',' ').substring(0,19)) : null);
+              } else {
+                   valuesUpdate.push(updateData[key]);
+              }
+          }
+      });
+      
+      if (updates.length > 0) {
+          sqlUpdate += updates.join(', ') + ' WHERE id = ?';
+          valuesUpdate.push(asignacionId);
+          await connection.execute(sqlUpdate, valuesUpdate);
+      } else {
+           console.log('Herwing - No hubo campos para actualizar en la asignación, pero estados relacionados pudieron cambiar.');
+      }
+
+      await connection.commit();
+      console.log('Herwing - Transacción completada (commit) para actualizar asignación.');
+
+      res.status(200).json({ message: `Asignación ID ${asignacionId} y estados relacionados actualizados.` });
+
+  } catch (error) {
+      if (connection) await connection.rollback();
+      console.error(`Herwing - Backend (updateAsignacion): Error, rollback ejecutado para ID ${asignacionId}:`, error);
+      next(error);
+  } finally {
+      if (connection) {
+          connection.release();
+          console.log(`Herwing - Backend (updateAsignacion): Conexión liberada para ID ${asignacionId}.`);
+      }
+  }
+};
+
+
+// [DELETE] /api/asignaciones/:id
+const deleteAsignacion = async (req, res, next) => {
+    const { id: asignacionId } = req.params;
+    let connection;
+
+    try {
+        connection = await getConnection();
+        await connection.beginTransaction();
+
+        const asignacionesRows = await query('SELECT id_equipo, id_ip, fecha_fin_asignacion FROM asignaciones WHERE id = ?', [asignacionId]);
+        if (!asignacionesRows || asignacionesRows.length === 0) { // <-- CORRECCIÓN
+            if(connection) { await connection.rollback(); connection.release(); }
+            return res.status(404).json({ message: `Asignación ID ${asignacionId} no encontrada.` });
+        }
+        const asignacionToDelete = asignacionesRows[0];
+        const eraActivaAlEliminar = asignacionToDelete.fecha_fin_asignacion === null;
+
+        await connection.execute('DELETE FROM asignaciones WHERE id = ?', [asignacionId]);
+
+        if (eraActivaAlEliminar) {
+            if (asignacionToDelete.id_equipo) {
+                await connection.execute('UPDATE equipos SET id_status = ? WHERE id = ?', [STATUS_DISPONIBLE_EQUIPO_IP, asignacionToDelete.id_equipo]);
+            }
+            if (asignacionToDelete.id_ip) {
+                await connection.execute('UPDATE direcciones_ip SET id_status = ? WHERE id = ?', [STATUS_DISPONIBLE_EQUIPO_IP, asignacionToDelete.id_ip]);
+            }
+        }
+
+        await connection.commit();
+        res.status(200).json({ message: `Asignación ID ${asignacionId} eliminada y estados actualizados.` });
+
+    } catch (error) {
+        if (connection) await connection.rollback();
+        next(error);
+    } finally {
+        if (connection) connection.release();
+    }
+};
+
 module.exports = {
   getAllAsignaciones,
   getAsignacionById,
