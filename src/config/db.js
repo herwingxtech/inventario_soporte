@@ -29,10 +29,18 @@ const query = async (sql, params) => {
   return rows; // * Devuelvo solo las filas resultantes (ignoro metadatos)
 };
 
+const getConnection = async () => {
+  const connection = await pool.getConnection();
+  console.log('Herwing obtuvo una conexión del pool.'); // Para depuración
+  return connection;
+};
+
+
 // * Exporto el pool y la función query para usarlos en los controladores y otros módulos
 module.exports = {
   pool,
-  query
+  query,
+  getConnection
 };
 // * Mensaje de depuración para saber que este archivo se ejecutó correctamente
 console.log('Módulo de conexión a base de datos cargado.'); 
