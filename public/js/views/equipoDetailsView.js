@@ -3,6 +3,8 @@
 
 //? ¿Qué funciones de API necesito? 'getEquipoById'
 import { getEquipoById } from '../api.js';
+import { showDetailsLoading } from '../utils/loading.js';
+import { showDetailsError } from '../utils/error.js';
 
 // * Referencia al contenedor principal donde se renderizará esta vista.
 const contentArea = document.getElementById('content-area');
@@ -13,12 +15,12 @@ const contentArea = document.getElementById('content-area');
 
 // * Muestra un mensaje de carga mientras se obtienen los detalles del equipo.
 function showEquipoDetailsLoading(equipoId) {
-    contentArea.innerHTML = `<p>Cargando detalles del equipo ID: ${equipoId}...</p>`;
+    showDetailsLoading('Equipo', equipoId);
 }
 
 // * Muestra un mensaje de error si falla la carga de datos del equipo.
 function showEquipoDetailsError(message) {
-    contentArea.innerHTML = `<p class="text-red-500 font-bold">Error al cargar detalles del equipo:</p><p class="text-red-500">${message}</p>`;
+    showDetailsError('Equipo', null, message, 'equiposList', () => showEquipoDetails());
 }
 
 // * Renderiza la vista de detalles del equipo.

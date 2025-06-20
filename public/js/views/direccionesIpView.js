@@ -3,6 +3,8 @@
 
 import { getDireccionesIp, deleteDireccionIp } from '../api.js';
 import { showConfirmationModal, showInfoModal } from '../ui/modal.js';
+import { showListLoading } from '../utils/loading.js';
+import { showListError } from '../utils/error.js';
 
 const contentArea = document.getElementById('content-area');
 let ipsGridInstance = null;
@@ -33,12 +35,12 @@ function renderDireccionesIpListViewLayout() {
 
 function showDireccionesIpLoading(container) {
     const target = container || gridContainerGlobal || contentArea;
-    target.innerHTML = '<p>Cargando lista de Direcciones IP...</p>';
+    showListLoading(target, 'Direcciones IP');
 }
 
 function showDireccionesIpError(message, container) {
     const target = container || gridContainerGlobal || contentArea;
-    target.innerHTML = `<p class="text-red-500 font-bold">Error al cargar Direcciones IP:</p><p class="text-red-500">${message}</p>`;
+    showListError(target, 'Direcciones IP', message, 'direccionesIpList', () => loadDireccionesIpList());
 }
 
 function formatIpActionsCell(cell, row) {

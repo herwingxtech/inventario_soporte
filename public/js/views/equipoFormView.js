@@ -3,6 +3,8 @@
 
 import { createEquipo, getTiposEquipo, getSucursales, getStatuses, getEquipoById, updateEquipo } from '../api.js';
 import { showInfoModal } from '../ui/modal.js';
+import { showFormLoading } from '../utils/loading.js';
+import { showFormError } from '../utils/error.js';
 
 const contentArea = document.getElementById('content-area');
 
@@ -15,12 +17,11 @@ let statusesCache = null;
 // ===============================================================
 
 function showEquipoFormLoading(action = 'Crear') {
-    contentArea.innerHTML = `<p>Cargando formulario para ${action.toLowerCase()} equipo...</p>`;
+    showFormLoading(action, 'equipo');
 }
 
 function showEquipoFormError(message, action = 'procesar') {
-    contentArea.innerHTML = `<p class="text-red-500 font-bold">Error al ${action} equipo:</p><p class="text-red-500">${message}</p>
-                             <button class="mt-2 px-4 py-2 border border-gray-300 rounded-md" onclick="window.navigateTo('equiposList')">Volver a la lista</button>`;
+    showFormError(action, 'equipo', message, () => showEquipoForm());
 }
 
 // * Renderiza el formulario HTML para crear o editar un equipo.

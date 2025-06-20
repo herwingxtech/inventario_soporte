@@ -3,6 +3,8 @@
 
 //? ¿Qué función de API necesito? 'getEmpleadoById'.
 import { getEmpleadoById } from '../api.js';
+import { showDetailsLoading } from '../utils/loading.js';
+import { showDetailsError } from '../utils/error.js';
 
 // * Referencia al contenedor principal donde se renderizará esta vista.
 const contentArea = document.getElementById('content-area');
@@ -13,13 +15,12 @@ const contentArea = document.getElementById('content-area');
 
 // * Muestra un mensaje de carga mientras se obtienen los detalles del empleado.
 function showEmpleadoDetailsLoading(empleadoId) {
-    contentArea.innerHTML = `<p>Cargando detalles del empleado ID: ${empleadoId}...</p>`;
+    showDetailsLoading('Empleado', empleadoId);
 }
 
 // * Muestra un mensaje de error si falla la carga de datos del empleado.
 function showEmpleadoDetailsError(message) {
-    contentArea.innerHTML = `<p class="text-red-500 font-bold">Error al cargar detalles del empleado:</p><p class="text-red-500">${message}</p>
-                             <button class="mt-2 px-4 py-2 border border-gray-300 rounded-md" onclick="window.navigateTo('empleadosList')">Volver a la lista</button>`;
+    showDetailsError('Empleado', null, message, 'empleadosList', () => showEmpleadoDetails());
 }
 
 // * Renderiza la vista de detalles del empleado.

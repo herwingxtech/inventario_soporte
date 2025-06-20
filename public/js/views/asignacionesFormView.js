@@ -11,6 +11,8 @@ import {
 } from '../api.js';
 // * Importo mis funciones de modales para una mejor UX.
 import { showInfoModal } from '../ui/modal.js';
+import { showFormLoading } from '../utils/loading.js';
+import { showFormError } from '../utils/error.js';
 
 // * Referencia al contenedor principal donde voy a renderizar este formulario.
 const contentArea = document.getElementById('content-area');
@@ -29,14 +31,12 @@ let statusesCache = null;  // Para el estado de la asignación.
 
 // * Muestra un mensaje de carga mientras preparo el formulario o cargo datos para los selects.
 function showAsignacionFormLoading(action = 'Crear') {
-    contentArea.innerHTML = `<p>Cargando formulario para ${action.toLowerCase()} asignación...</p>`;
+    showFormLoading(action, 'asignación');
 }
 
 // * Muestra un mensaje de error si algo falla al cargar el formulario o al procesar el envío.
 function showAsignacionFormError(message, action = 'procesar') {
-    //TODO: Mejorar cómo muestro los errores, quizás directamente en el formulario o con un modal de error más específico.
-    contentArea.innerHTML = `<p class="text-red-500 font-bold">Error al ${action} asignación:</p><p class="text-red-500">${message}</p>
-                           <button class="mt-2 px-4 py-2 border border-gray-300 rounded-md" onclick="window.navigateTo('asignacionesList')">Volver a la lista</button>`;
+    showFormError(action, 'asignación', message, () => showAsignacionForm());
 }
 
 // * Renderiza el formulario HTML para crear o editar una Asignación.

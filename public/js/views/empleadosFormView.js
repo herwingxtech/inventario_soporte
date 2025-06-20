@@ -1,18 +1,23 @@
 // public/js/views/empleadoFormView.js
 // * Este módulo se encarga de la lógica para el formulario de creación y edición de Empleados.
 
-//? ¿Qué funciones de API necesito? Para crear/editar: 'createEmpleado', 'updateEmpleado', 'getEmpleadoById'.
-//? Para poblar selects: 'getSucursales', 'getAreas', 'getStatuses'.
+//? Funciones de API necesarias:
+//? Para CRUD: 'createEmpleado', 'updateEmpleado', 'getEmpleadoById'.
+//? Para poblar selects: 'getEmpresas', 'getSucursales', 'getAreas', 'getRoles', 'getStatuses'.
 import {
     createEmpleado,
     updateEmpleado,
     getEmpleadoById,
+    getEmpresas,
     getSucursales,
-    getStatuses,
-    getAreas
+    getAreas,
+    getRoles,
+    getStatuses
 } from '../api.js';
 
 import { showInfoModal } from '../ui/modal.js';
+import { showFormLoading } from '../utils/loading.js';
+import { showFormError } from '../utils/error.js';
 
 // * Referencia al contenedor principal donde se renderizará este formulario.
 const contentArea = document.getElementById('content-area');
@@ -28,14 +33,12 @@ let statusesCache = null;
 
 // * Muestra un mensaje de carga mientras se prepara el formulario.
 function showEmpleadoFormLoading(action = 'Crear') {
-    contentArea.innerHTML = `<p>Cargando formulario para ${action.toLowerCase()} empleado...</p>`;
+    showFormLoading(action, 'empleado');
 }
 
-// * Muestra un mensaje de error si falla la carga del formulario o el envío.
+// * Muestra un mensaje de error si algo falla al cargar el formulario o al procesar el envío.
 function showEmpleadoFormError(message, action = 'procesar') {
-    //TODO: Mejorar la presentación de errores, quizás dentro del mismo formulario.
-    contentArea.innerHTML = `<p class="text-red-500 font-bold">Error al ${action} empleado:</p><p class="text-red-500">${message}</p>
-                             <button class="mt-2 px-4 py-2 border border-gray-300 rounded-md" onclick="window.navigateTo('empleadosList')">Volver a la lista</button>`;
+    showFormError(action, 'empleado', message, () => showEmpleadoForm());
 }
 
 // * Renderiza el formulario HTML para crear o editar un empleado.

@@ -4,6 +4,8 @@
 
 //? ¿Necesitaré importar 'deleteMantenimiento' aquí o en una vista de detalle/modal?
 import { getMantenimientos, deleteMantenimiento } from '../api.js';
+import { showListLoading } from '../utils/loading.js';
+import { showListError } from '../utils/error.js';
 
 // * Referencia al contenedor principal donde se renderizará esta vista.
 const contentArea = document.getElementById('content-area');
@@ -14,12 +16,12 @@ const contentArea = document.getElementById('content-area');
 
 // * Muestra un mensaje de carga mientras se obtienen los datos de los mantenimientos.
 function showMantenimientosLoading() {
-    contentArea.innerHTML = '<p>Cargando lista de Mantenimientos...</p>';
+    showListLoading(contentArea, 'Mantenimientos');
 }
 
-// * Muestra un mensaje de error si falla la carga de datos.
+// * Muestra un mensaje de error si falla la carga de datos de los mantenimientos.
 function showMantenimientosError(message) {
-    contentArea.innerHTML = `<p class="text-red-500 font-bold">Error al cargar Mantenimientos:</p><p class="text-red-500">${message}</p>`;
+    showListError(contentArea, 'Mantenimientos', message, 'mantenimientosList', () => loadMantenimientosList());
 }
 
 // * Renderiza la tabla de mantenimientos con los datos obtenidos.

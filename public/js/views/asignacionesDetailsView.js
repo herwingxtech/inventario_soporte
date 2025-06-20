@@ -3,6 +3,8 @@
 
 //? ¿Qué función de API necesito? 'getAsignacionById'.
 import { getAsignacionById } from '../api.js';
+import { showDetailsLoading } from '../utils/loading.js';
+import { showDetailsError } from '../utils/error.js';
 
 // * Referencia al contenedor principal.
 const contentArea = document.getElementById('content-area');
@@ -12,12 +14,11 @@ const contentArea = document.getElementById('content-area');
 // ===============================================================
 
 function showAsignacionDetailsLoading(asignacionId) {
-    contentArea.innerHTML = `<p>Cargando detalles de la Asignación ID: ${asignacionId}...</p>`;
+    showDetailsLoading('Asignación', asignacionId);
 }
 
 function showAsignacionDetailsError(message) {
-    contentArea.innerHTML = `<p class="text-red-500 font-bold">Error al cargar detalles de la asignación:</p><p class="text-red-500">${message}</p>
-                             <button class="mt-2 px-4 py-2 border border-gray-300 rounded-md" onclick="window.navigateTo('asignacionesList')">Volver a la lista</button>`;
+    showDetailsError('Asignación', null, message, 'asignacionesList', () => showAsignacionDetails());
 }
 
 function renderAsignacionDetails(asignacion) {

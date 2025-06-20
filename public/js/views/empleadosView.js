@@ -6,6 +6,8 @@
 import { getEmpleados, deleteEmpleado } from '../api.js';
 // * Importo mis funciones de modales personalizadas.
 import { showConfirmationModal, showInfoModal } from '../ui/modal.js';
+import { showListLoading } from '../utils/loading.js';
+import { showListError } from '../utils/error.js';
 
 // * Referencia al contenedor principal donde se renderizará esta vista.
 const contentArea = document.getElementById('content-area');
@@ -39,13 +41,13 @@ function renderEmpleadosListViewLayout() {
 // * Muestra mensaje de carga.
 function showEmpleadosLoading(container) {
     const target = container || gridContainerGlobal || contentArea;
-    target.innerHTML = '<p>Cargando lista de empleados...</p>';
+    showListLoading(target, 'Empleados');
 }
 
 // * Muestra mensaje de error.
 function showEmpleadosError(message, container) {
     const target = container || gridContainerGlobal || contentArea;
-    target.innerHTML = `<p class="text-red-500 font-bold">Error al cargar empleados:</p><p class="text-red-500">${message}</p>`;
+    showListError(target, 'Empleados', message, 'empleadosList', () => loadEmpleadosList());
 }
 
 // * Formatea la celda de acciones para la tabla de empleados.

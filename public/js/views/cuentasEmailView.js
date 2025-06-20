@@ -4,6 +4,8 @@
 
 //? Necesito importar más funciones de api.js a medida que añado funcionalidades (ej. delete).
 import { getCuentasEmail, deleteCuentaEmail } from '../api.js';
+import { showListLoading } from '../utils/loading.js';
+import { showListError } from '../utils/error.js';
 
 // * Referencia al contenedor principal donde se renderizará esta vista.
 const contentArea = document.getElementById('content-area');
@@ -15,13 +17,13 @@ const contentArea = document.getElementById('content-area');
 // * Muestra un mensaje de carga mientras se obtienen los datos de las cuentas de email.
 function showCuentasEmailLoading() {
     // Limpio el área y muestro el mensaje.
-    contentArea.innerHTML = '<p>Cargando lista de Cuentas de Email...</p>';
+    showListLoading(contentArea, 'Cuentas de Email');
 }
 
-// * Muestra un mensaje de error si falla la carga de datos.
+// * Muestra un mensaje de error si falla la carga de datos de las cuentas de email.
 function showCuentasEmailError(message) {
     // Limpio el área y muestro el error con un estilo distintivo.
-    contentArea.innerHTML = `<p class="text-red-500 font-bold">Error al cargar Cuentas de Email:</p><p class="text-red-500">${message}</p>`;
+    showListError(contentArea, 'Cuentas de Email', message, 'cuentasEmailList', () => loadCuentasEmailList());
 }
 
 // * Renderiza la tabla de cuentas de email con los datos obtenidos.

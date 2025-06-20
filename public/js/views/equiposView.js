@@ -3,6 +3,8 @@
 // import { esES } from "gridjs/l10n"; // Eliminado, ahora usamos el global del CDN
 import { getEquipos, deleteEquipo } from '../api.js';
 import { showConfirmationModal, showInfoModal } from '../ui/modal.js';
+import { showListLoading } from '../utils/loading.js';
+import { showListError } from '../utils/error.js';
 
 const contentArea = document.getElementById('content-area');
 let equiposGridInstance = null;
@@ -35,12 +37,12 @@ function renderEquiposListViewLayout() {
 
 function showEquiposLoading(container) {
     const target = container || gridContainerGlobal || contentArea;
-    target.innerHTML = '<p>Cargando lista de equipos...</p>';
+    showListLoading(target, 'Equipos');
 }
 
 function showEquiposError(message, container) {
     const target = container || gridContainerGlobal || contentArea;
-    target.innerHTML = `<p class="text-red-500 font-bold">Error al cargar equipos:</p><p class="text-red-500">${message}</p>`;
+    showListError(target, 'Equipos', message, 'equiposList', () => loadEquiposList());
 }
 
 // * Función para formatear la celda de acciones en Grid.js

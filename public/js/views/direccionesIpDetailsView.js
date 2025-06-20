@@ -3,6 +3,8 @@
 
 //? ¿Qué función de API necesito? 'getDireccionIpById'.
 import { getDireccionIpById } from '../api.js';
+import { showDetailsLoading } from '../utils/loading.js';
+import { showDetailsError } from '../utils/error.js';
 
 // * Referencia al contenedor principal donde se renderizará esta vista.
 const contentArea = document.getElementById('content-area');
@@ -13,13 +15,12 @@ const contentArea = document.getElementById('content-area');
 
 // * Muestra un mensaje de carga mientras se obtienen los detalles de la IP.
 function showDireccionIpDetailsLoading(ipId) {
-    contentArea.innerHTML = `<p>Cargando detalles de la Dirección IP ID: ${ipId}...</p>`;
+    showDetailsLoading('Dirección IP', ipId);
 }
 
 // * Muestra un mensaje de error si falla la carga de datos de la IP.
 function showDireccionIpDetailsError(message) {
-    contentArea.innerHTML = `<p class="text-red-500 font-bold">Error al cargar detalles de la IP:</p><p class="text-red-500">${message}</p>
-                             <button class="mt-2 px-4 py-2 border border-gray-300 rounded-md" onclick="window.navigateTo('direccionesIpList')">Volver a la lista</button>`;
+    showDetailsError('Dirección IP', null, message, 'direccionesIpList', () => showDireccionIpDetails());
 }
 
 // * Renderiza la vista de detalles de la Dirección IP.

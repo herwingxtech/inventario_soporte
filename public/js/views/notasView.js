@@ -4,6 +4,8 @@
 
 //? ¿Necesitaré importar 'deleteNota' aquí? ¿O mejor en una vista de detalle/modal?
 import { getNotas, deleteNota } from '../api.js';
+import { showListLoading } from '../utils/loading.js';
+import { showListError } from '../utils/error.js';
 
 // * Referencia al contenedor principal donde se renderizará esta vista.
 const contentArea = document.getElementById('content-area');
@@ -14,12 +16,12 @@ const contentArea = document.getElementById('content-area');
 
 // * Muestra un mensaje de carga mientras se obtienen los datos de las notas.
 function showNotasListLoading() {
-    contentArea.innerHTML = '<p>Cargando lista de Notas...</p>';
+    showListLoading(contentArea, 'Notas');
 }
 
-// * Muestra un mensaje de error si falla la carga de datos.
+// * Muestra un mensaje de error si falla la carga de datos de las notas.
 function showNotasListError(message) {
-    contentArea.innerHTML = `<p class="text-red-500 font-bold">Error al cargar Notas:</p><p class="text-red-500">${message}</p>`;
+    showListError(contentArea, 'Notas', message, 'notasList', () => loadNotasList());
 }
 
 // * Renderiza la tabla de notas con los datos obtenidos.

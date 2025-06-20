@@ -3,6 +3,8 @@
 
 import { getAsignaciones, deleteAsignacion } from '../api.js';
 import { showConfirmationModal, showInfoModal } from '../ui/modal.js';
+import { showListLoading } from '../utils/loading.js';
+import { showListError } from '../utils/error.js';
 
 const contentArea = document.getElementById('content-area');
 let asignacionesGridInstance = null;
@@ -33,12 +35,12 @@ function renderAsignacionesListViewLayout() {
 
 function showAsignacionesLoading(container) {
     const target = container || gridContainerGlobal || contentArea;
-    target.innerHTML = '<p>Cargando lista de Asignaciones...</p>';
+    showListLoading(target, 'Asignaciones');
 }
 
 function showAsignacionesError(message, container) {
     const target = container || gridContainerGlobal || contentArea;
-    target.innerHTML = `<p class="text-red-500 font-bold">Error al cargar Asignaciones:</p><p class="text-red-500">${message}</p>`;
+    showListError(target, 'Asignaciones', message, 'asignacionesList', () => loadAsignacionesList());
 }
 
 // * Formatea la celda de acciones para la tabla de asignaciones.

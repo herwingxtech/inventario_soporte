@@ -12,6 +12,8 @@ import {
 } from '../api.js';
 
 import { showInfoModal } from '../ui/modal.js'; // Asumo que showInfoModal existe aquí.
+import { showFormLoading } from '../utils/loading.js';
+import { showFormError } from '../utils/error.js';
 // * Referencia al contenedor principal donde se renderizará este formulario.
 const contentArea = document.getElementById('content-area');
 
@@ -25,14 +27,12 @@ let statusesCache = null;
 
 // * Muestra un mensaje de carga mientras se prepara el formulario.
 function showDireccionIpFormLoading(action = 'Crear') {
-  contentArea.innerHTML = `<p>Cargando formulario para ${action.toLowerCase()} Dirección IP...</p>`;
+  showFormLoading(action, 'dirección IP');
 }
 
-// * Muestra un mensaje de error si falla la carga del formulario o el envío.
+// * Muestra un mensaje de error si algo falla al cargar el formulario o al procesar el envío.
 function showDireccionIpFormError(message, action = 'procesar') {
-  //TODO: Mejorar la presentación de errores, quizás dentro del mismo formulario.
-  contentArea.innerHTML = `<p class="text-red-500 font-bold">Error al ${action} Dirección IP:</p><p class="text-red-500">${message}</p>
-                           <button class="mt-2 px-4 py-2 border border-gray-300 rounded-md" onclick="window.navigateTo('direccionesIpList')">Volver a la lista</button>`;
+  showFormError(action, 'dirección IP', message, () => showDireccionIpForm());
 }
 
 // * Renderiza el formulario HTML para crear o editar una Dirección IP.
