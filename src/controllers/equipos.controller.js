@@ -28,13 +28,15 @@ const getAllEquipos = async (req, res, next) => {
             e.id, e.numero_serie, e.nombre_equipo, e.marca, e.modelo,
             e.id_tipo_equipo, te.nombre_tipo AS nombre_tipo_equipo,
             e.id_sucursal_actual, s.nombre AS nombre_sucursal_actual,
+             s.id_empresa, em.nombre AS nombre_empresa,
             e.procesador, e.ram, e.disco_duro, e.sistema_operativo, e.mac_address,
             e.otras_caracteristicas, e.fecha_compra, e.fecha_registro, e.fecha_actualizacion,
             e.id_status, st.nombre_status AS status_nombre
           FROM equipos AS e
-          LEFT JOIN tipos_equipo AS te ON e.id_tipo_equipo = te.id
-          LEFT JOIN sucursales AS s ON e.id_sucursal_actual = s.id
-          LEFT JOIN status AS st ON e.id_status = st.id
+         JOIN tipos_equipo AS te ON e.id_tipo_equipo = te.id
+         JOIN sucursales AS s ON e.id_sucursal_actual = s.id
+         JOIN empresas AS em ON s.id_empresa = em.id
+         JOIN status AS st ON e.id_status = st.id
         `;
         const equipos = await query(sql);
         res.status(200).json(equipos);
@@ -88,7 +90,7 @@ const createEquipo = async (req, res, next) => {
         }
         if (numero_serie.trim() === '') return res.status(400).json({ message: 'numero_serie no puede estar vacío.' });
         if (!isValidDate(fecha_compra)) return res.status(400).json({ message: 'Formato de fecha_compra debe ser YYYY-MM-DD.' });
-        
+
         // ... (tus otras validaciones de FKs para tipo_equipo, sucursal, status) ...
 
         let sql = 'INSERT INTO equipos (numero_serie, id_tipo_equipo, id_sucursal_actual';
@@ -163,7 +165,7 @@ const updateEquipo = async (req, res, next) => {
         // === El resto de la lógica de actualización ===
         // ... (tus otras validaciones de FKs para tipo_equipo, sucursal, etc.) ...
         if (updateData.fecha_compra !== undefined && !isValidDate(updateData.fecha_compra)) {
-             return res.status(400).json({ message: 'Formato de fecha_compra debe ser YYYY-MM-DD.' });
+            return res.status(400).json({ message: 'Formato de fecha_compra debe ser YYYY-MM-DD.' });
         }
 
         // * Construcción dinámica del SQL UPDATE.
@@ -224,9 +226,9 @@ const deleteEquipo = async (req, res, next) => {
 
 // Exportamos las funciones del controlador.
 module.exports = {
-  getAllEquipos,
-  getEquipoById,
-  createEquipo,
-  updateEquipo,
-  deleteEquipo,
+    getAllEquipos,
+    getEquipoById,
+    createEquipo,
+    updateEquipo,
+    deleteEquipo,
 };
