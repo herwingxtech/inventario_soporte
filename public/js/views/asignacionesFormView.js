@@ -76,14 +76,43 @@ async function renderAsignacionForm(asignacionToEdit = null) {
 
     try {
         // * Obtengo los datos para todos los selects si aún no los tengo en caché.
-        //TODO: Optimizar la carga de IPs para mostrar solo las disponibles si es una nueva asignación activa.
-        //TODO: Considerar si los equipos para "Equipo Padre" deben ser solo equipos de tipo "Servidor" o "Computadora".
         if (!equiposCache) equiposCache = await getEquipos();
         if (!empleadosCache) empleadosCache = await getEmpleados();
         if (!sucursalesCache) sucursalesCache = await getSucursales();
         if (!areasCache) areasCache = await getAreas(); // Podría filtrar por sucursal corporativa.
         if (!ipsCache) ipsCache = await getDireccionesIp(); // Debería filtrar por IPs con status 'Disponible'.
         if (!statusesCache) statusesCache = await getStatuses(); // Para el status de la asignación.
+
+        // * Lógica para filtrar los equipos para el select principal 'id_equipo':
+        // * 1. Incluir siempre el equipo actualmente asignado si estamos editando.
+        // * 2. Incluir todos los equipos cuyo status sea 'Disponible'.
+        let equiposParaSelect = [];
+        const currentAsignacionEquipoId = currentAsignacionData ? currentAsignacionData.id_equipo : null;
+
+        if (isEditing && currentAsignacionEquipoId) {
+            // Si estamos editando y hay un equipo asignado, lo añadimos primero.
+            const assignedEquipo = equiposCache.find(eq => eq.id === currentAsignacionEquipoId);
+            if (assignedEquipo) {
+                equiposParaSelect.push(assignedEquipo);
+            }
+        }
+
+        // Ahora, añade los equipos disponibles (asegúrate de no duplicar si el equipo asignado ya era disponible).
+        // Se asume que el objeto Equipo de la API tiene una propiedad 'status_nombre' o 'nombre_status'.
+        const availableEquipos = equiposCache.filter(eq => 
+            (eq.status_nombre === 'Disponible' || eq.nombre_status === 'Disponible')
+        );
+
+        // Combina y quita duplicados (en caso de que el equipo asignado también fuera "Disponible")
+        availableEquipos.forEach(eq => {
+            if (!equiposParaSelect.some(existingEq => existingEq.id === eq.id)) {
+                equiposParaSelect.push(eq);
+            }
+        });
+
+        // Opcional: Ordenar los equipos para una mejor presentación (por número de serie o nombre)
+        equiposParaSelect.sort((a, b) => (a.numero_serie || '').localeCompare(b.numero_serie || ''));
+
 
         // * Preparo la lista de equipos para el select de "Equipo Padre".
         let equiposParaPadre = equiposCache;
@@ -95,6 +124,50 @@ async function renderAsignacionForm(asignacionToEdit = null) {
         // * Por ahora, en modo creación, el select de "Equipo Padre" mostrará todos los equipos.
         //TODO: Implementar un listener en el select 'id_equipo' para actualizar dinámicamente las opciones de 'id_equipo_padre'.
 
+        // * Lógica para filtrar las IPs para el select 'id_ip':
+        // * 1. Incluir siempre la IP actualmente asignada si estamos editando.
+        // * 2. Incluir todas las IPs cuyo status sea 'Disponible'.
+        let ipsParaSelect = [];
+        const currentAsignacionIpId = currentAsignacionData ? currentAsignacionData.id_ip : null;
+
+        if (isEditing && currentAsignacionIpId) {
+            // Si estamos editando y hay una IP asignada, la añadimos primero.
+            const assignedIp = ipsCache.find(ip => ip.id === currentAsignacionIpId);
+            if (assignedIp) {
+                ipsParaSelect.push(assignedIp);
+            }
+        }
+
+        // Ahora, añade las IPs disponibles (asegúrate de no duplicar si la IP asignada ya era disponible).
+        // Se asume que el objeto IP de la API tiene una propiedad 'status_nombre' o 'nombre_status'.
+        const availableIps = ipsCache.filter(ip => 
+            (ip.status_nombre === 'Disponible' || ip.nombre_status === 'Disponible')
+        );
+
+        // Combina y quita duplicados (en caso de que la IP asignada también fuera "Disponible")
+        availableIps.forEach(ip => {
+            if (!ipsParaSelect.some(existingIp => existingIp.id === ip.id)) {
+                ipsParaSelect.push(ip);
+            }
+        });
+
+        // * Función de comparación personalizada para IPs
+        // * Divide la IP en sus octetos y compara numéricamente cada parte.
+        function compareIps(ipA, ipB) {
+            const partsA = ipA.direccion_ip.split('.').map(Number);
+            const partsB = ipB.direccion_ip.split('.').map(Number);
+
+            for (let i = 0; i < 4; i++) {
+                if (partsA[i] < partsB[i]) return -1;
+                if (partsA[i] > partsB[i]) return 1;
+            }
+            return 0; // IPs son iguales
+        }
+
+        // Opcional: Ordenar las IPs para una mejor presentación
+        ipsParaSelect.sort(compareIps);
+
+
         // * Limpio el área de contenido y construyo el HTML del formulario.
         contentArea.innerHTML = `
           <h2 class="text-2xl font-bold text-gray-800 mb-6">${formTitle}</h2>
@@ -105,7 +178,7 @@ async function renderAsignacionForm(asignacionToEdit = null) {
                   <select id="id_equipo" name="id_equipo" required
                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                       <option value="">Seleccione un equipo...</option>
-                      ${equiposCache.map(eq => `<option value="${eq.id}" ${isEditing && currentAsignacionData && currentAsignacionData.id_equipo === eq.id ? 'selected' : ''}>${eq.numero_serie} - ${eq.nombre_equipo || 'Sin Nombre'}</option>`).join('')}
+                      ${equiposParaSelect.map(eq => `<option value="${eq.id}" ${isEditing && currentAsignacionData && currentAsignacionData.id_equipo === eq.id ? 'selected' : ''}>${eq.numero_serie} - ${eq.nombre_equipo || 'Sin Nombre'}</option>`).join('')}
                   </select>
               </div>
 
@@ -115,7 +188,7 @@ async function renderAsignacionForm(asignacionToEdit = null) {
                   <input type="datetime-local" id="fecha_asignacion" name="fecha_asignacion" required
                          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                          value="${isEditing && currentAsignacionData && currentAsignacionData.fecha_asignacion ? new Date(currentAsignacionData.fecha_asignacion).toISOString().substring(0, 16) : ''}">
-                         <!-- Formato para datetime-local: YYYY-MM-DDTHH:mm -->
+                         <!-- Formato para datetime-local:YYYY-MM-DDTHH:mm -->
               </div>
 
               <hr class="my-6 border-gray-300">
@@ -171,10 +244,8 @@ async function renderAsignacionForm(asignacionToEdit = null) {
                   <select id="id_ip" name="id_ip"
                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                       <option value="">Ninguna (o DHCP)</option>
-                      ${ipsCache
-                //TODO: Filtrar IPs para mostrar solo las disponibles o la actualmente asignada si se está editando.
-                //? ¿Debería filtrar por sucursal si se seleccionó una sucursal?
-                .map(ip => `<option value="${ip.id}" ${isEditing && currentAsignacionData && currentAsignacionData.id_ip === ip.id ? 'selected' : ''}>${ip.direccion_ip} (${ip.status_nombre || 'N/A'})</option>`).join('')}
+                      ${ipsParaSelect // Usamos el array ipsParaSelect ya filtrado y ordenado
+                        .map(ip => `<option value="${ip.id}" ${isEditing && currentAsignacionData && currentAsignacionData.id_ip === ip.id ? 'selected' : ''}>${ip.direccion_ip} (${ip.status_nombre || ip.nombre_status || 'N/A'})</option>`).join('')}
                   </select>
               </div>
 
@@ -367,9 +438,15 @@ async function showAsignacionForm(params = null) {
         showAsignacionFormLoading('Crear');
     }
 
-    // Limpiar solo el cache de equipos para forzar recarga de equipos actualizados
+    // Limpiar caches para forzar recarga de datos actualizados.
+    // Especialmente importante para Equipos e IPs cuyos estados pueden cambiar.
     equiposCache = null;
+    empleadosCache = null; // Generalmente los empleados no cambian de estado tan a menudo, pero para ser seguros.
+    sucursalesCache = null;
+    areasCache = null;
     ipsCache = null;
+    statusesCache = null;
+
     // * Renderizo el formulario (vacío o con datos para editar).
     await renderAsignacionForm(asignacionToEdit); // Paso el objeto completo o null.
 }
