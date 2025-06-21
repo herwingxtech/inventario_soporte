@@ -14,7 +14,7 @@ function renderAsignacionesListViewLayout() {
     contentArea.innerHTML = '';
     const title = document.createElement('h2');
     title.classList.add('text-2xl', 'font-bold', 'text-gray-800', 'mb-6');
-    title.textContent = 'Lista de Asignaciones de Equipos';
+    title.textContent = 'Lista de Asignaciones';
     contentArea.appendChild(title);
 
     const createButtonContainer = document.createElement('div');
@@ -84,14 +84,14 @@ function formatAsignacionesActionsCell(cell, row) {
     actionsContainer.appendChild(editButton);
 
     // * Botón Eliminar (sigue disponible, pero podrías deshabilitarlo también para históricos).
-  /*  const deleteButton = document.createElement('button');
-    deleteButton.className = 'btn-action-delete w-6 h-6 transform hover:text-red-500 hover:scale-110';
-    deleteButton.title = 'Eliminar Registro de Asignación';
-    deleteButton.dataset.action = 'delete';
-    deleteButton.dataset.id = asignacionId;
-    deleteButton.dataset.equipoSerie = equipoSerie;
-    deleteButton.innerHTML = '<svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m14 0H5m2 0V5a2 2 0 012-2h6a2 2 0 012 2v2"></path></svg>';
-    actionsContainer.appendChild(deleteButton);*/
+    /*  const deleteButton = document.createElement('button');
+      deleteButton.className = 'btn-action-delete w-6 h-6 transform hover:text-red-500 hover:scale-110';
+      deleteButton.title = 'Eliminar Registro de Asignación';
+      deleteButton.dataset.action = 'delete';
+      deleteButton.dataset.id = asignacionId;
+      deleteButton.dataset.equipoSerie = equipoSerie;
+      deleteButton.innerHTML = '<svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m14 0H5m2 0V5a2 2 0 012-2h6a2 2 0 012 2v2"></path></svg>';
+      actionsContainer.appendChild(deleteButton);*/
 
     return gridjs.html(actionsContainer.outerHTML);
 }
@@ -123,12 +123,12 @@ function handleAsignacionesGridActions(event) {
             if (confirmed) {
                 try {
                     await deleteAsignacion(asignacionId);
-                    await showInfoModal({ title: 'Éxito', message: 'Asignación eliminada correctamente.'});
+                    await showInfoModal({ title: 'Éxito', message: 'Asignación eliminada correctamente.' });
                     if (typeof window.navigateTo === 'function') {
                         window.navigateTo('asignacionesList');
                     }
                 } catch (error) {
-                    await showInfoModal({ title: 'Error', message: `Error al eliminar la asignación: ${error.message}`});
+                    await showInfoModal({ title: 'Error', message: `Error al eliminar la asignación: ${error.message}` });
                 }
             }
         })();
@@ -166,13 +166,9 @@ async function loadAsignacionesList() {
                         // Ahora accedemos directamente a las propiedades del objeto original
                         const empNombres = originalAsigData.empleado_nombres;
                         const empApellidos = originalAsigData.empleado_apellidos;
-                        const sucNombre = originalAsigData.sucursal_asignada_nombre;
-                        const areaNombre = originalAsigData.area_asignada_nombre;
 
                         let display = [];
-                        if (empNombres) display.push(`Emp: ${empNombres} ${empApellidos || ''}`);
-                        if (sucNombre) display.push(`Suc: ${sucNombre}`);
-                        if (areaNombre) display.push(`Área: ${areaNombre}`);
+                        if (empNombres) display.push(`${empNombres} ${empApellidos || ''}`);
                         return display.length > 0 ? display.join('; ') : 'N/A';
                     }
                 },
@@ -191,9 +187,32 @@ async function loadAsignacionesList() {
                     sort: true,
                     // Asegúrate de que el backend envía fechas en formato ISO (YYYY-MM-DDTHH:mm:ss.sssZ)
                     // o YYYY-MM-DD para que new Date() las parse bien.
-                    formatter: (cell) => cell ? new Date(cell).toLocaleString() : 'ACTIVA'
+                    formatter: (cell) => {
+                        let content = '';
+                        if (cell) {
+                            content = '<span class="text-center">' + new Date(cell).toLocaleDateString() + '</span>';
+                        } else {
+                            content = '<span class="text-center">N/A</span>';
+                        }
+                        return gridjs.html('<div class="w-full flex justify-center">' + content + '</div>');
+                    },
                 },
-                { id: 'status_nombre', name: 'Estado Asign.', sort: true },
+                {
+                    id: 'status_nombre', name: 'Estado Asign.', sort: true,
+                    formatter: (cell) => {
+                        let badgeHtml = '';
+                        if (cell && cell.toUpperCase() === 'ACTIVO') {
+                            badgeHtml = '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 text-center">' + cell + '</span>';
+                        } else if (cell && cell.toUpperCase() === 'FINALIZADO') {
+                            badgeHtml = '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800 text-center">' + cell + '</span>';
+                        } else if (cell) {
+                            badgeHtml = '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800 text-center">' + cell + '</span>';
+                        } else {
+                            badgeHtml = '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800 text-center">N/A</span>';
+                        }
+                        return gridjs.html('<div class="w-full flex justify-center">' + badgeHtml + '</div>');
+                    }
+                },
                 { name: 'Acciones', sort: false, width: '120px', formatter: formatAsignacionesActionsCell }
             ],
             data: asignaciones.map(asig => [
@@ -213,7 +232,7 @@ async function loadAsignacionesList() {
             sort: true,
             style: {
                 table: 'min-w-full bg-white border-gray-200 shadow-md rounded-lg',
-                thead: 'bg-gray-200',
+                thead: 'background-color: blue;',
                 th: 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200',
                 tbody: 'text-gray-600 text-sm font-light',
                 tr: 'border-b border-gray-200 hover:bg-gray-100',

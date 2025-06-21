@@ -26,9 +26,12 @@ function renderDireccionesIpListViewLayout() {
     createButtonContainer.appendChild(createButton);
     contentArea.appendChild(createButtonContainer);
 
+    const responsiveDiv = document.createElement('div');
+    responsiveDiv.className = 'overflow-x-auto w-full';
     const gridContainer = document.createElement('div');
     gridContainer.id = 'direccionesip-grid-container';
-    contentArea.appendChild(gridContainer);
+    responsiveDiv.appendChild(gridContainer);
+    contentArea.appendChild(responsiveDiv);
     gridContainerGlobal = gridContainer;
     return gridContainer;
 }
@@ -124,7 +127,21 @@ async function loadDireccionesIpList() {
         ipsGridInstance = new gridjs.Grid({
             columns: [
                 { id: 'id', name: 'ID', width: '80px', sort: true },
-                { id: 'direccion_ip', name: 'Dirección IP', sort: true },
+                {
+                    id: 'direccion_ip',
+                    name: 'Dirección IP',
+                    sort: {
+                        compare: (a, b) => {
+                            const ipToArr = ip => ip.split('.').map(Number);
+                            const arrA = ipToArr(a);
+                            const arrB = ipToArr(b);
+                            for (let i = 0; i < 4; i++) {
+                                if (arrA[i] !== arrB[i]) return arrA[i] - arrB[i];
+                            }
+                            return 0;
+                        }
+                    }
+                },
                 { id: 'nombre_empresa', name: 'Empresa', sort: true },
                 { id: 'nombre_sucursal', name: 'Sucursal', sort: true },
                 { id: 'comentario', name: 'Comentario', width: '250px', sort: false }, // Comentario puede ser largo
