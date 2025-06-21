@@ -49,43 +49,40 @@ const appContainer = document.body; // * Contenedor para delegación de eventos
 // * Función para renderizar el contenido inicial de la vista 'home'.
 // * Esta vista se muestra SIN el header principal.
 function renderHomeView() {
-    console.log('Renderizando vista Home por Herwing.');
     contentArea.innerHTML = `
-        <div class="text-center pt-8 md:pt-16"> <!-- Añadido padding superior para centrar más sin header -->
-            <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-6">Inventario IT</h1>
-            <p class="text-xl text-gray-700 mb-10">Da clic en alguna opción para ver los activos.</p>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 px-4">
-            <!-- Tarjetas de Navegación -->
-            <div class="bg-blue-100 p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer" data-view="equiposList">
-                <h3 class="font-semibold text-xl text-blue-800 mb-2">Equipos</h3>
-                <p class="text-blue-700 text-sm">Ver y gestionar el inventario de equipos.</p>
+        <div class="flex flex-col items-center justify-center min-h-[60vh]">
+            <h1 class="text-3xl md:text-4xl font-semibold text-gray-900 mb-2 tracking-tight">Inventario IT</h1>
+            <p class="text-lg text-gray-500 mb-8">Gestión centralizada de activos y recursos tecnológicos</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-5xl">
+                <div class="bg-white border border-gray-200 rounded-xl p-6 flex flex-col items-center shadow-sm hover:shadow-md transition cursor-pointer" data-view="equiposList">
+                    <svg class="w-8 h-8 text-blue-600 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                    <span class="font-medium text-gray-800">Equipos</span>
+                </div>
+                <div class="bg-white border border-gray-200 rounded-xl p-6 flex flex-col items-center shadow-sm hover:shadow-md transition cursor-pointer" data-view="empleadosList">
+                    <svg class="w-8 h-8 text-green-600 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    <span class="font-medium text-gray-800">Empleados</span>
+                </div>
+                <div class="bg-white border border-gray-200 rounded-xl p-6 flex flex-col items-center shadow-sm hover:shadow-md transition cursor-pointer" data-view="direccionesIpList">
+                    <svg class="w-8 h-8 text-yellow-500 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h8M12 8v8"/></svg>
+                    <span class="font-medium text-gray-800">Direcciones IP</span>
+                </div>
+                <div class="bg-white border border-gray-200 rounded-xl p-6 flex flex-col items-center shadow-sm hover:shadow-md transition cursor-pointer" data-view="asignacionesList">
+                    <svg class="w-8 h-8 text-purple-600 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7"/></svg>
+                    <span class="font-medium text-gray-800">Asignaciones</span>
+                </div>
+                <div class="bg-white border border-gray-200 rounded-xl p-6 flex flex-col items-center shadow-sm hover:shadow-md transition cursor-pointer" data-view="cuentasEmailList">
+                    <svg class="w-8 h-8 text-indigo-600 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="5" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M22 5l-10 7L2 5"/></svg>
+                    <span class="font-medium text-gray-800">Cuentas Email</span>
+                </div>
+                <div class="bg-white border border-gray-200 rounded-xl p-6 flex flex-col items-center shadow-sm hover:shadow-md transition cursor-pointer" data-view="mantenimientosList">
+                    <svg class="w-8 h-8 text-orange-500 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2"/></svg>
+                    <span class="font-medium text-gray-800">Mantenimientos</span>
+                </div>
+                <div class="bg-white border border-gray-200 rounded-xl p-6 flex flex-col items-center shadow-sm hover:shadow-md transition cursor-pointer" data-view="notasList">
+                    <svg class="w-8 h-8 text-cyan-600 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/></svg>
+                    <span class="font-medium text-gray-800">Notas</span>
+                </div>
             </div>
-            <div class="bg-green-100 p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer" data-view="empleadosList">
-                <h3 class="font-semibold text-xl text-green-800 mb-2">Empleados</h3>
-                <p class="text-green-700 text-sm">Administrar la información del personal.</p>
-            </div>
-            <div class="bg-yellow-100 p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer" data-view="direccionesIpList">
-                <h3 class="font-semibold text-xl text-yellow-800 mb-2">Direcciones IP</h3>
-                <p class="text-yellow-700 text-sm">Gestionar el inventario de IPs.</p>
-            </div>
-            <div class="bg-purple-100 p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer" data-view="asignacionesList">
-                <h3 class="font-semibold text-xl text-purple-800 mb-2">Asignaciones</h3>
-                <p class="text-purple-700 text-sm">Rastrear asignaciones de equipos.</p>
-            </div>
-            <div class="bg-indigo-100 p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer" data-view="cuentasEmailList">
-                <h3 class="font-semibold text-xl text-indigo-800 mb-2">Cuentas Email</h3>
-                <p class="text-indigo-700 text-sm">Administrar cuentas de correo.</p>
-            </div>
-            <div class="bg-orange-100 p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer" data-view="mantenimientosList">
-                <h3 class="font-semibold text-xl text-orange-800 mb-2">Mantenimientos</h3>
-                <p class="text-orange-700 text-sm">Ver historial de mantenimientos.</p>
-            </div>
-            <div class="bg-cyan-100 p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer" data-view="notasList">
-                <h3 class="font-semibold text-xl text-cyan-800 mb-2">Notas</h3>
-                <p class="text-cyan-700 text-sm">Consultar notas y apuntes.</p>
-            </div>
-            <!--//TODO: Añadir tarjeta para Usuarios del Sistema si se va a gestionar desde aquí. -->
         </div>
     `;
 }
