@@ -31,9 +31,13 @@ function renderEmpleadosListViewLayout() {
     createButtonContainer.appendChild(createButton);
     contentArea.appendChild(createButtonContainer);
 
+    // Responsive wrapper
+    const responsiveDiv = document.createElement('div');
+    responsiveDiv.className = 'overflow-x-auto w-full';
     const gridContainer = document.createElement('div');
     gridContainer.id = 'empleados-grid-container';
-    contentArea.appendChild(gridContainer);
+    responsiveDiv.appendChild(gridContainer);
+    contentArea.appendChild(responsiveDiv);
     gridContainerGlobal = gridContainer;
     return gridContainer;
 }

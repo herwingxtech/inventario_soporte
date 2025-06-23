@@ -26,6 +26,7 @@ function renderDireccionesIpListViewLayout() {
     createButtonContainer.appendChild(createButton);
     contentArea.appendChild(createButtonContainer);
 
+    // Responsive wrapper
     const responsiveDiv = document.createElement('div');
     responsiveDiv.className = 'overflow-x-auto w-full';
     const gridContainer = document.createElement('div');

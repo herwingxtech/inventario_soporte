@@ -28,10 +28,14 @@ function renderEquiposListViewLayout() {
     createButtonContainer.appendChild(createButton);
     contentArea.appendChild(createButtonContainer);
 
+    // Responsive wrapper
+    const responsiveDiv = document.createElement('div');
+    responsiveDiv.className = 'overflow-x-auto w-full';
     const gridContainer = document.createElement('div');
     gridContainer.id = 'equipos-grid-container';
-    contentArea.appendChild(gridContainer);
-    gridContainerGlobal = gridContainer; // Guardo la referencia globalmente en este módulo.
+    responsiveDiv.appendChild(gridContainer);
+    contentArea.appendChild(responsiveDiv);
+    gridContainerGlobal = gridContainer;
     return gridContainer;
 }
 
