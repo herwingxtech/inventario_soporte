@@ -24,3 +24,95 @@ body {
 .js-hide {
   display: none !important;
 }
+
+/* Sidebar colapsado */
+.sidebar-collapsed {
+  width: 64px !important;
+}
+.sidebar-collapsed nav ul li a span.material-icons {
+  margin-right: 0 !important;
+  justify-content: center;
+}
+.sidebar-collapsed nav ul li a .sidebar-text {
+  display: none !important;
+}
+
+.sidebar-collapsed nav ul li a {
+  justify-content: center !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  width: 48px;
+  height: 48px;
+  margin: 0 auto;
+  border-radius: 9999px; /* círculo */
+  display: flex !important;
+  align-items: center;
+}
+
+.sidebar-collapsed nav ul li a:hover {
+  background-color: #e0e7ff !important; /* azul claro, igual que hover normal */
+}
+.sidebar-collapsed nav ul li {
+  display: flex;
+  justify-content: center;
+}
+
+/* Ajuste del contenido principal cuando el sidebar está colapsado */
+/* .main-expanded {
+  margin-left: 64px !important;
+  transition: margin 0.3s;
+}
+
+@media (max-width: 767px) {
+  .main-expanded {
+    margin-left: 0 !important;
+  }
+} */
+
+.sidebar-collapsed .mt-auto {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+.sidebar-collapsed .flex.items-center.mb-2 {
+  justify-content: center !important;
+}
+.sidebar-collapsed #sidebar-avatar {
+  margin: 0 auto;
+}
+.sidebar-collapsed .sidebar-text {
+  display: none !important;
+}
+.sidebar-collapsed [data-action="logout"] {
+  justify-content: center !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  width: 48px;
+  height: 48px;
+  margin: 0 auto;
+  border-radius: 9999px;
+  display: flex !important;
+  align-items: center;
+}
+.sidebar-collapsed [data-action="logout"]:hover {
+  background-color: #e0e7ff !important;
+}
+
+@media (max-width: 767px) {
+  #main-header .md\:hidden#sidebar-toggle {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
+    border-radius: 12px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: none;
+    margin-right: 8px;
+  }
+  #main-header .md\:hidden#sidebar-toggle .material-icons {
+    font-size: 2rem;
+    line-height: 1;
+  }
+}

@@ -29,6 +29,9 @@ import { loadNotasList } from './views/notasView.js';
 import { loadAsignacionesList } from './views/asignacionesView.js';
 import { showAsignacionForm } from './views/asignacionesFormView.js';   
 import { showAsignacionDetails } from './views/asignacionesDetailsView.js';
+import { loadLoginView } from './views/loginView.js';
+import { loadProfileView } from './views/profileView.js';
+import { showConfirmationModal, showInfoModal } from './ui/modal.js';
 //? ¿Necesitaré una función para cerrar modales aquí? Si los modales son globales.
 // import { closeCurrentModal } from './ui/modal.js'; // Asumo que esto existe o lo crearás.
 
@@ -49,38 +52,15 @@ const appContainer = document.body; // * Contenedor para delegación de eventos
 // * Función para renderizar el contenido inicial de la vista 'home'.
 // * Esta vista se muestra SIN el header principal.
 function renderHomeView() {
+    const userData = JSON.parse(localStorage.getItem('userData'));
     contentArea.innerHTML = `
         <div class="flex flex-col items-center justify-center min-h-[60vh]">
-            <h1 class="text-3xl md:text-4xl font-semibold text-gray-900 mb-2 tracking-tight">Inventario IT</h1>
-            <p class="text-lg text-gray-500 mb-8">Gestión centralizada de activos y recursos tecnológicos</p>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-5xl">
-                <div class="bg-white border border-gray-200 rounded-xl p-6 flex flex-col items-center shadow-sm hover:shadow-md transition cursor-pointer" data-view="equiposList">
-                    <svg class="w-8 h-8 text-blue-600 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
-                    <span class="font-medium text-gray-800">Equipos</span>
-                </div>
-                <div class="bg-white border border-gray-200 rounded-xl p-6 flex flex-col items-center shadow-sm hover:shadow-md transition cursor-pointer" data-view="empleadosList">
-                    <svg class="w-8 h-8 text-green-600 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                    <span class="font-medium text-gray-800">Empleados</span>
-                </div>
-                <div class="bg-white border border-gray-200 rounded-xl p-6 flex flex-col items-center shadow-sm hover:shadow-md transition cursor-pointer" data-view="direccionesIpList">
-                    <svg class="w-8 h-8 text-yellow-500 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h8M12 8v8"/></svg>
-                    <span class="font-medium text-gray-800">Direcciones IP</span>
-                </div>
-                <div class="bg-white border border-gray-200 rounded-xl p-6 flex flex-col items-center shadow-sm hover:shadow-md transition cursor-pointer" data-view="asignacionesList">
-                    <svg class="w-8 h-8 text-purple-600 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7"/></svg>
-                    <span class="font-medium text-gray-800">Asignaciones</span>
-                </div>
-                <div class="bg-white border border-gray-200 rounded-xl p-6 flex flex-col items-center shadow-sm hover:shadow-md transition cursor-pointer" data-view="cuentasEmailList">
-                    <svg class="w-8 h-8 text-indigo-600 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="5" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M22 5l-10 7L2 5"/></svg>
-                    <span class="font-medium text-gray-800">Cuentas Email</span>
-                </div>
-                <div class="bg-white border border-gray-200 rounded-xl p-6 flex flex-col items-center shadow-sm hover:shadow-md transition cursor-pointer" data-view="mantenimientosList">
-                    <svg class="w-8 h-8 text-orange-500 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2"/></svg>
-                    <span class="font-medium text-gray-800">Mantenimientos</span>
-                </div>
-                <div class="bg-white border border-gray-200 rounded-xl p-6 flex flex-col items-center shadow-sm hover:shadow-md transition cursor-pointer" data-view="notasList">
-                    <svg class="w-8 h-8 text-cyan-600 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/></svg>
-                    <span class="font-medium text-gray-800">Notas</span>
+            <h1 class="text-3xl md:text-4xl font-semibold text-gray-900 mb-2 tracking-tight">Bienvenido${userData ? `, ${userData.username}` : ''}!</h1>
+            <p class="text-lg text-gray-500 mb-4">${userData ? `Rol: <span class='font-semibold text-blue-600'>${userData.roleName}</span>` : ''}</p>
+            <p class="text-base text-gray-600 mb-8">Gestiona los recursos tecnológicos de la empresa desde el menú superior.</p>
+            <div class="w-full max-w-2xl mt-8">
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center shadow-sm">
+                    <span class="text-blue-600 font-medium">Selecciona una opción en el menú para comenzar.</span>
                 </div>
             </div>
         </div>
@@ -89,6 +69,7 @@ function renderHomeView() {
 
 // * Objeto que mapea nombres de vista a las funciones que las cargan/renderizan.
 const viewsMap = {
+    'login': loadLoginView,
     'home': renderHomeView,
     'equiposList': loadEquiposList,
     'equipoForm': showEquipoForm,
@@ -108,6 +89,7 @@ const viewsMap = {
     'asignacionesList': loadAsignacionesList,
     'asignacionForm': showAsignacionForm,       
     'asignacionDetails': showAsignacionDetails, 
+    'profile': loadProfileView,
     //TODO: 'usuariosList': loadUsuariosList, 'usuarioForm': showUsuarioForm, 'usuarioDetails': showUsuarioDetails
 };
 
@@ -118,55 +100,64 @@ const viewsMap = {
 // * y manejar la visibilidad del header.
 // ===============================================================
 
-function navigateTo(viewName, params = null, pushState = true) {
-    console.log(`Herwing está navegando a la vista: "${viewName}" con parámetros:`, params);
-    //? Cierro modales globales si existieran, antes de cambiar de vista.
-    // if (typeof closeCurrentModal === 'function') {
-    //     closeCurrentModal();
-    // }
+function updateHeaderAuthUI() {
+    const mainHeader = document.getElementById('main-header');
+    // El header siempre se muestra, solo con el logo
+    if (mainHeader) mainHeader.classList.remove('js-hide');
+    // Oculta el botón de menú de usuario si existe
+    const userMenuButton = document.getElementById('user-menu-button');
+    if (userMenuButton) userMenuButton.classList.add('js-hide');
+}
 
-    const loadViewFunction = viewsMap[viewName];
-
-    // * Lógica para mostrar/ocultar el header
-    if (mainHeader) { // Verifico que el elemento exista
-        if (viewName === 'home') {
-            homeHeader.classList.remove('header-hidden');
-            mainHeader.classList.add('header-hidden'); // O uso Tailwind: mainHeader.classList.add('hidden');
-            console.log('Header oculto para la vista home.');
-        } else {
-            homeHeader.classList.add('header-hidden');
-            mainHeader.classList.remove('header-hidden'); // O uso Tailwind: mainHeader.classList.remove('hidden');
-            console.log('Header visible para la vista:', viewName);
-        }
-    } else {
-        console.warn('Elemento header (id="main-header") no encontrado en el DOM.');
+function updateSidebarUI() {
+    const token = localStorage.getItem('authToken');
+    const userData = JSON.parse(localStorage.getItem('userData'));
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('main-content');
+    const loginContent = document.getElementById('login-content');
+    const sidebarAvatar = document.getElementById('sidebar-avatar');
+    const sidebarUsername = document.getElementById('sidebar-username');
+    const sidebarRole = document.getElementById('sidebar-role');
+    const logoutButton = sidebar ? sidebar.querySelector('[data-action="logout"]') : null;
+    // Oculta sidebar, main-content y muestra login-content solo en login
+    if (!token || !userData || window.currentView === 'login') {
+        if (sidebar) sidebar.classList.add('js-hide');
+        if (mainContent) mainContent.classList.add('js-hide');
+        if (loginContent) loginContent.classList.remove('js-hide');
+        return;
     }
+    if (sidebar) sidebar.classList.remove('js-hide');
+    if (mainContent) mainContent.classList.remove('js-hide');
+    if (loginContent) loginContent.classList.add('js-hide');
+    // Actualiza avatar, nombre y rol
+    const avatarLetter = userData.username ? userData.username.charAt(0).toUpperCase() : 'U';
+    if (sidebarAvatar) sidebarAvatar.textContent = avatarLetter;
+    if (sidebarUsername) sidebarUsername.textContent = userData.username;
+    if (sidebarRole) sidebarRole.textContent = userData.roleName;
+    if (logoutButton) logoutButton.style.display = '';
+}
 
-
+function navigateTo(viewName, params = null, pushState = true) {
+    const token = localStorage.getItem('authToken');
+    if (!token && viewName !== 'login') {
+        sessionStorage.setItem('loginRedirect', '1');
+        window.location.replace('/');
+        return;
+    }
+    const loadViewFunction = viewsMap[viewName];
     if (loadViewFunction) {
-        loadViewFunction(params); // Llamo a la función del módulo de vista.
-        // Actualiza la URL usando pushState si corresponde (no al cargar inicialmente por URL o popstate)
-        if (pushState) {
-            let urlPath = viewName === 'home' ? '/' : `/${viewName}`;
-            const paramValue = (typeof params === 'object' && params !== null && params.id !== undefined) ? params.id : (typeof params === 'string' ? params : null);
-
-            if (paramValue) { // Si hay un parámetro (ej. ID), lo añado a la URL.
-                urlPath += `/${paramValue}`;
-            }
-            window.history.pushState({ viewName, params }, '', urlPath); // Guardo el estado.
-            console.log(`URL actualizada a: ${window.location.pathname} por pushState.`);
-        }
+        loadViewFunction(params);
     } else {
-        // ! Error: Vista desconocida o no implementada
-        console.error(`Vista desconocida o no implementada: "${viewName}"`);
         contentArea.innerHTML = `<p class="text-red-500 font-bold">Error:</p><p class="text-red-500">La vista solicitada "${viewName}" no está implementada.</p>`;
     }
-
-    // * Cierro el menú móvil si está abierto al navegar (mejora UX).
-    if (mobileMenu.classList.contains('max-h-screen')) {
-        mobileMenu.classList.remove('max-h-screen');
-        mobileMenu.classList.add('max-h-0');
+    // Actualiza la URL usando pushState si corresponde
+    if (pushState) {
+        let url = '/' + viewName;
+        if (params) url += '/' + params;
+        history.pushState({ viewName, params }, '', url);
+        window.currentView = viewName;
     }
+    updateSidebarUI();
 }
 window.navigateTo = navigateTo; // * Hago navigateTo global (simplificación).
 
@@ -191,39 +182,52 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM completamente cargado. Herwing inicia configuración de eventos.');
 
     // === Configurar Event Listeners para Navegación usando DELEGACIÓN DE EVENTOS ===
-    // * Añado UN SOLO listener al body (o un contenedor principal de la app).
-    // * Esto captura clics en cualquier elemento con `data-view`, incluso si se añaden dinámicamente.
     appContainer.addEventListener('click', (event) => {
-        const viewTriggerElement = event.target.closest('[data-view]');
+        // Busco un elemento `data-view` o `data-action` en el path del evento.
+        const viewTrigger = event.target.closest('[data-view]');
+        const actionTrigger = event.target.closest('[data-action]');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
 
-        if (viewTriggerElement) {
-            event.preventDefault(); // Evito la navegación por defecto.
-            const viewName = viewTriggerElement.dataset.view;
-            // * Si el elemento tiene data-id, lo paso como parámetro (útil para detalles/edición).
-            const idParam = viewTriggerElement.dataset.id || null;
-            navigateTo(viewName, idParam, true); // El 'true' es para añadir al historial.
+        if (viewTrigger) {
+            event.preventDefault();
+            const viewName = viewTrigger.dataset.view;
+            const id = viewTrigger.dataset.id;
+            const params = id ? String(id) : null;
+            navigateTo(viewName, params);
+            // Oculta el sidebar en móvil al seleccionar una opción
+            if (window.innerWidth < 768 && sidebar && !sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.add('-translate-x-full');
+            }
         }
 
-        //? ¿Manejar otros data-action aquí, como 'logout'?
-        // const actionTriggerElement = event.target.closest('[data-action="logout"]');
-        // if (actionTriggerElement) {
-        //     event.preventDefault();
-        //     // Lógica de logout
-        //     console.log('Herwing hizo clic en Logout.');
-        // }
+        if (actionTrigger) {
+            event.preventDefault();
+            const actionName = actionTrigger.dataset.action;
+            if (actionName === 'logout') {
+                handleLogout();
+            }
+            // Oculta el sidebar en móvil al seleccionar una acción
+            if (window.innerWidth < 768 && sidebar && !sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.add('-translate-x-full');
+            }
+        }
     });
 
-
-    // === Carga de la vista inicial al cargar la página (basado en la URL actual) ===
-    // * Esta lógica determina qué vista mostrar cuando el usuario llega a la aplicación.
-    const path = window.location.pathname.replace(/^\//, ''); // Elimino la barra inicial.
-    const parts = path.split('/'); // Divido la ruta. Ej: "equipoDetails/123" -> ["equipoDetails", "123"]
-    const initialView = parts[0] === '' ? 'home' : parts[0]; // Si es vacía, es 'home'.
-    const initialParams = parts.length > 1 ? parts[1] : null; // El segundo segmento es el ID.
-
-    console.log(`Cargando vista inicial desde URL: "${initialView}" con parámetros:`, initialParams);
-    navigateTo(initialView, initialParams, false); // 'false' para NO añadir al historial (ya estamos en esa URL).
-
+    // === Carga de la vista inicial BASADA EN AUTENTICACIÓN ===
+    const token = localStorage.getItem('authToken');
+    if (token) {
+        // * Si hay un token, el usuario está "logueado".
+        // * Muestro la vista home por defecto.
+        // ! En una app real, verificaría que el token sea válido con una llamada a la API
+        // ! antes de mostrar contenido protegido (ej. una ruta /api/auth/verify).
+        console.log('Herwing tiene un token. Cargando vista home.');
+        navigateTo('home', null, false);
+    } else {
+        // * Si no hay token, muestro la vista de login.
+        console.log('Herwing no tiene un token. Cargando vista de login.');
+        navigateTo('login', null, false);
+    }
 
     // === Manejo de los botones Atrás/Adelante del navegador (evento popstate) ===
     window.addEventListener('popstate', (event) => {
@@ -246,6 +250,97 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    updateHeaderAuthUI();
+
+    // Menú usuario interactivo (dropdown)
+    const userMenuButton = document.getElementById('user-menu-button');
+    const userDropdown = document.getElementById('user-dropdown');
+    if (userMenuButton && userDropdown) {
+        userMenuButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userDropdown.classList.toggle('hidden');
+        });
+        document.addEventListener('click', (e) => {
+            if (!userDropdown.classList.contains('hidden') && !userDropdown.contains(e.target) && e.target !== userMenuButton) {
+                userDropdown.classList.add('hidden');
+            }
+        });
+        // Elimina el stopPropagation para permitir que el listener global capture los clicks
+        // userDropdown.addEventListener('click', (e) => e.stopPropagation());
+        // Cierra el menú al hacer clic en una opción
+        userDropdown.querySelectorAll('[data-view], [data-action]').forEach(el => {
+            el.addEventListener('click', () => userDropdown.classList.add('hidden'));
+        });
+    }
+    // Home header
+    const userMenuButtonHome = document.getElementById('user-menu-button-home');
+    const userDropdownHome = document.getElementById('user-dropdown-home');
+    if (userMenuButtonHome && userDropdownHome) {
+        userMenuButtonHome.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userDropdownHome.classList.toggle('hidden');
+        });
+        document.addEventListener('click', (e) => {
+            if (!userDropdownHome.classList.contains('hidden') && !userDropdownHome.contains(e.target) && e.target !== userMenuButtonHome) {
+                userDropdownHome.classList.add('hidden');
+            }
+        });
+        // Elimina el stopPropagation para permitir que el listener global capture los clicks
+        // userDropdownHome.addEventListener('click', (e) => e.stopPropagation());
+        // Cierra el menú al hacer clic en una opción
+        userDropdownHome.querySelectorAll('[data-view], [data-action]').forEach(el => {
+            el.addEventListener('click', () => userDropdownHome.classList.add('hidden'));
+        });
+    }
+
+    updateSidebarUI();
+
+    // Sidebar toggle para móviles
+    const sidebar = document.getElementById('sidebar');
+    const sidebarToggle = document.getElementById('sidebar-toggle');
+    const sidebarCollapseBtn = document.getElementById('sidebar-collapse-btn');
+    const sidebarCollapseIcon = document.getElementById('sidebar-collapse-icon');
+    const mainContent = document.getElementById('main-content');
+
+    if (sidebarToggle && sidebar) {
+        sidebarToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            sidebar.classList.toggle('-translate-x-full');
+        });
+        // Cerrar sidebar al hacer click fuera en móviles
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth < 768 && !sidebar.classList.contains('js-hide')) {
+                if (!sidebar.contains(e.target) && e.target !== sidebarToggle) {
+                    sidebar.classList.add('-translate-x-full');
+                }
+            }
+        });
+    }
+
+    // Sidebar collapse/expand en escritorio
+    if (sidebarCollapseBtn && sidebar) {
+        sidebarCollapseBtn.addEventListener('click', () => {
+            const isCollapsed = sidebar.classList.toggle('sidebar-collapsed');
+            // Cambia el icono
+            if (isCollapsed) {
+                sidebarCollapseIcon.textContent = 'chevron_right';
+                sidebar.setAttribute('data-collapsed', 'true');
+            } else {
+                sidebarCollapseIcon.textContent = 'chevron_left';
+                sidebar.setAttribute('data-collapsed', 'false');
+            }
+        });
+    }
+
+    // Asegura que el sidebar esté expandido en móvil
+    window.addEventListener('resize', () => {
+        if (window.innerWidth < 768 && sidebar.classList.contains('sidebar-collapsed')) {
+            sidebar.classList.remove('sidebar-collapsed');
+            mainContent.classList.remove('main-expanded');
+            sidebar.setAttribute('data-collapsed', 'false');
+            if (sidebarCollapseIcon) sidebarCollapseIcon.textContent = 'chevron_left';
+        }
+    });
 });
 
 // * Script básico para el menú hamburguesa (igual que antes).
@@ -253,3 +348,22 @@ document.getElementById('hamburger-button').addEventListener('click', function()
     mobileMenu.classList.toggle('max-h-0');
     mobileMenu.classList.toggle('max-h-screen');
 });
+
+// * Función para manejar el logout.
+async function handleLogout() {
+    const confirmed = await showConfirmationModal({
+        title: '¿Cerrar sesión?',
+        message: '¿Estás seguro que deseas cerrar tu sesión?',
+        confirmButtonText: 'Sí, cerrar sesión',
+        cancelButtonText: 'Cancelar',
+        confirmButtonClass: 'bg-red-600 hover:bg-red-700 text-white'
+    });
+    if (!confirmed) return;
+    console.log('Herwing está cerrando sesión.');
+    // Limpio el token y datos del usuario de localStorage.
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userData');
+    // Muestro un mensaje y redirijo a la vista de login.
+    await showInfoModal({ title: 'Sesión Cerrada', message: 'Has cerrado sesión exitosamente.'});
+    window.location.replace('/');
+}

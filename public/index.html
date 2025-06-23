@@ -6,78 +6,101 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventario - Linea Digital</title>
     <link href="https://unpkg.com/gridjs/dist/theme/mermaid.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="/css/output.css">
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/output.css">
     <link rel="icon" href="./assets/logo-white.svg" type="image/svg+xml">
 </head>
 
-<body class="bg-gray-100 font-sans">
-    <header class="bg-blue-600 text-white p-4 shadow-md">
-        <div class="container mx-auto flex justify-between items-center">
-            <a href="#" class="text-2xl font-bold cursor-pointer" data-view="home">
-                <img src="/assets/logo-white.svg" alt="Inventario Linea Digital Logo" class="h-12 inline-block">
-            </a>
-            <nav id="home-header" class="hidden md:flex space-x-4">
-                <!-- TODO: Implementar lógica real de autenticación y nombre de usuario -->
-                <a href="#" class="hover:underline" data-view="profile">Herwing Eduardo (Admin)</a>
-                <!-- TODO: Implementar lógica de logout -->
-                <button class="hover:underline" data-action="logout">Salir</button>
-            </nav>
-            <nav id="main-header" class="hidden md:flex space-x-4">
-                <a href="#" class="hover:underline" data-view="equiposList">Equipos</a>
-                <a href="#" class="hover:underline" data-view="empleadosList">Empleados</a>
-                <a href="#" class="hover:underline" data-view="direccionesIpList">Direcciones IP</a>
-                <a href="#" class="hover:underline" data-view="asignacionesList">Asignaciones</a>
-                <a href="#" class="hover:underline" data-view="cuentasEmailList">Cuentas Email</a>
-                <a href="#" class="hover:underline" data-view="mantenimientosList">Mantenimientos</a>
-                <a href="#" class="hover:underline" data-view="notasList">Notas</a>
-                <span class="text-blue-200">|</span>
-                <!-- TODO: Implementar lógica real de autenticación y nombre de usuario -->
-                <a href="#" class="hover:underline" data-view="profile">Herwing Eduardo (Admin)</a>
-                <!-- TODO: Implementar lógica de logout -->
-                <button class="hover:underline" data-action="logout">Salir</button>
-            </nav>
-
-            <!-- Botón de menú hamburguesa -->
-            <div class="md:hidden">
-                <button id="hamburger-button" class="text-white focus:outline-none">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 6h16M4 12h16m-4 6h4"></path>
-                    </svg>
-                </button>
-            </div>
-        </div>
-        <!-- Menú desplegable móvil  -->
-        <div id="mobile-menu"
-            class="md:hidden bg-blue-700 text-white text-center transition-all duration-300 ease-in-out max-h-0 overflow-hidden">
-            <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="equiposList">Equipos</a>
-            <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="empleadosList">Empleados</a>
-            <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="asignacionesList">Asignaciones</a>
-            <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="usuariosList">Usuarios</a>
-            <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="direccionesIpList">Direcciones IP</a>
-            <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="cuentasEmailList">Cuentas Email</a>
-            <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="mantenimientosList">Mantenimientos</a>
-            <a href="#" class="block py-2 px-4 hover:bg-blue-800" data-view="notasList">Notas</a>
-            <a href="#" class="block py-2 px-4 hover:bg-blue-800 mt-2 border-t border-blue-600"
-                data-view="profile">Herwing
-                Eduardo (Admin)</a>
-            <button class="block w-full text-left py-2 px-4 hover:bg-blue-800" data-action="logout">Salir</button>
+<body class="min-h-screen grid grid-rows-[auto_1fr_auto]">
+    <header id="main-header" class="bg-blue-600 text-white p-4 shadow-md flex items-center justify-between js-hide">
+        <div class="flex items-center space-x-3">
+            <button id="sidebar-toggle"
+                class="md:hidden inline-flex items-center justify-center bg-blue-600 text-white p-2 rounded-full shadow-lg focus:outline-none mr-2">
+                <span class="material-icons">menu</span>
+            </button>
+            <img src="/assets/logo-white.svg" alt="Inventario Linea Digital Logo" class="h-10">
         </div>
     </header>
-
-    <main class="container mx-auto p-6 bg-white rounded-lg shadow-md overflow-x-auto">
-        <div id="content-area" class="mt-6">
+    <main id="app" class="flex flex-col min-h-0">
+        <div id="login-content" class="flex-1 flex items-center justify-center js-hide min-h-0">
+            <!-- Aquí se renderiza el formulario de login -->
+        </div>
+        <div class="flex flex-1 min-h-0">
+            <!-- Sidebar responsive -->
+            <aside id="sidebar"
+                class="w-64 h-full bg-white shadow-lg flex flex-col justify-between z-40 transition-all duration-300 ease-in-out js-hide md:block md:relative fixed top-0 left-0 md:translate-x-0 -translate-x-full"
+                data-collapsed="false">
+                <div class="flex items-center justify-between px-4 py-4">
+                    <div class="flex items-center space-x-3">
+                        <img src="/assets/logo-white.svg" alt="Inventario Linea Digital Logo" class="h-10">
+                    </div>
+                    <!-- Botón de colapsar/expandir sidebar solo visible en escritorio -->
+                    <button id="sidebar-collapse-btn" class="hidden md:inline-flex items-center justify-center p-2 rounded-full hover:bg-blue-100 transition" title="Colapsar sidebar">
+                        <span class="material-icons" id="sidebar-collapse-icon">chevron_left</span>
+                    </button>
+                </div>
+                <nav class="flex-1 flex flex-col px-4 py-6">
+                    <ul class="space-y-2">
+                        <li><a href="#"
+                                class="flex items-center px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-100 transition"
+                                data-view="home"><span class="material-icons mr-3">home</span><span class="sidebar-text">Inicio</span></a></li>
+                        <li><a href="#"
+                                class="flex items-center px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-100 transition"
+                                data-view="equiposList"><span class="material-icons mr-3">devices</span><span class="sidebar-text">Equipos</span></a></li>
+                        <li><a href="#"
+                                class="flex items-center px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-100 transition"
+                                data-view="empleadosList"><span class="material-icons mr-3">people</span><span class="sidebar-text">Empleados</span></a></li>
+                        <li><a href="#"
+                                class="flex items-center px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-100 transition"
+                                data-view="direccionesIpList"><span class="material-icons mr-3">dns</span><span class="sidebar-text">Direcciones IP</span></a>
+                        </li>
+                        <li><a href="#"
+                                class="flex items-center px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-100 transition"
+                                data-view="asignacionesList"><span
+                                    class="material-icons mr-3">assignment</span><span class="sidebar-text">Asignaciones</span></a></li>
+                        <li><a href="#"
+                                class="flex items-center px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-100 transition"
+                                data-view="cuentasEmailList"><span class="material-icons mr-3">email</span><span class="sidebar-text">Cuentas Email</span></a>
+                        </li>
+                        <li><a href="#"
+                                class="flex items-center px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-100 transition"
+                                data-view="mantenimientosList"><span
+                                    class="material-icons mr-3">build</span><span class="sidebar-text">Mantenimientos</span></a></li>
+                        <li><a href="#"
+                                class="flex items-center px-3 py-2 rounded-lg text-gray-700 hover:bg-blue-100 transition"
+                                data-view="notasList"><span class="material-icons mr-3">note</span><span class="sidebar-text">Notas</span></a></li>
+                    </ul>
+                </nav>
+                <div class="mt-auto px-4 py-6 border-t border-gray-200">
+                    <div class="flex items-center space-x-3 mb-2">
+                        <span id="sidebar-avatar"
+                            class="w-10 h-10 rounded-full bg-blue-200 text-blue-700 flex items-center justify-center font-bold text-lg">U</span>
+                        <div class="sidebar-text">
+                            <div id="sidebar-username" class="font-semibold text-gray-800">Usuario</div>
+                            <div id="sidebar-role" class="text-xs text-gray-500">Rol</div>
+                        </div>
+                    </div>
+                    <button
+                        class="w-full mt-2 flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                        data-action="logout">
+                        <span class="material-icons mr-2">logout</span><span class="sidebar-text">Salir</span>
+                    </button>
+                </div>
+            </aside>
+            <main id="main-content"
+                class="flex-1 min-h-0 overflow-y-auto p-2 md:p-6 bg-white rounded-lg shadow-md js-hide">
+                <div id="content-area" class="mt-6">
+                </div>
+            </main>
         </div>
     </main>
-
     <footer class="mt-8 p-4 text-center text-gray-600 text-sm">
         <p>© 2025 Inventario LDS. Todos los derechos reservados.</p>
     </footer>
     <script src="https://unpkg.com/gridjs/dist/gridjs.umd.js"></script>
     <script src="https://unpkg.com/gridjs/l10n/dist/l10n.umd.js"></script>
     <script src="/js/main.js" type="module"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </body>
 
 </html>
