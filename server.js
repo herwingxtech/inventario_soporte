@@ -17,6 +17,9 @@ const cuentasEmailRoutes = require('./src/routes/cuentas_email.routes'); // * Ru
 const mantenimientosRoutes = require('./src/routes/mantenimientos.routes'); // * Rutas para mantenimientos
 const notasRoutes =  require('./src/routes/notas.routes'); // * Rutas para notas
 const asignacionesRoutes = require('./src/routes/asignaciones.routes'); // * Rutas para asignaciones
+const authRoutes = require('./src/routes/auth.routes'); // * Rutas de autenticación
+const { protect } = require('./src/middleware/auth.middleware'); // * Middleware de protección JWT
+
 const app = express();
 const port = process.env.PORT || 3000; // * Puerto del servidor (por defecto 3000 si no hay .env)
 
@@ -47,6 +50,14 @@ app.get('/db-test', async (req, res) => {
     });
   }
 });
+
+// * Rutas de Autenticación (Públicas - NO protegidas por el middleware `protect`)
+// * El login debe ser accesible sin un token.
+app.use('/api/auth', authRoutes);
+
+// * Middleware de Protección JWT
+// ! Todas las rutas definidas DESPUÉS de esta línea requerirán un token JWT válido.
+app.use('/api', protect); // Aplico el middleware a todas las rutas que comiencen con /api.
 
 // TODO: Aquí se montan las rutas principales de la API
 // * Cada entidad tiene su propio archivo de rutas

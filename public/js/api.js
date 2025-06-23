@@ -10,18 +10,25 @@
 const API_URL = 'http://localhost:3000/api';
 
 // * Función genérica para manejar peticiones HTTP y errores.
-// * Aquí centralizo el manejo de errores y el parseo de respuestas.
-// * Recibo la ruta (ej: '/equipos'), el método (ej: 'GET', 'POST'), y el cuerpo si es necesario.
-// * Retorno los datos de la respuesta si es exitosa (status 2xx) o lanza un error si no.
+// * AHORA incluye el token JWT en los encabezados si existe.
 async function request(endpoint, method = 'GET', body = null) {
   const url = `${API_URL}${endpoint}`; // * Construye la URL completa.
+  
+  // * Obtengo el token de localStorage.
+  const token = localStorage.getItem('authToken');
+
+  const headers = {
+    'Content-Type': 'application/json', // * Indica que enviamos/esperamos JSON.
+  };
+
+  // * Si tengo un token, lo añado al encabezado 'Authorization'.
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const options = {
     method: method, // * Método HTTP.
-    headers: {
-      'Content-Type': 'application/json', // * Indica que enviamos/esperamos JSON.
-      // * Aquí añadir encabezados de autenticación JWT 
-      // 'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
-    },
+    headers: headers,
   };
 
   // * Añade el cuerpo a la petición si el método lo requiere (POST, PUT, PATCH).
@@ -168,11 +175,15 @@ const createArea = (areaData) => request('/areas', 'POST', areaData);
 const updateArea = (id, areaData) => request(`/areas/${id}`, 'PUT', areaData); 
 const deleteArea = (id) => request(`/areas/${id}`, 'DELETE'); 
 
+// * NUEVA FUNCIÓN para la API de autenticación.
+const login = (credentials) => request('/auth/login', 'POST', credentials);
+
 // * Exporto solo lo necesario.
 // * Si alguna función no se usa, elimínala para mantener el código limpio.
 // * Exportamos todas las funciones de la API para que puedan ser importadas
 // * por otros módulos JS.
 export {
+  login, // <-- Nueva exportación
   // Equipos
   getEquipos, getEquipoById, createEquipo, updateEquipo, deleteEquipo,
   // Empleados
