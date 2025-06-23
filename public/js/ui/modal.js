@@ -35,8 +35,8 @@ function showConfirmationModal({
         // * Creo el overlay del modal (el fondo oscuro).
         const modalOverlay = document.createElement('div');
         modalOverlay.id = 'confirmationModalOverlay'; // Le doy un ID por si necesito seleccionarlo.
-        // Clases de Tailwind: fijo, cubre toda la pantalla, fondo negro semitransparente, flex para centrar, z-index alto.
-        modalOverlay.className = 'fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 transition-opacity duration-300 ease-in-out opacity-0';
+        // Clases de Tailwind: fijo, cubre toda la pantalla, solo blur, flex para centrar, z-index alto.
+        modalOverlay.className = 'fixed inset-0 backdrop-blur-md flex items-center justify-center z-50 p-4 transition-opacity duration-300 ease-in-out opacity-0';
 
         // * Creo el contenedor principal del modal (la caja blanca).
         const modalDialog = document.createElement('div');
@@ -159,7 +159,7 @@ function showInfoModal({
         // * Creo el overlay del modal.
         const modalOverlay = document.createElement('div');
         modalOverlay.id = 'infoModalOverlay';
-        modalOverlay.className = 'fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 transition-opacity duration-300 ease-in-out opacity-0';
+        modalOverlay.className = 'fixed inset-0 backdrop-blur-md flex items-center justify-center z-50 p-4 transition-opacity duration-300 ease-in-out opacity-0';
 
         // * Creo el contenedor principal del modal.
         const modalDialog = document.createElement('div');
