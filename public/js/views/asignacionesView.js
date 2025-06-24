@@ -1,5 +1,5 @@
-// public/js/views/asignacionesView.js
-// * Este módulo se encarga de la vista de listado de Asignaciones, usando Grid.js.
+//public/js/views/asignacionesView.js
+//* Este módulo se encarga de la vista de listado de Asignaciones, usando Grid.js.
 
 import { getAsignaciones, deleteAsignacion } from '../api.js';
 import { showConfirmationModal, showInfoModal } from '../ui/modal.js';
@@ -26,7 +26,7 @@ function renderAsignacionesListViewLayout() {
     createButtonContainer.appendChild(createButton);
     contentArea.appendChild(createButtonContainer);
 
-    // Responsive wrapper
+    //* Responsive wrapper
     const responsiveDiv = document.createElement('div');
     responsiveDiv.className = 'overflow-x-auto w-full';
     const gridContainer = document.createElement('div');
@@ -47,19 +47,19 @@ function showAsignacionesError(message, container) {
     showListError(target, 'Asignaciones', message, 'asignacionesList', () => loadAsignacionesList());
 }
 
-// * Formatea la celda de acciones para la tabla de asignaciones.
+//* Formatea la celda de acciones para la tabla de asignaciones.
 function formatAsignacionesActionsCell(cell, row) {
-    const asignacionId = row.cells[0].data; // Asumo ID de asignación
-    const equipoSerie = row.cells[1].data; // Asumo Serie del equipo
-    // * Determino si la asignación es activa basándome en si fecha_fin_asignacion (columna 5) tiene datos.
-    // * row.cells[5].data contendrá el valor de `fecha_fin_asignacion` del mapeo de datos.
+    const asignacionId = row.cells[0].data; //* Asumo ID de asignación
+    const equipoSerie = row.cells[1].data; //* Asumo Serie del equipo
+    //* Determino si la asignación es activa basándome en si fecha_fin_asignacion (columna 5) tiene datos.
+    //* row.cells[5].data contendrá el valor de `fecha_fin_asignacion` del mapeo de datos.
     const isActiva = !row.cells[5].data;
 
-    // * Contenedor para los botones.
+    //* Contenedor para los botones.
     const actionsContainer = document.createElement('div');
     actionsContainer.className = 'flex items-center justify-center space-x-2';
 
-    // * Botón Ver Detalles (siempre disponible).
+    //* Botón Ver Detalles (siempre disponible).
     const viewButton = document.createElement('button');
     viewButton.className = 'btn-action-view w-6 h-6 transform hover:text-blue-500 hover:scale-110';
     viewButton.title = 'Ver Detalles de la Asignación';
@@ -68,26 +68,26 @@ function formatAsignacionesActionsCell(cell, row) {
     viewButton.innerHTML = '<svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7S1.732 16.057 2.458 12z"></path></svg>';
     actionsContainer.appendChild(viewButton);
 
-    // * Botón Editar/Finalizar (su comportamiento y apariencia cambian).
+    //* Botón Editar/Finalizar (su comportamiento y apariencia cambian).
     const editButton = document.createElement('button');
     if (isActiva) {
-        // * Si la asignación está ACTIVA, el botón permite editar/finalizar.
+        //* Si la asignación está ACTIVA, el botón permite editar/finalizar.
         editButton.className = 'btn-action-edit w-6 h-6 transform hover:text-yellow-500 hover:scale-110';
         editButton.title = 'Editar o Finalizar Asignación';
         editButton.dataset.action = 'edit';
         editButton.dataset.id = asignacionId;
         editButton.innerHTML = '<svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>';
     } else {
-        // * Si la asignación está FINALIZADA, el botón está deshabilitado.
-        // * Le doy un estilo diferente para que se vea claramente que no es clickeable.
-        editButton.className = 'w-6 h-6 text-gray-400 cursor-not-allowed'; // Deshabilitado visualmente
+        //* Si la asignación está FINALIZADA, el botón está deshabilitado.
+        //* Le doy un estilo diferente para que se vea claramente que no es clickeable.
+        editButton.className = 'w-6 h-6 text-gray-400 cursor-not-allowed'; //* Deshabilitado visualmente
         editButton.title = 'Esta asignación histórica no se puede editar.';
-        editButton.disabled = true; // Deshabilito el botón funcionalmente.
+        editButton.disabled = true; //* Deshabilito el botón funcionalmente.
         editButton.innerHTML = '<svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>';
     }
     actionsContainer.appendChild(editButton);
 
-    // * Botón Eliminar (sigue disponible, pero podrías deshabilitarlo también para históricos).
+    //* Botón Eliminar (sigue disponible, pero podrías deshabilitarlo también para históricos).
     /*  const deleteButton = document.createElement('button');
       deleteButton.className = 'btn-action-delete w-6 h-6 transform hover:text-red-500 hover:scale-110';
       deleteButton.title = 'Eliminar Registro de Asignación';
@@ -157,17 +157,17 @@ async function loadAsignacionesList() {
             columns: [
                 { id: 'id', name: 'ID', width: '70px', sort: true },
                 { id: 'equipo_numero_serie', name: 'Equipo', sort: true },
-                { // Columna "Asignado A" combinada
+                { //* Columna "Asignado A" combinada
                     id: 'asignado_a',
                     name: 'Asignado A',
                     sort: false,
                     formatter: (cell, row) => {
-                        // Accedemos a los datos por el ID de la fila original (Grid.js recomienda esto)
-                        // Asegúrate de que tu backend envíe estos campos directamente en el objeto 'asig'
+                        //* Accedemos a los datos por el ID de la fila original (Grid.js recomienda esto)
+                        //* Asegúrate de que tu backend envíe estos campos directamente en el objeto 'asig'
                         const originalAsigData = asignaciones.find(a => a.id === row.cells[0].data);
                         if (!originalAsigData) return 'N/A';
 
-                        // Ahora accedemos directamente a las propiedades del objeto original
+                        //* Ahora accedemos directamente a las propiedades del objeto original
                         const empNombres = originalAsigData.empleado_nombres;
                         const empApellidos = originalAsigData.empleado_apellidos;
 
@@ -181,16 +181,16 @@ async function loadAsignacionesList() {
                     id: 'fecha_asignacion',
                     name: 'Fecha Asignación',
                     sort: true,
-                    // Asegúrate de que el backend envía fechas en formato ISO (YYYY-MM-DDTHH:mm:ss.sssZ)
-                    // o YYYY-MM-DD para que new Date() las parse bien.
+                    //* Asegúrate de que el backend envía fechas en formato ISO (YYYY-MM-DDTHH:mm:ss.sssZ)
+                    //* o YYYY-MM-DD para que new Date() las parse bien.
                     formatter: (cell) => cell ? new Date(cell).toLocaleDateString() : 'N/A'
                 },
                 {
                     id: 'fecha_fin_asignacion',
                     name: 'Fecha Fin',
                     sort: true,
-                    // Asegúrate de que el backend envía fechas en formato ISO (YYYY-MM-DDTHH:mm:ss.sssZ)
-                    // o YYYY-MM-DD para que new Date() las parse bien.
+                    //* Asegúrate de que el backend envía fechas en formato ISO (YYYY-MM-DDTHH:mm:ss.sssZ)
+                    //* o YYYY-MM-DD para que new Date() las parse bien.
                     formatter: (cell) => {
                         let content = '';
                         if (cell) {
@@ -222,14 +222,14 @@ async function loadAsignacionesList() {
             data: asignaciones.map(asig => [
                 asig.id,
                 asig.equipo_numero_serie || 'N/A',
-                // Para la columna "Asignado A" enviamos un marcador de posición, el formatter lo gestionará.
-                // Lo importante es que haya un elemento en esta posición para que Grid.js la cuente.
-                null, // Columna 'asignado_a'
+                //* Para la columna "Asignado A" enviamos un marcador de posición, el formatter lo gestionará.
+                //* Lo importante es que haya un elemento en esta posición para que Grid.js la cuente.
+                null, //* Columna 'asignado_a'
                 asig.ip_direccion || 'N/A',
                 asig.fecha_asignacion,
                 asig.fecha_fin_asignacion,
                 asig.status_nombre || 'N/A',
-                null // Para la celda de acciones
+                null //* Para la celda de acciones
             ]),
             search: true,
             pagination: { enabled: true, limit: 10, summary: true },

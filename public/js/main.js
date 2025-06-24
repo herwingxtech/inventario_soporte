@@ -1,14 +1,14 @@
-// public/js/main.js
+//public/js/main.js
 // ! Archivo principal JS del frontend
-// * Este archivo inicializa la SPA, configura eventos globales (incluyendo la navegación
-// * y el comportamiento del header), y orquesta la carga de vistas.
-// * Uso importaciones modulares para mantener el código organizado y limpio.
+//* Este archivo inicializa la SPA, configura eventos globales (incluyendo la navegación
+//* y el comportamiento del header), y orquesta la carga de vistas.
+//* Uso importaciones modulares para mantener el código organizado y limpio.
 
-console.log('Frontend JavaScript principal cargado. Configurando aplicación...'); // * Log para saber que el script principal cargó
+console.log('Frontend JavaScript principal cargado. Configurando aplicación...'); //* Log para saber que el script principal cargó
 
 // ===============================================================
-// * IMPORTACIONES DE MÓDULOS DE VISTA
-// * Importo funciones para cargar/renderizar cada vista específica.
+//* IMPORTACIONES DE MÓDULOS DE VISTA
+//* Importo funciones para cargar/renderizar cada vista específica.
 // ===============================================================
 
 import { loadEquiposList } from './views/equiposView.js';
@@ -21,19 +21,19 @@ import { loadDireccionesIpList } from './views/direccionesIpView.js';
 import { showDireccionIpForm } from './views/direccionesIpFormView.js';
 import { showDireccionIpDetails } from './views/direccionesIpDetailsView.js';
 import { loadCuentasEmailList } from './views/cuentasEmailView.js';
-//TODO: Crear e importar showCuentaEmailForm y showCuentaEmailDetails
 import { loadMantenimientosList } from './views/mantenimientosView.js';
-//TODO: Crear e importar showMantenimientoForm y showMantenimientoDetails
 import { loadNotasList } from './views/notasView.js';
-//TODO: Crear e importar showNotaForm y showNotaDetails
 import { loadAsignacionesList } from './views/asignacionesView.js';
 import { showAsignacionForm } from './views/asignacionesFormView.js';   
 import { showAsignacionDetails } from './views/asignacionesDetailsView.js';
 import { loadLoginView } from './views/loginView.js';
 import { loadProfileView } from './views/profileView.js';
 import { showConfirmationModal, showInfoModal } from './ui/modal.js';
+//TODO: Crear e importar showCuentaEmailForm y showCuentaEmailDetails
+//TODO: Crear e importar showMantenimientoForm y showMantenimientoDetails
+//TODO: Crear e importar showNotaForm y showNotaDetails
 //? ¿Necesitaré una función para cerrar modales aquí? Si los modales son globales.
-// import { closeCurrentModal } from './ui/modal.js'; // Asumo que esto existe o lo crearás.
+//? import { closeCurrentModal } from './ui/modal.js'; // Asumo que esto existe o lo crearás.
 
 
 /*
@@ -44,13 +44,13 @@ import { showConfirmationModal, showInfoModal } from './ui/modal.js';
 */
 const contentArea = document.getElementById('content-area');
 const mobileMenu = document.getElementById('mobile-menu');
-const mainHeader = document.getElementById('main-header'); // * Referencia al header principal
+const mainHeader = document.getElementById('main-header'); 
 const homeHeader = document.getElementById('home-header');
-const appContainer = document.body; // * Contenedor para delegación de eventos
+const appContainer = document.body;
 
 
-// * Función para renderizar el contenido inicial de la vista 'home'.
-// * Esta vista se muestra SIN el header principal.
+//* Función para renderizar el contenido inicial de la vista 'home'.
+//* Esta vista se muestra SIN el header principal.
 function renderHomeView() {
     const userData = JSON.parse(localStorage.getItem('userData'));
     contentArea.innerHTML = `
@@ -67,7 +67,7 @@ function renderHomeView() {
     `;
 }
 
-// * Objeto que mapea nombres de vista a las funciones que las cargan/renderizan.
+//* Objeto que mapea nombres de vista a las funciones que las cargan/renderizan.
 const viewsMap = {
     'login': loadLoginView,
     'home': renderHomeView,
@@ -81,23 +81,23 @@ const viewsMap = {
     'direccionIpForm': showDireccionIpForm,
     'direccionIpDetails': showDireccionIpDetails,
     'cuentasEmailList': loadCuentasEmailList,
-    //TODO: 'cuentaEmailForm': showCuentaEmailForm, 'cuentaEmailDetails': showCuentaEmailDetails,
     'mantenimientosList': loadMantenimientosList,
-    //TODO: 'mantenimientoForm': showMantenimientoForm, 'mantenimientoDetails': showMantenimientoDetails,
     'notasList': loadNotasList,
-    //TODO: 'notaForm': showNotaForm, 'notaDetails': showNotaDetails,
     'asignacionesList': loadAsignacionesList,
     'asignacionForm': showAsignacionForm,       
     'asignacionDetails': showAsignacionDetails, 
     'profile': loadProfileView,
+    //TODO: 'cuentaEmailForm': showCuentaEmailForm, 'cuentaEmailDetails': showCuentaEmailDetails,
+    //TODO: 'mantenimientoForm': showMantenimientoForm, 'mantenimientoDetails': showMantenimientoDetails,
+    //TODO: 'notaForm': showNotaForm, 'notaDetails': showNotaDetails,
     //TODO: 'usuariosList': loadUsuariosList, 'usuarioForm': showUsuarioForm, 'usuarioDetails': showUsuarioDetails
 };
 
 
 // ===============================================================
-// * FUNCIÓN DE NAVEGACIÓN CENTRALIZADA
-// * Esta función se encarga de cambiar de vista, actualizar la URL,
-// * y manejar la visibilidad del header.
+//* FUNCIÓN DE NAVEGACIÓN CENTRALIZADA
+//* Esta función se encarga de cambiar de vista, actualizar la URL,
+//* y manejar la visibilidad del header.
 // ===============================================================
 
 function updateHeaderAuthUI() {
@@ -119,7 +119,7 @@ function updateSidebarUI() {
     const sidebarUsername = document.getElementById('sidebar-username');
     const sidebarRole = document.getElementById('sidebar-role');
     const logoutButton = sidebar ? sidebar.querySelector('[data-action="logout"]') : null;
-    // Oculta sidebar, main-content y muestra login-content solo en login
+    //! Oculta sidebar, main-content y muestra login-content solo en login
     if (!token || !userData || window.currentView === 'login') {
         if (sidebar) sidebar.classList.add('js-hide');
         if (mainContent) mainContent.classList.add('js-hide');
@@ -129,7 +129,7 @@ function updateSidebarUI() {
     if (sidebar) sidebar.classList.remove('js-hide');
     if (mainContent) mainContent.classList.remove('js-hide');
     if (loginContent) loginContent.classList.add('js-hide');
-    // Actualiza avatar, nombre y rol
+    //* Actualiza avatar, nombre y rol
     const avatarLetter = userData.username ? userData.username.charAt(0).toUpperCase() : 'U';
     if (sidebarAvatar) sidebarAvatar.textContent = avatarLetter;
     if (sidebarUsername) sidebarUsername.textContent = userData.username;
@@ -159,10 +159,9 @@ function navigateTo(viewName, params = null, pushState = true) {
     }
     updateSidebarUI();
 }
-window.navigateTo = navigateTo; // * Hago navigateTo global (simplificación).
+window.navigateTo = navigateTo; //* Hago navigateTo global.
 
-// * Hago globales las funciones de carga de listas para que los formularios puedan llamarlas.
-// * Mejor alternativa: sistema de eventos o pasar callbacks.
+//* Hago globales las funciones de carga de listas para que los formularios puedan llamarlas.
 window.loadEquiposListGlobal = loadEquiposList;
 window.loadEmpleadosListGlobal = loadEmpleadosList;
 window.loadDireccionesIpListGlobal = loadDireccionesIpList;
@@ -170,20 +169,20 @@ window.loadCuentasEmailListGlobal = loadCuentasEmailList;
 window.loadMantenimientosListGlobal = loadMantenimientosList;
 window.loadNotasListGlobal = loadNotasList;
 window.loadAsignacionesListGlobal = loadAsignacionesList;
-//TODO: Hacer globales las funciones de carga de listas faltantes (Usuarios).
+//TODO: Hacer globales las funciones de carga de listas faltantes.
 
 
 // ===============================================================
-// * INICIALIZACIÓN DE LA APLICACIÓN Y MANEJO DE EVENTOS GLOBALES
-// * Aquí engancho los eventos de navegación y defino la carga inicial.
+//* INICIALIZACIÓN DE LA APLICACIÓN Y MANEJO DE EVENTOS GLOBALES
+//* Aquí engancho los eventos de navegación y defino la carga inicial.
 // ===============================================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM completamente cargado. Herwing inicia configuración de eventos.');
+    console.log('DOM completamente cargado. Inicia configuración de eventos.');
 
-    // === Configurar Event Listeners para Navegación usando DELEGACIÓN DE EVENTOS ===
+    //* === Configurar Event Listeners para Navegación usando DELEGACIÓN DE EVENTOS ===
     appContainer.addEventListener('click', (event) => {
-        // Busco un elemento `data-view` o `data-action` en el path del evento.
+        //* Busco un elemento `data-view` o `data-action` en el path del evento.
         const viewTrigger = event.target.closest('[data-view]');
         const actionTrigger = event.target.closest('[data-action]');
         const sidebar = document.getElementById('sidebar');
@@ -195,7 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const id = viewTrigger.dataset.id;
             const params = id ? String(id) : null;
             navigateTo(viewName, params);
-            // Oculta el sidebar en móvil al seleccionar una opción
+            //* Oculta el sidebar en móvil al seleccionar una opción
             if (window.innerWidth < 768 && sidebar && !sidebar.classList.contains('-translate-x-full')) {
                 sidebar.classList.add('-translate-x-full');
             }
@@ -207,40 +206,38 @@ document.addEventListener('DOMContentLoaded', () => {
             if (actionName === 'logout') {
                 handleLogout();
             }
-            // Oculta el sidebar en móvil al seleccionar una acción
+            //* Oculta el sidebar en móvil al seleccionar una acción
             if (window.innerWidth < 768 && sidebar && !sidebar.classList.contains('-translate-x-full')) {
                 sidebar.classList.add('-translate-x-full');
             }
         }
     });
 
-    // === Carga de la vista inicial BASADA EN AUTENTICACIÓN ===
+    //! === Carga de la vista inicial BASADA EN AUTENTICACIÓN ===
     const token = localStorage.getItem('authToken');
     if (token) {
-        // * Si hay un token, el usuario está "logueado".
-        // * Muestro la vista home por defecto.
-        // ! En una app real, verificaría que el token sea válido con una llamada a la API
-        // ! antes de mostrar contenido protegido (ej. una ruta /api/auth/verify).
-        console.log('Herwing tiene un token. Cargando vista home.');
+        //* Si hay un token, el usuario está "logueado".
+        //* Muestro la vista home por defecto.
+        console.log('Exiate un token. Cargando vista home.');
         navigateTo('home', null, false);
     } else {
-        // * Si no hay token, muestro la vista de login.
+        //* Si no hay token, muestro la vista de login.
         console.log('Herwing no tiene un token. Cargando vista de login.');
         navigateTo('login', null, false);
     }
 
-    // === Manejo de los botones Atrás/Adelante del navegador (evento popstate) ===
+    //* === Manejo de los botones Atrás/Adelante del navegador (evento popstate) ===
     window.addEventListener('popstate', (event) => {
-        const state = event.state; // * event.state contiene el objeto que guardé con pushState.
+        const state = event.state; //* event.state contiene el objeto que guardé con pushState.
         console.log('Evento popstate disparado. Estado recuperado:', state);
 
         if (state && state.viewName) {
-            // Si hay un estado guardado, navego a esa vista SIN añadir nueva entrada al historial.
+            //* Si hay un estado guardado, navego a esa vista SIN añadir nueva entrada al historial.
             navigateTo(state.viewName, state.params, false);
         } else {
-            // * Si no hay estado (ej. el usuario llegó a la página por primera vez y luego usó "atrás"
-            // * hasta antes del primer pushState, o si el estado no es el esperado),
-            // * cargo la vista según la URL actual.
+            //* Si no hay estado (ej. el usuario llegó a la página por primera vez y luego usó "atrás"
+            //* hasta antes del primer pushState, o si el estado no es el esperado),
+            //* cargo la vista según la URL actual.
             const pathFromPop = window.location.pathname.replace(/^\//, '');
             const partsFromPop = pathFromPop.split('/');
             const viewNameFromUrl = partsFromPop[0] === '' ? 'home' : partsFromPop[0];
@@ -251,47 +248,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     updateHeaderAuthUI();
-
-    // Menú usuario interactivo (dropdown)
-    const userMenuButton = document.getElementById('user-menu-button');
-    const userDropdown = document.getElementById('user-dropdown');
-    if (userMenuButton && userDropdown) {
-        userMenuButton.addEventListener('click', (e) => {
-            e.stopPropagation();
-            userDropdown.classList.toggle('hidden');
-        });
-        document.addEventListener('click', (e) => {
-            if (!userDropdown.classList.contains('hidden') && !userDropdown.contains(e.target) && e.target !== userMenuButton) {
-                userDropdown.classList.add('hidden');
-            }
-        });
-        // Elimina el stopPropagation para permitir que el listener global capture los clicks
-        // userDropdown.addEventListener('click', (e) => e.stopPropagation());
-        // Cierra el menú al hacer clic en una opción
-        userDropdown.querySelectorAll('[data-view], [data-action]').forEach(el => {
-            el.addEventListener('click', () => userDropdown.classList.add('hidden'));
-        });
-    }
-    // Home header
-    const userMenuButtonHome = document.getElementById('user-menu-button-home');
-    const userDropdownHome = document.getElementById('user-dropdown-home');
-    if (userMenuButtonHome && userDropdownHome) {
-        userMenuButtonHome.addEventListener('click', (e) => {
-            e.stopPropagation();
-            userDropdownHome.classList.toggle('hidden');
-        });
-        document.addEventListener('click', (e) => {
-            if (!userDropdownHome.classList.contains('hidden') && !userDropdownHome.contains(e.target) && e.target !== userMenuButtonHome) {
-                userDropdownHome.classList.add('hidden');
-            }
-        });
-        // Elimina el stopPropagation para permitir que el listener global capture los clicks
-        // userDropdownHome.addEventListener('click', (e) => e.stopPropagation());
-        // Cierra el menú al hacer clic en una opción
-        userDropdownHome.querySelectorAll('[data-view], [data-action]').forEach(el => {
-            el.addEventListener('click', () => userDropdownHome.classList.add('hidden'));
-        });
-    }
 
     updateSidebarUI();
 
@@ -307,7 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.stopPropagation();
             sidebar.classList.toggle('-translate-x-full');
         });
-        // Cerrar sidebar al hacer click fuera en móviles
+        //* Cerrar sidebar al hacer click fuera en móviles
         document.addEventListener('click', (e) => {
             if (window.innerWidth < 768 && !sidebar.classList.contains('js-hide')) {
                 if (!sidebar.contains(e.target) && e.target !== sidebarToggle) {
@@ -317,7 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Sidebar collapse/expand en escritorio
+    //* Sidebar collapse/expand en escritorio
     if (sidebarCollapseBtn && sidebar) {
         sidebarCollapseBtn.addEventListener('click', () => {
             const isCollapsed = sidebar.classList.toggle('sidebar-collapsed');
@@ -332,7 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Asegura que el sidebar esté expandido en móvil
+    //* Asegura que el sidebar esté expandido en móvil
     window.addEventListener('resize', () => {
         if (window.innerWidth < 768 && sidebar.classList.contains('sidebar-collapsed')) {
             sidebar.classList.remove('sidebar-collapsed');
@@ -343,13 +299,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// * Script básico para el menú hamburguesa (igual que antes).
-document.getElementById('hamburger-button').addEventListener('click', function() {
-    mobileMenu.classList.toggle('max-h-0');
-    mobileMenu.classList.toggle('max-h-screen');
-});
-
-// * Función para manejar el logout.
+//* Función para manejar el logout.
 async function handleLogout() {
     const confirmed = await showConfirmationModal({
         title: '¿Cerrar sesión?',
@@ -359,11 +309,10 @@ async function handleLogout() {
         confirmButtonClass: 'bg-red-600 hover:bg-red-700 text-white'
     });
     if (!confirmed) return;
-    console.log('Herwing está cerrando sesión.');
-    // Limpio el token y datos del usuario de localStorage.
+    //! Limpio el token y datos del usuario de localStorage.
     localStorage.removeItem('authToken');
     localStorage.removeItem('userData');
-    // Muestro un mensaje y redirijo a la vista de login.
+    //! Muestro un mensaje y redirijo a la vista de login.
     await showInfoModal({ title: 'Sesión Cerrada', message: 'Has cerrado sesión exitosamente.'});
     window.location.replace('/');
 }

@@ -1,31 +1,12 @@
 // src/controllers/cuentasEmail.controller.js
-// ! Controlador para la entidad Cuentas Email Corporativo
 // * Aquí gestiono todo lo relacionado con las cuentas de correo corporativo: creación, consulta, actualización y eliminación.
-// * Este módulo incluye validaciones, manejo de password_data y advertencias de seguridad sobre el almacenamiento de contraseñas.
 
-const { query } = require('../config/db'); // * Utilizo la función personalizada para consultas a la base de datos.
-// NOTA DE SEGURIDAD: NO importamos bcrypt aquí porque no hasheamos contraseñas que necesitamos recuperar.
-// Si decides cifrar, necesitarías una librería de cifrado (ej. crypto integrado en Node, o una externa).
-
-// ===============================================================
-// ! NOTAS CRÍTICAS DE SEGURIDAD sobre password_data
-// * Almacenar contraseñas de email es un ALTO RIESGO de seguridad.
-// * Si se almacenan en texto plano: una brecha en la DB expone TODAS las credenciales de email.
-// * Si se almacenan cifradas: es mejor, pero requiere una clave de cifrado bien gestionada y almacenada de forma segura.
-// * La única forma razonablemente segura es usar un gestor de secretos externo (ej. AWS Secrets Manager, HashiCorp Vault).
-// * Alternativa recomendada: no guardar la contraseña, solo permitir restablecimiento.
-// * En este código, password_data se almacena tal cual se recibe (solo para demo, NO USAR EN PRODUCCIÓN).
-// ===============================================================
-
-// ===============================================================
-// * Funciones controladoras para cada endpoint de cuentas de email
-// ===============================================================
+// * Importo la función query para ejecutar consultas a la base de datos
+const { query } = require('../config/db');
 
 // * [GET] /api/cuentas-email - Trae todas las cuentas de email con JOINs a empleados y status
 const getAllCuentasEmail = async (req, res, next) => {
   try {
-    // * Consulta SQL con JOINs para traer toda la info relevante de cada cuenta
-    // * Incluye password_data solo si es necesario (¡cuidado con exponerlo!)
     const sql = `
       SELECT
         ce.id,
@@ -93,9 +74,6 @@ const getCuentaEmailById = async (req, res, next) => {
 // * [POST] /api/cuentas-email - Crea una nueva cuenta de email con validaciones y advertencias de seguridad
 const createCuentaEmail = async (req, res, next) => {
   try {
-    // * Extraigo los datos del body. email es obligatorio, los demás son opcionales
-    // * Valido formato de email y existencia de FKs
-    // * Manejo especial de password_data (ver advertencias de seguridad)
     const {
         email, usuario_email, password_data,
         id_empleado_asignado, id_status, observaciones
@@ -124,7 +102,7 @@ const createCuentaEmail = async (req, res, next) => {
     } else if (id_status === null) {
       return res.status(400).json({ message: 'El campo id_status no puede ser nulo.' });
     }
-    // * Advertencia: password_data se almacena tal cual, sin cifrar (solo para demo)
+    // ! password_data se almacena tal cual, sin cifrar solo demostración
     let passwordToStore = undefined;
     if (password_data !== undefined) {
       passwordToStore = password_data;
@@ -163,7 +141,6 @@ const createCuentaEmail = async (req, res, next) => {
 // * [PUT] /api/cuentas-email/:id - Actualiza una cuenta de email por su ID
 const updateCuentaEmail = async (req, res, next) => {
   try {
-    // * Extraigo el ID y los datos a actualizar
     const { id } = req.params;
     const {
         email, usuario_email, password_data,
@@ -243,7 +220,6 @@ const updateCuentaEmail = async (req, res, next) => {
 // * [DELETE] /api/cuentas-email/:id - Elimina una cuenta de email por su ID
 const deleteCuentaEmail = async (req, res, next) => {
   try {
-    // * Extraigo el ID de la cuenta a eliminar
     const { id } = req.params;
     const sql = 'DELETE FROM cuentas_email_corporativo WHERE id = ?';
     const params = [id];

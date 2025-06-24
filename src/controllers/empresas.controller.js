@@ -5,14 +5,9 @@
 // * Importo la función query para ejecutar consultas a la base de datos personalizada.
 const { query } = require('../config/db');
 
-// ===============================================================
-// * Funciones controladoras para cada endpoint de empresas
-// ===============================================================
-
 // * [GET] /api/empresas - Trae todas las empresas con información de status legible
 const getAllEmpresas = async (req, res, next) => {
   try {
-    // * Consulta SQL con JOIN para traer empresas y su status legible
     const sql = `
       SELECT
         e.id,

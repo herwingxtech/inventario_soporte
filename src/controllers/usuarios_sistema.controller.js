@@ -137,7 +137,7 @@ const createUsuarioSistema = async (req, res, next) => {
 
     // * Hasheo la contraseña antes de guardar
     const password_hash = await bcrypt.hash(password, saltRounds);
-    console.log(`Contraseña hasheada generada para usuario "${username}": ${password_hash}`); // ! Solo para debug, no dejar en producción
+    // console.log(`Contraseña hasheada generada para usuario "${username}": ${password_hash}`); // ! Solo para debug, no dejar en producción
 
     // * Construyo la consulta SQL dinámicamente según los campos presentes
     let sql = 'INSERT INTO usuarios_sistema (username, password_hash, id_rol';
@@ -232,7 +232,7 @@ const updateUsuarioSistema = async (req, res, next) => {
     let password_hash_to_update = undefined;
     if (password !== undefined && password !== null) {
         password_hash_to_update = await bcrypt.hash(password, saltRounds);
-         console.log(`Nueva contraseña hasheada generada para usuario "${username || 'ID:'+id}": ${password_hash_to_update}`); // ! Solo para debug
+        // console.log(`Nueva contraseña hasheada generada para usuario "${username || 'ID:'+id}": ${password_hash_to_update}`); // ! Solo para debug
     }
 
     // * Construyo la consulta UPDATE dinámicamente

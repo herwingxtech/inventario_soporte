@@ -1,6 +1,6 @@
-// public/js/views/asignacionFormView.js
-// * Este módulo se encarga de la lógica para el formulario de creación y edición de Asignaciones.
-// * Es uno de los formularios más complejos debido a las múltiples relaciones que maneja.
+//public/js/views/asignacionFormView.js
+//* Este módulo se encarga de la lógica para el formulario de creación y edición de Asignaciones.
+//* Es uno de los formularios más complejos debido a las múltiples relaciones que maneja.
 
 //? Funciones de API necesarias:
 //? Para CRUD: 'createAsignacion', 'updateAsignacion', 'getAsignacionById'.
@@ -9,53 +9,51 @@ import {
     createAsignacion, updateAsignacion, getAsignacionById,
     getEquipos, getEmpleados, getSucursales, getAreas, getDireccionesIp, getStatuses
 } from '../api.js';
-// * Importo mis funciones de modales para una mejor UX.
+//* Importo mis funciones de modales para una mejor UX.
 import { showInfoModal } from '../ui/modal.js';
 import { showFormLoading } from '../utils/loading.js';
 import { showFormError } from '../utils/error.js';
 
-// * Referencia al contenedor principal donde voy a renderizar este formulario.
+//* Referencia al contenedor principal donde voy a renderizar este formulario.
 const contentArea = document.getElementById('content-area');
 
-// * Cache para los datos de los selects. Esto es para evitar pedir los mismos datos a la API repetidamente.
+//* Cache para los datos de los selects. Esto es para evitar pedir los mismos datos a la API repetidamente.
 let equiposCache = null;
 let empleadosCache = null;
 let sucursalesCache = null;
 let areasCache = null;
 let ipsCache = null;
-let statusesCache = null;  // Para el estado de la asignación.
+let statusesCache = null;  //* Para el estado de la asignación.
 
-// ===============================================================
-// FUNCIONES DE RENDERIZADO DEL FORMULARIO
-// ===============================================================
+//* FUNCIONES DE RENDERIZADO DEL FORMULARIO
 
-// * Muestra un mensaje de carga mientras preparo el formulario o cargo datos para los selects.
+//* Muestra un mensaje de carga mientras preparo el formulario o cargo datos para los selects.
 function showAsignacionFormLoading(action = 'Crear') {
     showFormLoading(action, 'asignación');
 }
 
-// * Muestra un mensaje de error si algo falla al cargar el formulario o al procesar el envío.
+//* Muestra un mensaje de error si algo falla al cargar el formulario o al procesar el envío.
 function showAsignacionFormError(message, action = 'procesar') {
     showFormError(action, 'asignación', message, () => showAsignacionForm());
 }
 
-// * Renderiza el formulario HTML para crear o editar una Asignación.
-// * `asignacionToEdit` es opcional; si se proporciona (y no es solo un ID), el formulario se llena para edición.
+//* Renderiza el formulario HTML para crear o editar una Asignación.
+//* `asignacionToEdit` es opcional; si se proporciona (y no es solo un ID), el formulario se llena para edición.
 async function renderAsignacionForm(asignacionToEdit = null) {
-    // * Determino si estoy editando y cuál es el ID.
-    // * `asignacionToEdit` puede ser el objeto completo o solo el ID (string/number) si se cargó previamente.
+    //* Determino si estoy editando y cuál es el ID.
+    //* `asignacionToEdit` puede ser el objeto completo o solo el ID (string/number) si se cargó previamente.
     const asignacionId = typeof asignacionToEdit === 'string' ? asignacionToEdit : (asignacionToEdit && asignacionToEdit.id);
     console.log('Herwing está renderizando el formulario de Asignación. Editando ID:', asignacionId || 'Nueva');
     const isEditing = asignacionId !== null;
     const formTitle = isEditing ? `Editar Asignación (ID: ${asignacionId})` : 'Registrar Nueva Asignación';
 
-    // * Si estoy editando y `asignacionToEdit` es solo el ID (o no se pasó el objeto completo),
-    // * necesito obtener los datos completos de la asignación para rellenar el formulario.
+    //* Si estoy editando y `asignacionToEdit` es solo el ID (o no se pasó el objeto completo),
+    //* necesito obtener los datos completos de la asignación para rellenar el formulario.
     let currentAsignacionData = null;
-    if (isEditing && (typeof asignacionToEdit === 'string' || !asignacionToEdit.numero_serie /*Chequeo heurístico si es objeto completo*/)) {
+    if (isEditing && (typeof asignacionToEdit === 'string' || !asignacionToEdit.numero_serie)) {
         try {
             currentAsignacionData = await getAsignacionById(asignacionId);
-            // * Si la API envuelve la respuesta, la extraigo.
+            //* Si la API envuelve la respuesta, la extraigo.
             if (currentAsignacionData && (currentAsignacionData.data || currentAsignacionData.asignacion)) {
                 currentAsignacionData = currentAsignacionData.data || currentAsignacionData.asignacion;
             }
@@ -68,91 +66,91 @@ async function renderAsignacionForm(asignacionToEdit = null) {
             return;
         }
     } else if (isEditing) {
-        currentAsignacionData = asignacionToEdit; // Ya tengo el objeto completo.
+        currentAsignacionData = asignacionToEdit; //* Ya tengo el objeto completo.
     }
 
 
-    showAsignacionFormLoading(isEditing ? 'Editar' : 'Crear'); // Muestro carga mientras obtengo datos de los selects.
+    showAsignacionFormLoading(isEditing ? 'Editar' : 'Crear'); //* Muestro carga mientras obtengo datos de los selects.
 
     try {
-        // * Obtengo los datos para todos los selects si aún no los tengo en caché.
+        //* Obtengo los datos para todos los selects si aún no los tengo en caché.
         if (!equiposCache) equiposCache = await getEquipos();
         if (!empleadosCache) empleadosCache = await getEmpleados();
         if (!sucursalesCache) sucursalesCache = await getSucursales();
-        if (!areasCache) areasCache = await getAreas(); // Podría filtrar por sucursal corporativa.
-        if (!ipsCache) ipsCache = await getDireccionesIp(); // Debería filtrar por IPs con status 'Disponible'.
-        if (!statusesCache) statusesCache = await getStatuses(); // Para el status de la asignación.
+        if (!areasCache) areasCache = await getAreas(); //* Podría filtrar por sucursal corporativa.
+        if (!ipsCache) ipsCache = await getDireccionesIp(); //* Debería filtrar por IPs con status 'Disponible'.
+        if (!statusesCache) statusesCache = await getStatuses(); //* Para el status de la asignación.
 
-        // * Lógica para filtrar los equipos para el select principal 'id_equipo':
-        // * 1. Incluir siempre el equipo actualmente asignado si estamos editando.
-        // * 2. Incluir todos los equipos cuyo status sea 'Disponible'.
+        //* Lógica para filtrar los equipos para el select principal 'id_equipo':
+        //* 1. Incluir siempre el equipo actualmente asignado si estamos editando.
+        //* 2. Incluir todos los equipos cuyo status sea 'Disponible'.
         let equiposParaSelect = [];
         const currentAsignacionEquipoId = currentAsignacionData ? currentAsignacionData.id_equipo : null;
 
         if (isEditing && currentAsignacionEquipoId) {
-            // Si estamos editando y hay un equipo asignado, lo añadimos primero.
+            //* Si estamos editando y hay un equipo asignado, lo añadimos primero.
             const assignedEquipo = equiposCache.find(eq => eq.id === currentAsignacionEquipoId);
             if (assignedEquipo) {
                 equiposParaSelect.push(assignedEquipo);
             }
         }
 
-        // Ahora, añade los equipos disponibles (asegúrate de no duplicar si el equipo asignado ya era disponible).
-        // Se asume que el objeto Equipo de la API tiene una propiedad 'status_nombre' o 'nombre_status'.
+        //* Ahora, añade los equipos disponibles (asegúrate de no duplicar si el equipo asignado ya era disponible).
+        //* Se asume que el objeto Equipo de la API tiene una propiedad 'status_nombre' o 'nombre_status'.
         const availableEquipos = equiposCache.filter(eq => 
             (eq.status_nombre === 'Disponible' || eq.nombre_status === 'Disponible')
         );
 
-        // Combina y quita duplicados (en caso de que el equipo asignado también fuera "Disponible")
+        //* Combina y quita duplicados (en caso de que el equipo asignado también fuera "Disponible")
         availableEquipos.forEach(eq => {
             if (!equiposParaSelect.some(existingEq => existingEq.id === eq.id)) {
                 equiposParaSelect.push(eq);
             }
         });
 
-        // Opcional: Ordenar los equipos para una mejor presentación (por número de serie o nombre)
+        //* Opcional: Ordenar los equipos para una mejor presentación (por número de serie o nombre)
         equiposParaSelect.sort((a, b) => (a.numero_serie || '').localeCompare(b.numero_serie || ''));
 
 
-        // * Preparo la lista de equipos para el select de "Equipo Padre".
+        //* Preparo la lista de equipos para el select de "Equipo Padre".
         let equiposParaPadre = equiposCache;
         if (isEditing && currentAsignacionData && currentAsignacionData.id_equipo) {
-            // * Si estoy editando, filtro para que el equipo padre no sea el mismo que el 'id_equipo' de esta asignación.
+            //* Si estoy editando, filtro para que el equipo padre no sea el mismo que el 'id_equipo' de esta asignación.
             equiposParaPadre = equiposCache.filter(eq => eq.id !== currentAsignacionData.id_equipo);
         }
-        // * Para el modo CREACIÓN, no puedo saber qué 'id_equipo' se seleccionará hasta que el usuario lo haga.
-        // * Por ahora, en modo creación, el select de "Equipo Padre" mostrará todos los equipos.
+        //* Para el modo CREACIÓN, no puedo saber qué 'id_equipo' se seleccionará hasta que el usuario lo haga.
+        //* Por ahora, en modo creación, el select de "Equipo Padre" mostrará todos los equipos.
         //TODO: Implementar un listener en el select 'id_equipo' para actualizar dinámicamente las opciones de 'id_equipo_padre'.
 
-        // * Lógica para filtrar las IPs para el select 'id_ip':
-        // * 1. Incluir siempre la IP actualmente asignada si estamos editando.
-        // * 2. Incluir todas las IPs cuyo status sea 'Disponible'.
+        //* Lógica para filtrar las IPs para el select 'id_ip':
+        //* 1. Incluir siempre la IP actualmente asignada si estamos editando.
+        //* 2. Incluir todas las IPs cuyo status sea 'Disponible'.
         let ipsParaSelect = [];
         const currentAsignacionIpId = currentAsignacionData ? currentAsignacionData.id_ip : null;
 
         if (isEditing && currentAsignacionIpId) {
-            // Si estamos editando y hay una IP asignada, la añadimos primero.
+            //* Si estamos editando y hay una IP asignada, la añadimos primero.
             const assignedIp = ipsCache.find(ip => ip.id === currentAsignacionIpId);
             if (assignedIp) {
                 ipsParaSelect.push(assignedIp);
             }
         }
 
-        // Ahora, añade las IPs disponibles (asegúrate de no duplicar si la IP asignada ya era disponible).
-        // Se asume que el objeto IP de la API tiene una propiedad 'status_nombre' o 'nombre_status'.
+        //* Ahora, añade las IPs disponibles (asegúrate de no duplicar si la IP asignada ya era disponible).
+        //* Se asume que el objeto IP de la API tiene una propiedad 'status_nombre' o 'nombre_status'.
         const availableIps = ipsCache.filter(ip => 
             (ip.status_nombre === 'Disponible' || ip.nombre_status === 'Disponible')
         );
 
-        // Combina y quita duplicados (en caso de que la IP asignada también fuera "Disponible")
+        //* Combina y quita duplicados (en caso de que la IP asignada también fuera "Disponible")
         availableIps.forEach(ip => {
             if (!ipsParaSelect.some(existingIp => existingIp.id === ip.id)) {
                 ipsParaSelect.push(ip);
             }
         });
 
-        // * Función de comparación personalizada para IPs
-        // * Divide la IP en sus octetos y compara numéricamente cada parte.
+        //* Función de comparación personalizada para IPs
+        //* Divide la IP en sus octetos y compara numéricamente cada parte.
         function compareIps(ipA, ipB) {
             const partsA = ipA.direccion_ip.split('.').map(Number);
             const partsB = ipB.direccion_ip.split('.').map(Number);
@@ -161,14 +159,14 @@ async function renderAsignacionForm(asignacionToEdit = null) {
                 if (partsA[i] < partsB[i]) return -1;
                 if (partsA[i] > partsB[i]) return 1;
             }
-            return 0; // IPs son iguales
+            return 0; //* IPs son iguales
         }
 
-        // Opcional: Ordenar las IPs para una mejor presentación
+       //* Ordenar las IPs para una mejor presentación
         ipsParaSelect.sort(compareIps);
 
 
-        // * Limpio el área de contenido y construyo el HTML del formulario.
+        //* Limpio el área de contenido y construyo el HTML del formulario.
         contentArea.innerHTML = `
           <h2 class="text-2xl font-bold text-gray-800 mb-6">${formTitle}</h2>
           <form id="asignacionForm" class="space-y-6 bg-white p-8 rounded-lg shadow-md">
@@ -244,7 +242,7 @@ async function renderAsignacionForm(asignacionToEdit = null) {
                   <select id="id_ip" name="id_ip"
                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                       <option value="">Ninguna (o DHCP)</option>
-                      ${ipsParaSelect // Usamos el array ipsParaSelect ya filtrado y ordenado
+                      ${ipsParaSelect //* Usamos el array ipsParaSelect ya filtrado y ordenado
                         .map(ip => `<option value="${ip.id}" ${isEditing && currentAsignacionData && currentAsignacionData.id_ip === ip.id ? 'selected' : ''}>${ip.direccion_ip} (${ip.status_nombre || ip.nombre_status || 'N/A'})</option>`).join('')}
                   </select>
               </div>
@@ -306,16 +304,16 @@ async function renderAsignacionForm(asignacionToEdit = null) {
           </form>
       `;
 
-        // * Añado el event listener al formulario.
+        //* Añado el event listener al formulario.
         document.getElementById('asignacionForm').addEventListener('submit', (event) => handleAsignacionFormSubmit(event, asignacionId));
-        // * Listener para el botón Cancelar.
+        //* Listener para el botón Cancelar.
         document.getElementById('cancelAsignacionForm').addEventListener('click', async () => {
             await showInfoModal({
                 title: 'Cancelado',
                 message: 'El formulario de Asignacion ha sido cancelado.'
             });
             if (typeof window.navigateTo === 'function') {
-                window.navigateTo('asignacionesList'); // Regreso a la lista de Asignaciones.
+                window.navigateTo('asignacionesList'); //* Regreso a la lista de Asignaciones.
             } else {
                 contentArea.innerHTML = '<p>Operación cancelada.</p>';
             }
@@ -323,7 +321,7 @@ async function renderAsignacionForm(asignacionToEdit = null) {
 
 
         //TODO: Implementar listeners para actualizar dinámicamente el select de "Área Asignada"
-        //      cuando cambie la "Sucursal Asignada", para mostrar solo áreas de esa sucursal.
+        //TODO: Cuando cambie la "Sucursal Asignada", para mostrar solo áreas de esa sucursal.
         //TODO: Similarmente, el select de IPs podría filtrarse por sucursal si se selecciona una.
 
     } catch (error) {
@@ -332,42 +330,40 @@ async function renderAsignacionForm(asignacionToEdit = null) {
     }
 }
 
-// ===============================================================
-// MANEJO DEL ENVÍO DEL FORMULARIO
-// ===============================================================
+//* MANEJO DEL ENVÍO DEL FORMULARIO
 async function handleAsignacionFormSubmit(event, editingId = null) {
     event.preventDefault();
     const form = event.target;
     const formData = new FormData(form);
     const asignacionData = {};
 
-    // * Convierto FormData a un objeto, manejando valores vacíos y numéricos.
+    //* Convierto FormData a un objeto, manejando valores vacíos y numéricos.
     for (let [key, value] of formData.entries()) {
         if (['id_equipo', 'id_empleado', 'id_sucursal_asignado', 'id_area_asignado', 'id_equipo_padre', 'id_ip', 'id_status_asignacion'].includes(key)) {
-            asignacionData[key] = value ? parseInt(value, 10) : null; // Si está vacío, envío null.
+            asignacionData[key] = value ? parseInt(value, 10) : null; //* Si está vacío, envío null.
         } else if (key === 'fecha_asignacion' || key === 'fecha_fin_asignacion') {
-            // * El input datetime-local devuelve "YYYY-MM-DDTHH:mm". MySQL espera "YYYY-MM-DD HH:mm:ss".
-            // * Si el valor está vacío, lo mandamos como null.
+            //* El input datetime-local devuelve "YYYY-MM-DDTHH:mm". MySQL espera "YYYY-MM-DD HH:mm:ss".
+            //* Si el valor está vacío, lo mandamos como null.
             if (value) {
                 let formattedDate = value.replace('T', ' ');
-                // Aseguro que tenga segundos si no los tiene el input.
+                //* Aseguro que tenga segundos si no los tiene el input.
                 if (formattedDate.length === 16) formattedDate += ':00';
                 asignacionData[key] = formattedDate;
             } else {
                 asignacionData[key] = null;
             }
         } else {
-            // Para campos de texto como 'observacion', si está vacío, enviar null.
+            //* Para campos de texto como 'observacion', si está vacío, enviar null.
             asignacionData[key] = value.trim() === '' ? null : value;
         }
     }
 
-    // * Validaciones básicas en frontend (el backend también validará).
+    //* Validaciones básicas en frontend (el backend también validará).
     if (!asignacionData.id_equipo || !asignacionData.fecha_asignacion || !asignacionData.id_status_asignacion) {
         document.getElementById('form-error-message').textContent = 'Equipo, Fecha de Asignación y Estado de Asignación son obligatorios.';
         return;
     }
-    // * Validación de "al menos una asociación" para activas (fecha_fin_asignacion es null).
+    //* Validación de "al menos una asociación" para activas (fecha_fin_asignacion es null).
     const isCreatingOrUpdatingToActive = !asignacionData.fecha_fin_asignacion;
     if (isCreatingOrUpdatingToActive && !asignacionData.id_empleado && !asignacionData.id_sucursal_asignado && !asignacionData.id_area_asignado) {
         document.getElementById('form-error-message').textContent = 'Para una asignación activa, debe asociarse a un empleado, sucursal o área.';
@@ -383,15 +379,15 @@ async function handleAsignacionFormSubmit(event, editingId = null) {
             await updateAsignacion(editingId, asignacionData);
             responseMessage = `Asignación con ID ${editingId} actualizada exitosamente.`;
         } else {
-            const nuevaAsignacion = await createAsignacion(asignacionData); // La API devuelve el objeto creado.
+            const nuevaAsignacion = await createAsignacion(asignacionData); //* La API devuelve el objeto creado.
             responseMessage = `Asignación (ID: ${nuevaAsignacion.id}) para el equipo ID ${nuevaAsignacion.id_equipo} registrada exitosamente.`;
         }
         console.log(responseMessage);
-        // * Uso mi modal de información.
+        //* Uso mi modal de información.
         await showInfoModal({ title: 'Operación Exitosa', message: responseMessage });
 
         if (typeof window.navigateTo === 'function') {
-            window.navigateTo('asignacionesList'); // Navego a la lista después del éxito.
+            window.navigateTo('asignacionesList'); //* Navego a la lista después del éxito.
         }
 
     } catch (error) {
@@ -400,28 +396,26 @@ async function handleAsignacionFormSubmit(event, editingId = null) {
         if (errorDiv) {
             errorDiv.textContent = error.message || 'Ocurrió un error desconocido.';
         } else {
-            // Fallback si el div de error no está, uso mi modal.
+            //* Fallback si el div de error no está, uso mi modal.
             await showInfoModal({ title: 'Error', message: error.message || 'Ocurrió un error desconocido al procesar el formulario.' });
         }
     }
 }
 
-// ===============================================================
-// FUNCIÓN PRINCIPAL DE CARGA DE LA VISTA DEL FORMULARIO
-// Esta será llamada desde main.js. `params` puede ser el ID si se edita.
-// ===============================================================
+//* FUNCIÓN PRINCIPAL DE CARGA DE LA VISTA DEL FORMULARIO
+//* Esta será llamada desde main.js. `params` puede ser el ID si se edita.
 async function showAsignacionForm(params = null) {
-    // * El ID de la asignación puede venir como string (de la URL) o como parte de un objeto.
+    //* El ID de la asignación puede venir como string (de la URL) o como parte de un objeto.
     const asignacionId = typeof params === 'string' ? params : (params && params.id);
-    console.log('Herwing va a mostrar el formulario de Asignación. ID para editar:', asignacionId);
+    console.log('Mostrando el formulario de Asignación. ID para editar:', asignacionId);
 
-    let asignacionToEdit = null; // * Variable para los datos si estoy editando.
+    let asignacionToEdit = null; //* Variable para los datos si estoy editando.
     if (asignacionId) {
-        // * Si hay ID, estoy editando. Primero, obtengo los datos de la asignación.
+        //* Si hay ID, estoy editando. Primero, obtengo los datos de la asignación.
         showAsignacionFormLoading('Editar');
         try {
             asignacionToEdit = await getAsignacionById(asignacionId);
-            // * Si la API envuelve la respuesta (ej. { data: asignacion }), la extraigo.
+            //* Si la API envuelve la respuesta (ej. { data: asignacion }), la extraigo.
             if (asignacionToEdit && (asignacionToEdit.data || asignacionToEdit.asignacion)) {
                 asignacionToEdit = asignacionToEdit.data || asignacionToEdit.asignacion;
             }
@@ -434,24 +428,23 @@ async function showAsignacionForm(params = null) {
             return;
         }
     } else {
-        // * Si no hay ID, estoy creando una nueva asignación.
+        //* Si no hay ID, estoy creando una nueva asignación.
         showAsignacionFormLoading('Crear');
     }
 
-    // Limpiar caches para forzar recarga de datos actualizados.
-    // Especialmente importante para Equipos e IPs cuyos estados pueden cambiar.
+    //* Limpiar caches para forzar recarga de datos actualizados.
+    //* Especialmente importante para Equipos e IPs cuyos estados pueden cambiar.
+    //* Generalmente los empleados no cambian de estado tan a menudo, pero para ser seguros.
     equiposCache = null;
-    empleadosCache = null; // Generalmente los empleados no cambian de estado tan a menudo, pero para ser seguros.
+    empleadosCache = null; 
     sucursalesCache = null;
     areasCache = null;
     ipsCache = null;
     statusesCache = null;
 
-    // * Renderizo el formulario (vacío o con datos para editar).
-    await renderAsignacionForm(asignacionToEdit); // Paso el objeto completo o null.
+    //* Renderizo el formulario (vacío o con datos para editar).
+    //* Paso el objeto completo o null.
+    await renderAsignacionForm(asignacionToEdit); 
 }
 
-// ===============================================================
-// EXPORTAR FUNCIONES DE LA VISTA
-// ===============================================================
 export { showAsignacionForm };

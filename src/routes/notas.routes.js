@@ -30,5 +30,4 @@ router.put('/:id', notasController.updateNota);
 // * [DELETE] /api/notas/:id - Elimina una nota por su ID
 router.delete('/:id', notasController.deleteNota);
 
-// Exportamos el router.
 module.exports = router;

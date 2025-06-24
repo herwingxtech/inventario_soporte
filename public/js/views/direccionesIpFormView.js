@@ -1,5 +1,5 @@
-// public/js/views/direccionIpFormView.js
-// * Este módulo se encarga de la lógica para el formulario de creación y edición de Direcciones IP.
+//public/js/views/direccionIpFormView.js
+//* Este módulo se encarga de la lógica para el formulario de creación y edición de Direcciones IP.
 
 //? Funciones de API necesarias: 'createDireccionIp', 'updateDireccionIp', 'getDireccionIpById'.
 //? Para poblar selects: 'getSucursales', 'getStatuses'.
@@ -11,32 +11,30 @@ import {
   getStatuses
 } from '../api.js';
 
-import { showInfoModal } from '../ui/modal.js'; // Asumo que showInfoModal existe aquí.
+import { showInfoModal } from '../ui/modal.js'; //* Asumo que showInfoModal existe aquí.
 import { showFormLoading } from '../utils/loading.js';
 import { showFormError } from '../utils/error.js';
-// * Referencia al contenedor principal donde se renderizará este formulario.
+//* Referencia al contenedor principal donde se renderizará este formulario.
 const contentArea = document.getElementById('content-area');
 
-// * Cache para los datos de los selects.
+//* Cache para los datos de los selects.
 let sucursalesCache = null;
 let statusesCache = null;
 
-// ===============================================================
-// FUNCIONES DE RENDERIZADO DEL FORMULARIO
-// ===============================================================
+//* FUNCIONES DE RENDERIZADO DEL FORMULARIO
 
-// * Muestra un mensaje de carga mientras se prepara el formulario.
+//* Muestra un mensaje de carga mientras se prepara el formulario.
 function showDireccionIpFormLoading(action = 'Crear') {
   showFormLoading(action, 'dirección IP');
 }
 
-// * Muestra un mensaje de error si algo falla al cargar el formulario o al procesar el envío.
+//* Muestra un mensaje de error si algo falla al cargar el formulario o al procesar el envío.
 function showDireccionIpFormError(message, action = 'procesar') {
   showFormError(action, 'dirección IP', message, () => showDireccionIpForm());
 }
 
-// * Renderiza el formulario HTML para crear o editar una Dirección IP.
-// * `ipToEdit` es opcional. Si se proporciona, el formulario se llena para edición.
+//* Renderiza el formulario HTML para crear o editar una Dirección IP.
+//* `ipToEdit` es opcional. Si se proporciona, el formulario se llena para edición.
 async function renderDireccionIpForm(ipToEdit = null) {
   const ipId = typeof ipToEdit === 'string' ? ipToEdit : (ipToEdit && ipToEdit.id);
   console.log('Herwing está renderizando el formulario de Dirección IP. Editando ID:', ipId || 'Nueva');
@@ -62,7 +60,7 @@ async function renderDireccionIpForm(ipToEdit = null) {
   showDireccionIpFormLoading(isEditing ? 'Editar' : 'Crear');
 
   try {
-      // * Obtengo los datos para los selects si aún no los tengo cacheados.
+      //* Obtengo los datos para los selects si aún no los tengo cacheados.
       if (!sucursalesCache) {
           sucursalesCache = await getSucursales();
       }
@@ -70,7 +68,7 @@ async function renderDireccionIpForm(ipToEdit = null) {
           statusesCache = await getStatuses();
       }
 
-      // * Limpio el área de contenido y construyo el HTML del formulario.
+      //* Limpio el área de contenido y construyo el HTML del formulario.
       contentArea.innerHTML = `
           <h2 class="text-2xl font-bold text-gray-800 mb-6">${formTitle}</h2>
           <form id="direccionIpForm" class="space-y-6 bg-white p-8 rounded-lg shadow-md">
@@ -124,16 +122,16 @@ async function renderDireccionIpForm(ipToEdit = null) {
           </form>
       `;
 
-      // * Añado el event listener al formulario.
+      //* Añado el event listener al formulario.
       document.getElementById('direccionIpForm').addEventListener('submit', (event) => handleDireccionIpFormSubmit(event, ipId));
-      // * Listener para el botón Cancelar.
+      //* Listener para el botón Cancelar.
       document.getElementById('cancelDireccionIpForm').addEventListener('click', async () => {
         await showInfoModal({
             title: 'Cancelado',
             message: 'El formulario de Dirección IP ha sido cancelado.'
         });
            if (typeof window.navigateTo === 'function') {
-               window.navigateTo('direccionesIpList'); // Regreso a la lista de IPs.
+               window.navigateTo('direccionesIpList'); //* Regreso a la lista de IPs.
            } else {
                contentArea.innerHTML = '<p>Operación cancelada.</p>';
            }
@@ -146,13 +144,11 @@ async function renderDireccionIpForm(ipToEdit = null) {
 }
 
 
-// ===============================================================
-// MANEJO DEL ENVÍO DEL FORMULARIO
-// ===============================================================
+//* MANEJO DEL ENVÍO DEL FORMULARIO
 
-// * Maneja el evento 'submit' del formulario de Dirección IP.
-// * `editingId` es el ID de la IP si se está editando, o null si es nueva.
-// * Maneja el evento 'submit' del formulario de Dirección IP.
+//* Maneja el evento 'submit' del formulario de Dirección IP.
+//* `editingId` es el ID de la IP si se está editando, o null si es nueva.
+//* Maneja el evento 'submit' del formulario de Dirección IP.
 async function handleDireccionIpFormSubmit(event, editingId = null) {
     event.preventDefault();
     const form = event.target;
@@ -190,28 +186,28 @@ async function handleDireccionIpFormSubmit(event, editingId = null) {
             console.log(responseMessage);
         }
 
-        // * Uso mi modal de información para el mensaje de éxito.
+        //* Uso mi modal de información para el mensaje de éxito.
         await showInfoModal({
             title: 'Operación Exitosa',
             message: responseMessage
         });
 
-        // * Después de éxito, navego de vuelta a la lista de IPs.
+        //* Después de éxito, navego de vuelta a la lista de IPs.
         if (typeof window.navigateTo === 'function') {
             window.navigateTo('direccionesIpList');
         } else {
-             // Esto es un fallback si navigateTo no está disponible.
+             //* Esto es un fallback si navigateTo no está disponible.
             contentArea.innerHTML = `<p class="text-green-500">${responseMessage} Por favor, navega manualmente a la lista.</p>`;
         }
 
     } catch (error) {
         console.error('Error al enviar el formulario de Dirección IP:', error);
-        // * Muestro el error en el div del formulario, pero también podría usar showInfoModal.
+        //* Muestro el error en el div del formulario, pero también podría usar showInfoModal.
         const errorMessageDiv = document.getElementById('form-error-message');
         if (errorMessageDiv) {
             errorMessageDiv.textContent = error.message || 'Ocurrió un error desconocido.';
         } else {
-            // Fallback si el div no existe, uso mi modal de info para el error.
+            //* Fallback si el div no existe, uso mi modal de info para el error.
             await showInfoModal({
                 title: 'Error',
                 message: error.message || 'Ocurrió un error desconocido al procesar el formulario.'
@@ -221,9 +217,7 @@ async function handleDireccionIpFormSubmit(event, editingId = null) {
 }
 
 
-// ===============================================================
-// FUNCIÓN PRINCIPAL DE CARGA DE LA VISTA DEL FORMULARIO
-// ===============================================================
+//* FUNCIÓN PRINCIPAL DE CARGA DE LA VISTA DEL FORMULARIO
 async function showDireccionIpForm(params = null) {
   const ipId = typeof params === 'string' ? params : (params && params.id);
   console.log('Herwing va a mostrar el formulario de Dirección IP. ID para editar:', ipId);
@@ -233,7 +227,7 @@ async function showDireccionIpForm(params = null) {
       showDireccionIpFormLoading('Editar');
       try {
           ipToEdit = await getDireccionIpById(ipId);
-          if (ipToEdit && (ipToEdit.data || ipToEdit.direccion_ip)) { // Ajuste por si la API envuelve la respuesta
+          if (ipToEdit && (ipToEdit.data || ipToEdit.direccion_ip)) { //* Ajuste por si la API envuelve la respuesta
               ipToEdit = ipToEdit.data || ipToEdit;
           }
           if (!ipToEdit) {
@@ -251,7 +245,4 @@ async function showDireccionIpForm(params = null) {
   await renderDireccionIpForm(ipToEdit);
 }
 
-// ===============================================================
-// EXPORTAR FUNCIONES DE LA VISTA
-// ===============================================================
 export { showDireccionIpForm };

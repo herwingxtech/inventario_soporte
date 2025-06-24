@@ -1,6 +1,5 @@
-// public/js/views/equiposView.js
+//public/js/views/equiposView.js
 // * Usando Grid.js y Delegación de Eventos para las acciones.
-// import { esES } from "gridjs/l10n"; // Eliminado, ahora usamos el global del CDN
 import { getEquipos, deleteEquipo } from '../api.js';
 import { showConfirmationModal, showInfoModal } from '../ui/modal.js';
 import { showListLoading } from '../utils/loading.js';
@@ -8,7 +7,7 @@ import { showListError } from '../utils/error.js';
 
 const contentArea = document.getElementById('content-area');
 let equiposGridInstance = null;
-let gridContainerGlobal = null; // Para acceder al contenedor del grid desde el listener.
+let gridContainerGlobal = null; //* Para acceder al contenedor del grid desde el listener.
 
 function renderEquiposListViewLayout() {
     contentArea.innerHTML = '';
@@ -22,13 +21,12 @@ function renderEquiposListViewLayout() {
     const createButton = document.createElement('button');
     createButton.classList.add('bg-blue-500', 'hover:bg-blue-600', 'text-white', 'font-bold', 'py-2', 'px-4', 'rounded');
     createButton.textContent = 'Nuevo Equipo';
-    createButton.dataset.view = 'equipoForm'; // Para que el listener global de main.js lo maneje
-    // Ya no necesitamos un listener específico aquí si main.js maneja [data-view]
-    // createButton.addEventListener('click', () => { ... });
+    createButton.dataset.view = 'equipoForm'; //* Para que el listener global de main.js lo maneje
+
     createButtonContainer.appendChild(createButton);
     contentArea.appendChild(createButtonContainer);
 
-    // Responsive wrapper
+    //* Responsive wrapper
     const responsiveDiv = document.createElement('div');
     responsiveDiv.className = 'overflow-x-auto w-full';
     const gridContainer = document.createElement('div');
@@ -52,11 +50,11 @@ function showEquiposError(message, container) {
 // * Función para formatear la celda de acciones en Grid.js
 // * Ahora añadimos atributos data-* para la delegación de eventos.
 function formatActionsCell(cell, row) {
-    const equipoId = row.cells[0].data; // Asumo que ID es la primera columna.
-    const equipoNumeroSerie = row.cells[1].data; // Asumo que Número Serie es la segunda.
+    const equipoId = row.cells[0].data; //! Asumimos que ID es la primera columna.
+    const equipoNumeroSerie = row.cells[1].data; //! Asumimos que Número Serie es la segunda.
 
-    // Usamos template literals para construir el HTML de los botones con data-attributes.
-    // `gridjs.html()` es necesario para que Grid.js interprete esto como HTML.
+    //* Usamos template literals para construir el HTML de los botones con data-attributes.
+    //* `gridjs.html()` es necesario para que Grid.js interprete esto como HTML.
     return gridjs.html(`
         <div class="flex items-center justify-center space-x-2">
             <button title="Ver Detalles del Equipo"
@@ -90,7 +88,7 @@ function handleGridActions(event) {
     const equipoNumeroSerie = button.dataset.numeroSerie;
 
 
-    console.log(`Herwing - Acción detectada: ${action} para equipo ID: ${equipoId}`);
+    console.log(`Acción detectada: ${action} para equipo ID: ${equipoId}`);
 
     if (action === 'view') {
         if (typeof window.navigateTo === 'function') {
@@ -114,7 +112,6 @@ function handleGridActions(event) {
                     await showInfoModal({ title: 'Éxito', message: 'Equipo eliminado correctamente.'});
                     // * Para refrescar Grid.js, la forma más simple si los datos son locales
                     // * es forzar una nueva carga de la vista de lista.
-                    // * Si la paginación/búsqueda fuera en servidor, se necesitaría una estrategia más fina.
                     if (typeof window.navigateTo === 'function') {
                         window.navigateTo('equiposList'); // Recarga la vista actual
                     }
@@ -122,19 +119,19 @@ function handleGridActions(event) {
                     await showInfoModal({ title: 'Error', message: `Error al eliminar el equipo: ${error.message}`});
                 }
             }
-        })(); // IIFE para poder usar async/await dentro del listener síncrono.
+        })();
     }
 }
 
 
 async function loadEquiposList() {
-    console.log('Herwing está cargando la vista de lista de equipos con Grid.js...');
+    console.log('Cargando la vista de lista de equipos con Grid.js...');
     const gridContainer = renderEquiposListViewLayout();
     showEquiposLoading(gridContainer);
 
     try {
         const equipos = await getEquipos();
-        gridContainer.innerHTML = ''; // Limpio el mensaje de carga.
+        gridContainer.innerHTML = '';
 
         if (!equipos || equipos.length === 0) {
             showEquiposError('No hay equipos registrados en el inventario.', gridContainer);
@@ -163,7 +160,7 @@ async function loadEquiposList() {
                     name: 'Acciones',
                     sort: false,
                     width: '120px',
-                    formatter: formatActionsCell // Mi función formatter
+                    formatter: formatActionsCell
                 }
             ],
             data: equipos.map(eq => [
@@ -174,7 +171,7 @@ async function loadEquiposList() {
                 eq.nombre_sucursal_actual || 'N/A',
                 eq.nombre_empresa || 'N/A',
                 eq.status_nombre || 'N/A',
-                null // La columna de acciones no necesita un valor de datos aquí, el formatter lo genera.
+                null
             ]),
             search: true,
             pagination: {
@@ -183,18 +180,7 @@ async function loadEquiposList() {
                 summary: true
             },
             sort: true,
-            style: { /* ... (tus estilos de Tailwind para Grid.js) ... */
-                table: 'min-w-full bg-white border-gray-200 shadow-md rounded-lg',
-                thead: 'bg-gray-200',
-                th: 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200',
-                tbody: 'text-gray-600 text-sm font-light',
-                tr: 'border-b border-gray-200 hover:bg-gray-100',
-                td: 'px-6 py-4 whitespace-nowrap',
-                footer: 'p-4 bg-gray-50 border-t border-gray-200',
-                search: 'p-2 mb-4 border border-gray-300 rounded-md w-full sm:w-auto',
-                paginationButton: 'mx-1 px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-100',
-                paginationButtonCurrent: 'bg-blue-500 text-white border-blue-500',
-                paginationSummary: 'text-sm text-gray-700'
+            style: { 
             },
             language: window.gridjs.l10n.esES
         }).render(gridContainer);
@@ -206,7 +192,7 @@ async function loadEquiposList() {
         gridContainer.removeEventListener('click', handleGridActions); // Quito listener previo si existe
         gridContainer.addEventListener('click', handleGridActions);   // Añado el nuevo listener
 
-        console.log('Herwing renderizó la tabla de equipos con Grid.js y delegación de eventos.');
+        console.log('Renderizando la tabla de equipos con Grid.js y delegación de eventos.');
 
     } catch (error) {
         console.error('Error al cargar o renderizar equipos con Grid.js:', error);

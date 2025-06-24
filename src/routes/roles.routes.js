@@ -10,7 +10,6 @@ const rolesController = require('../controllers/roles.controller');
 
 // ===============================================================
 // DEFINICIÓN DE RUTAS
-// Asociamos cada ruta HTTP a su función controladora correspondiente.
 // Estas rutas se montarán bajo el prefijo /api/roles en server.js.
 // ===============================================================
 
@@ -29,6 +28,4 @@ router.put('/:id', rolesController.updateRole);
 // * [DELETE] /api/roles/:id - Elimina un rol por su ID (no debe eliminarse si está en uso)
 router.delete('/:id', rolesController.deleteRole);
 
-// Exportamos el objeto router.
-// Esto permite que sea importado y "montado" por el archivo principal del servidor (server.js).
 module.exports = router;

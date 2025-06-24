@@ -1,4 +1,4 @@
-// public/js/views/equipoFormView.js
+//public/js/views/equipoFormView.js
 // * Este módulo maneja la lógica para el formulario de creación y edición de Equipos.
 
 import { createEquipo, getTiposEquipo, getSucursales, getStatuses, getEquipoById, updateEquipo } from '../api.js';
@@ -12,9 +12,7 @@ let tiposEquipoCache = null;
 let sucursalesCache = null;
 let statusesCache = null;
 
-// ===============================================================
-// FUNCIONES DE RENDERIZADO DEL FORMULARIO
-// ===============================================================
+//* FUNCIONES DE RENDERIZADO DEL FORMULARIO
 
 function showEquipoFormLoading(action = 'Crear') {
     showFormLoading(action, 'equipo');
@@ -25,7 +23,7 @@ function showEquipoFormError(message, action = 'procesar') {
 }
 
 // * Renderiza el formulario HTML para crear o editar un equipo.
-// * AHORA deshabilita el select de estado si es un estado gestionado automáticamente.
+// * Deshabilita el select de estado si es un estado gestionado automáticamente.
 async function renderEquipoForm(equipoToEdit = null) {
     const equipoId = typeof equipoToEdit === 'string' ? equipoToEdit : (equipoToEdit && equipoToEdit.id);
     const isEditing = equipoId !== null;
@@ -197,15 +195,10 @@ async function handleEquipoFormSubmit(event, editingId = null) {
     }
 }
 
-// ===============================================================
-// FUNCIÓN PRINCIPAL DE CARGA DE LA VISTA DEL FORMULARIO
-// ===============================================================
+//* FUNCIÓN PRINCIPAL DE CARGA DE LA VISTA DEL FORMULARIO
 async function showEquipoForm(params = null) {
     const equipoId = typeof params === 'string' ? params : (params && params.id);
     await renderEquipoForm(equipoId); // Pasamos solo el ID, la función se encarga del resto.
 }
 
-// ===============================================================
-// EXPORTAR FUNCIONES DE LA VISTA
-// ===============================================================
 export { showEquipoForm };

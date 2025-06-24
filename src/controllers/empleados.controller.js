@@ -6,14 +6,9 @@
 // * Importo la función query para ejecutar consultas a la base de datos
 const { query } = require('../config/db');
 
-// ===============================================================
-// * Funciones controladoras para cada endpoint de empleados
-// ===============================================================
-
 // * [GET] /api/empleados - Trae todos los empleados con información de sucursal, área y status (pueden ser NULL)
 const getAllEmpleados = async (req, res, next) => {
   try {
-    // * Consulta SQL con LEFT JOIN para traer empleados y sus relaciones (sucursal y área pueden ser NULL)
     const sql = `
       SELECT
         e.id,

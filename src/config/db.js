@@ -31,7 +31,7 @@ const query = async (sql, params) => {
 
 const getConnection = async () => {
   const connection = await pool.getConnection();
-  console.log('Herwing obtuvo una conexión del pool.'); // Para depuración
+  console.log('Herwing obtuvo una conexión del pool.'); // ! Para depuración
   return connection;
 };
 

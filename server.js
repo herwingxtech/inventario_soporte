@@ -57,8 +57,8 @@ app.use('/api/auth', authRoutes);
 
 // * Middleware de Protección JWT
 // ! Todas las rutas definidas DESPUÉS de esta línea requerirán un token JWT válido.
-app.use('/api', protect); // Aplico el middleware a todas las rutas que comiencen con /api.
-
+// ! Aplico el middleware a todas las rutas que comiencen con /api.
+app.use('/api', protect); 
 // TODO: Aquí se montan las rutas principales de la API
 // * Cada entidad tiene su propio archivo de rutas
 app.use('/api/status', statusRoutes); // * Estado
@@ -77,7 +77,7 @@ app.use('/api/mantenimientos', mantenimientosRoutes); // * Mantenimientos
 app.use('/api/notas/', notasRoutes); // * Notas
 app.use('/api/asignaciones/', asignacionesRoutes); // * Asignaciones
 
-// Middleware para rutas limpias de SPA: sirve index.html para cualquier ruta que no sea API ni archivo estático
+// ? Middleware para rutas limpias de SPA: sirve index.html para cualquier ruta que no sea API ni archivo estático
 const path = require('path');
 app.get(/^\/(?!api\/|.*\..*$).*/, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));

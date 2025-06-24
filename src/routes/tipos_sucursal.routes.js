@@ -10,7 +10,6 @@ const tiposSucursalController = require('../controllers/tipos_sucursal.controlle
 
 // ===============================================================
 // DEFINICIÓN DE RUTAS
-// Asociamos cada ruta HTTP a su función controladora correspondiente.
 // Estas rutas se montarán bajo el prefijo /api/tipos-sucursal en server.js.
 // ===============================================================
 

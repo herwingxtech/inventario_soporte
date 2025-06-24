@@ -1,4 +1,4 @@
-// public/js/views/notasList.js
+//public/js/views/notasList.js
 // * Este módulo se encarga de toda la lógica para la vista de listado
 // * de los registros de Notas.
 

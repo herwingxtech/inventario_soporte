@@ -1,9 +1,9 @@
-// public/js/views/empleadoFormView.js
+//public/js/views/empleadoFormView.js
 // * Este módulo se encarga de la lógica para el formulario de creación y edición de Empleados.
 
-//? Funciones de API necesarias:
-//? Para CRUD: 'createEmpleado', 'updateEmpleado', 'getEmpleadoById'.
-//? Para poblar selects: 'getEmpresas', 'getSucursales', 'getAreas', 'getRoles', 'getStatuses'.
+//* Funciones de API necesarias:
+//* Para CRUD: 'createEmpleado', 'updateEmpleado', 'getEmpleadoById'.
+//* Para poblar selects: 'getEmpresas', 'getSucursales', 'getAreas', 'getRoles', 'getStatuses'.
 import {
     createEmpleado,
     updateEmpleado,
@@ -26,10 +26,6 @@ const contentArea = document.getElementById('content-area');
 let sucursalesCache = null;
 let areasCache = null;
 let statusesCache = null;
-
-// ===============================================================
-// FUNCIONES DE RENDERIZADO DEL FORMULARIO
-// ===============================================================
 
 // * Muestra un mensaje de carga mientras se prepara el formulario.
 function showEmpleadoFormLoading(action = 'Crear') {
@@ -64,7 +60,7 @@ async function renderEmpleadoForm(empleadoToEdit = null) {
             return;
         }
     } else if (isEditing) {
-        currentEmpleadoData = empleadoToEdit; // Ya tenemos el objeto completo.
+        currentEmpleadoData = empleadoToEdit; //* Ya tenemos el objeto completo.
     }
 
 
@@ -75,13 +71,14 @@ async function renderEmpleadoForm(empleadoToEdit = null) {
         if (!sucursalesCache) {
             sucursalesCache = await getSucursales();
         }
-        //? ¿Debería filtrar las áreas según la sucursal seleccionada dinámicamente? Por ahora, muestro todas.
+        //TODO: Filtrar las áreas según la sucursal seleccionada dinámicamente por ahora, muestro todas.
         //TODO: Implementar carga dinámica de áreas si decido filtrar por sucursal.
         if (!areasCache) {
-            areasCache = await getAreas(); // Esto trae todas las áreas.
+            areasCache = await getAreas(); //* Esto trae todas las áreas.
         }
         if (!statusesCache) {
-            statusesCache = await getStatuses();
+            statusesCache = await getStatuses(); //* Esto trae todos los estados.
+        
         }
 
         // * Limpio el área de contenido y construyo el HTML del formulario.
@@ -217,10 +214,7 @@ async function renderEmpleadoForm(empleadoToEdit = null) {
     }
 }
 
-
-// ===============================================================
-// MANEJO DEL ENVÍO DEL FORMULARIO
-// ===============================================================
+//* MANEJO DEL ENVÍO DEL FORMULARIO
 
 // * Maneja el evento 'submit' del formulario de empleado.
 // * `editingId` es el ID del empleado si se está editando, o null si es nuevo.
@@ -235,12 +229,12 @@ async function handleEmpleadoFormSubmit(event, editingId = null) {
     for (let [key, value] of formData.entries()) {
         // * IDs y campos que deben ser numéricos (si no están vacíos).
         if (['id_sucursal', 'id_area', 'id_status'].includes(key)) {
-            empleadoData[key] = value ? parseInt(value, 10) : null; // Convertir a número o dejar null si está vacío.
+            empleadoData[key] = value ? parseInt(value, 10) : null; //! Convertir a número o dejar null si está vacío.
         } else if (value.trim() === '' && ['numero_empleado', 'email_personal', 'telefono', 'puesto', 'fecha_nacimiento', 'fecha_ingreso'].includes(key)) {
             // * Campos opcionales que si vienen vacíos, quiero que sean null en la API.
             empleadoData[key] = null;
         } else {
-            empleadoData[key] = value; // Para nombres, apellidos, etc. (el backend validará si son obligatorios).
+            empleadoData[key] = value; //! Para nombres, apellidos el backend validará si son obligatorios.
         }
     }
 
@@ -258,7 +252,7 @@ async function handleEmpleadoFormSubmit(event, editingId = null) {
         let responseMessage = '';
         if (editingId) {
             // * Estamos editando un equipo existente.
-            await updateEmpleado(editingId, empleadoData); // Llamo a la función de API para actualizar.
+            await updateEmpleado(editingId, empleadoData); //* Llamo a la función de API para actualizar.
             responseMessage = `Empleado con ID ${editingId} actualizado exitosamente.`;
             console.log(responseMessage);
             await showInfoModal({
@@ -267,7 +261,7 @@ async function handleEmpleadoFormSubmit(event, editingId = null) {
             });
         } else {
             // * Estamos creando un nuevo equipo.
-            const nuevoEmpleado = await createEmpleado(empleadoData); // Llamo a la función de API para crear.
+            const nuevoEmpleado = await createEmpleado(empleadoData); //* Llamo a la función de API para crear.
             responseMessage = `Empleado "${nuevoEmpleado.nombres} ${nuevoEmpleado.apellidos} " (ID: ${nuevoEmpleado.id}) creado exitosamente.`;
             console.log(responseMessage);
             await showInfoModal({
@@ -275,14 +269,7 @@ async function handleEmpleadoFormSubmit(event, editingId = null) {
                 message: responseMessage
             });
         }
-
-        //TODO: Mostrar un mensaje de éxito más elegante (ej. un toast/modal).
-
-        //TODO: Decidir a dónde navegar después de un éxito (ej. a la lista de equipos).
-        // navigateTo('equiposList');
-             // Aquí llamaríamos a la función para cargar la lista de equipos.
-             // Esto es un placeholder hasta que implementemos la navegación completa con main.js.
-              // * Después de éxito, navego de vuelta a la lista de empleados.
+        // * Después de éxito, navego de vuelta a la lista de empleados.
         if (typeof window.navigateTo === 'function') {
             window.navigateTo('empleadosList');
         } else {
@@ -297,12 +284,10 @@ async function handleEmpleadoFormSubmit(event, editingId = null) {
     }
 }
 
+//* FUNCIÓN PRINCIPAL DE CARGA DE LA VISTA DEL FORMULARIO
+//* Esta función será llamada desde main.js.
+//* `params` puede ser el ID del empleado si se está editando.
 
-// ===============================================================
-// FUNCIÓN PRINCIPAL DE CARGA DE LA VISTA DEL FORMULARIO
-// Esta función será llamada desde main.js.
-// `params` puede ser el ID del empleado si se está editando.
-// ===============================================================
 async function showEmpleadoForm(params = null) {
     // * El ID del empleado puede venir como un string (directamente de la URL) o como parte de un objeto.
     const empleadoId = typeof params === 'string' ? params : (params && params.id);
@@ -314,7 +299,7 @@ async function showEmpleadoForm(params = null) {
         showEmpleadoFormLoading('Editar');
         try {
             empleadoToEdit = await getEmpleadoById(empleadoId);
-            // Si la API envuelve la respuesta (ej. { data: empleado }), la extraigo.
+            //* Si la API envuelve la respuesta (ej. { data: empleado }), la extraigo.
             if (empleadoToEdit && (empleadoToEdit.data || empleadoToEdit.empleado)) {
                 empleadoToEdit = empleadoToEdit.data || empleadoToEdit.empleado;
             }
@@ -333,11 +318,7 @@ async function showEmpleadoForm(params = null) {
     }
 
     // * Renderizo el formulario (vacío o con datos para editar).
-    await renderEmpleadoForm(empleadoToEdit); // Paso el objeto completo o null
+    await renderEmpleadoForm(empleadoToEdit); //* Paso el objeto completo o null
 }
 
-
-// ===============================================================
-// EXPORTAR FUNCIONES DE LA VISTA
-// ===============================================================
 export { showEmpleadoForm };

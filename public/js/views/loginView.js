@@ -1,4 +1,4 @@
-// public/js/views/loginView.js
+//public/js/views/loginView.js
 // * Lógica para la vista de Login.
 
 import { login } from '../api.js'; // Necesito la función de login de mi API.
@@ -53,8 +53,11 @@ function renderLoginForm() {
         </div>
     `;
 
-    // Añado el listener al formulario.
-    document.getElementById('loginForm').addEventListener('submit', handleLoginSubmit);
+    // Añado el listener al formulario SOLO si existe.
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLoginSubmit);
+    }
 }
 
 // * Maneja el envío del formulario de login.

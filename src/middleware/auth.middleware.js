@@ -24,11 +24,11 @@ const protect = (req, res, next) => {
                 roleId: decoded.roleId
             };
             
-            console.log(`Herwing - Middleware: Token válido para usuario ID ${req.user.userId}. Petición autorizada.`);
+            console.log(`Middleware: Token válido para usuario ID ${req.user.userId}. Petición autorizada.`);
             next(); // * Permito que la petición continúe a la ruta solicitada.
 
         } catch (error) {
-            console.error('Herwing - Middleware: Token inválido o expirado.', error.message);
+            console.error('Middleware: Token inválido o expirado.', error.message);
             // Si hay un error en la verificación, el usuario no está autorizado.
             return res.status(401).json({ message: 'No autorizado, token falló.' });
         }
@@ -36,7 +36,7 @@ const protect = (req, res, next) => {
 
     // * Si no hay token en el encabezado, el usuario no está autorizado.
     if (!token) {
-        console.warn('Herwing - Middleware: Petición sin token.');
+        console.warn('Middleware: Petición sin token.');
         return res.status(401).json({ message: 'No autorizado, no hay token.' });
     }
 };

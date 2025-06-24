@@ -1,7 +1,6 @@
-// public/js/views/equipoDetailsView.js
+//public/js/views/equipoDetailsView.js
 // * Este módulo maneja la lógica para mostrar los detalles de un equipo específico.
 
-//? ¿Qué funciones de API necesito? 'getEquipoById'
 import { getEquipoById } from '../api.js';
 import { showDetailsLoading } from '../utils/loading.js';
 import { showDetailsError } from '../utils/error.js';
@@ -9,9 +8,7 @@ import { showDetailsError } from '../utils/error.js';
 // * Referencia al contenedor principal donde se renderizará esta vista.
 const contentArea = document.getElementById('content-area');
 
-// ===============================================================
-// FUNCIONES DE RENDERIZADO ESPECÍFICAS DE ESTA VISTA
-// ===============================================================
+//* FUNCIONES DE RENDERIZADO ESPECÍFICAS DE ESTA VISTA
 
 // * Muestra un mensaje de carga mientras se obtienen los detalles del equipo.
 function showEquipoDetailsLoading(equipoId) {
@@ -25,7 +22,7 @@ function showEquipoDetailsError(message) {
 
 // * Renderiza la vista de detalles del equipo.
 function renderEquipoDetails(equipo) {
-    contentArea.innerHTML = ''; // Limpio cualquier contenido previo.
+    contentArea.innerHTML = ''; //* Limpio cualquier contenido previo.
 
     if (!equipo) {
         showEquipoDetailsError('No se encontraron datos para este equipo.');
@@ -45,15 +42,15 @@ function renderEquipoDetails(equipo) {
     // * Función auxiliar para crear un par de etiqueta-valor.
     function createDetailItem(label, value) {
         const itemDiv = document.createElement('div');
-        itemDiv.classList.add('py-2', 'sm:grid', 'sm:grid-cols-3', 'sm:gap-4', 'sm:px-0'); // Estilo de definición
+        itemDiv.classList.add('py-2', 'sm:grid', 'sm:grid-cols-3', 'sm:gap-4', 'sm:px-0'); //* Estilo de definición
 
-        const dt = document.createElement('dt'); // Etiqueta
+        const dt = document.createElement('dt'); //* Etiqueta
         dt.classList.add('text-sm', 'font-medium', 'text-gray-500');
         dt.textContent = label;
 
-        const dd = document.createElement('dd'); // Valor
+        const dd = document.createElement('dd'); //* Valor
         dd.classList.add('mt-1', 'text-sm', 'text-gray-900', 'sm:mt-0', 'sm:col-span-2');
-        dd.textContent = value || 'N/A'; // Muestro N/A si el valor es nulo o vacío.
+        dd.textContent = value || 'N/A'; //* Muestro N/A si el valor es nulo o vacío.
 
         itemDiv.appendChild(dt);
         itemDiv.appendChild(dd);
@@ -64,10 +61,10 @@ function renderEquipoDetails(equipo) {
     detailsContainer.appendChild(createDetailItem('ID', equipo.id));
     detailsContainer.appendChild(createDetailItem('Número de Serie', equipo.numero_serie));
     detailsContainer.appendChild(createDetailItem('Nombre del Equipo (Alias)', equipo.nombre_equipo));
-    detailsContainer.appendChild(createDetailItem('Tipo de Equipo', equipo.nombre_tipo_equipo)); // Del JOIN
+    detailsContainer.appendChild(createDetailItem('Tipo de Equipo', equipo.nombre_tipo_equipo)); //* Del JOIN
     detailsContainer.appendChild(createDetailItem('Marca', equipo.marca));
     detailsContainer.appendChild(createDetailItem('Modelo', equipo.modelo));
-    detailsContainer.appendChild(createDetailItem('Sucursal Actual', equipo.nombre_sucursal_actual)); // Del JOIN
+    detailsContainer.appendChild(createDetailItem('Sucursal Actual', equipo.nombre_sucursal_actual)); //* Del JOIN
     detailsContainer.appendChild(createDetailItem('Procesador', equipo.procesador));
     detailsContainer.appendChild(createDetailItem('RAM', equipo.ram));
     detailsContainer.appendChild(createDetailItem('Disco Duro', equipo.disco_duro));
@@ -81,7 +78,7 @@ function renderEquipoDetails(equipo) {
     detailsContainer.appendChild(createDetailItem('Fecha de Compra', fechaCompraFormateada));
     detailsContainer.appendChild(createDetailItem('Fecha de Registro', fechaRegistroFormateada));
     detailsContainer.appendChild(createDetailItem('Última Actualización', fechaActualizacionFormateada));
-    detailsContainer.appendChild(createDetailItem('Estado', equipo.status_nombre)); // Del JOIN
+    detailsContainer.appendChild(createDetailItem('Estado', equipo.status_nombre)); //* Del JOIN
     detailsContainer.appendChild(createDetailItem('Otras Características / Notas', equipo.otras_caracteristicas));
 
 
@@ -95,7 +92,7 @@ function renderEquipoDetails(equipo) {
     editButton.classList.add('px-4', 'py-2', 'border', 'border-yellow-500', 'text-yellow-600', 'rounded-md', 'hover:bg-yellow-50');
     editButton.textContent = 'Editar Equipo';
     editButton.addEventListener('click', () => {
-        // Navegar al formulario de edición
+        //* Navegar al formulario de edición
         if (typeof window.navigateTo === 'function') {
             window.navigateTo('equipoForm', String(equipo.id));
         }
@@ -105,7 +102,7 @@ function renderEquipoDetails(equipo) {
     backToListButton.classList.add('px-4', 'py-2', 'border', 'border-gray-300', 'rounded-md', 'text-gray-700', 'hover:bg-gray-50');
     backToListButton.textContent = 'Volver a la Lista';
     backToListButton.addEventListener('click', () => {
-        // Navegar de vuelta a la lista de equipos
+        //* Navegar de vuelta a la lista de equipos
         if (typeof window.navigateTo === 'function') {
             window.navigateTo('equiposList');
         }
@@ -120,13 +117,11 @@ function renderEquipoDetails(equipo) {
 }
 
 
-// ===============================================================
-// FUNCIÓN PRINCIPAL DE CARGA DE LA VISTA DE DETALLES
-// `params` debe contener `{ id: equipoId }`.
-// ===============================================================
+//* FUNCIÓN PRINCIPAL DE CARGA DE LA VISTA DE DETALLES
+//* `params` debe contener `{ id: equipoId }`.
 export async function showEquipoDetails(params) {
     console.log('Herwing va a mostrar los detalles de un equipo. Parámetros:', params);
-    // Extraer el ID del parámetro. Si params es un string, usarlo directamente; si es un objeto, extraer params.id.
+    //! Extraer el ID del parámetro. Si params es un string, usarlo directamente; si es un objeto, extraer params.id.
     const equipoId = typeof params === 'string' ? params : (params && params.id);
     if (!equipoId) {
         console.error('No se proporcionó un ID de equipo para mostrar los detalles.');

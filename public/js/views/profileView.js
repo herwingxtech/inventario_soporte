@@ -1,12 +1,12 @@
 function loadProfileView() {
     const contentArea = document.getElementById('content-area');
-    // Obtener datos del usuario desde localStorage
+    //* Obtener datos del usuario desde localStorage
     const userData = JSON.parse(localStorage.getItem('userData'));
     if (!userData) {
         contentArea.innerHTML = `<div class="text-red-500">No hay datos de usuario disponibles.</div>`;
         return;
     }
-    // Renderizar la vista de perfil
+    //* Renderizar la vista de perfil
     contentArea.innerHTML = `
         <div class="max-w-md mx-auto bg-white rounded-xl shadow-md p-8 mt-8">
             <h2 class="text-2xl font-bold mb-4 text-center">Perfil de Usuario</h2>

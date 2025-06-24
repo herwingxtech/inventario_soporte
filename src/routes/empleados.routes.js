@@ -10,7 +10,6 @@ const empleadosController = require('../controllers/empleados.controller');
 
 // ===============================================================
 // DEFINICIÓN DE RUTAS
-// Asociamos cada ruta HTTP a su función controladora correspondiente.
 // Estas rutas se montarán bajo el prefijo /api/empleados en server.js.
 // ===============================================================
 

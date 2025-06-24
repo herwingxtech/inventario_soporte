@@ -1,17 +1,14 @@
-// public/js/views/asignacionDetailsView.js
-// * Este módulo maneja la lógica para mostrar los detalles de una Asignación específica.
+//public/js/views/asignacionDetailsView.js
+//* Este módulo maneja la lógica para mostrar los detalles de una Asignación específica.
 
-//? ¿Qué función de API necesito? 'getAsignacionById'.
 import { getAsignacionById } from '../api.js';
 import { showDetailsLoading } from '../utils/loading.js';
 import { showDetailsError } from '../utils/error.js';
 
-// * Referencia al contenedor principal.
+//* Referencia al contenedor principal.
 const contentArea = document.getElementById('content-area');
 
-// ===============================================================
-// FUNCIONES DE RENDERIZADO ESPECÍFICAS DE ESTA VISTA
-// ===============================================================
+//* FUNCIONES DE RENDERIZADO ESPECÍFICAS DE ESTA VISTA
 
 function showAsignacionDetailsLoading(asignacionId) {
     showDetailsLoading('Asignación', asignacionId);
@@ -91,7 +88,7 @@ function renderAsignacionDetails(asignacion) {
     editButton.classList.add('px-4', 'py-2', 'border', 'border-yellow-500', 'text-yellow-600', 'rounded-md', 'hover:bg-yellow-50');
     editButton.textContent = 'Editar Asignación';
     
-    // Deshabilitar si el estado es "Finalizado"
+    //* Deshabilitar si el estado es "Finalizado"
     if (asignacion.status_nombre && asignacion.status_nombre.toLowerCase() === 'finalizado') {
         editButton.disabled = true;
         editButton.classList.add('opacity-50', 'cursor-not-allowed');
@@ -120,9 +117,7 @@ function renderAsignacionDetails(asignacion) {
     console.log('Herwing renderizó los detalles de la Asignación.');
 }
 
-// ===============================================================
-// FUNCIÓN PRINCIPAL DE CARGA DE LA VISTA DE DETALLES
-// ===============================================================
+//* FUNCIÓN PRINCIPAL DE CARGA DE LA VISTA DE DETALLES
 async function showAsignacionDetails(params) {
     const asignacionId = typeof params === 'string' ? params : (params && params.id);
     console.log('Herwing va a mostrar los detalles de una Asignación. ID:', asignacionId);
@@ -144,7 +139,4 @@ async function showAsignacionDetails(params) {
     }
 }
 
-// ===============================================================
-// EXPORTAR FUNCIONES DE LA VISTA
-// ===============================================================
 export { showAsignacionDetails };

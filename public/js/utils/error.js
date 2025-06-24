@@ -1,17 +1,17 @@
 // public/js/utils/error.js
-// * Módulo utilitario para manejar errores de manera consistente en toda la aplicación
+//// * Módulo utilitario para manejar errores de manera consistente en toda la aplicación
 
 /**
- * Muestra un error con diseño atractivo y opciones de acción
- * @param {HTMLElement} container - Contenedor donde mostrar el error
- * @param {string} title - Título del error
- * @param {string} message - Mensaje detallado del error
- * @param {Object} options - Opciones adicionales
- * @param {string} options.action - Acción que falló (ej: 'cargar', 'guardar', 'eliminar')
- * @param {string} options.resource - Recurso afectado (ej: 'asignaciones', 'empleados')
- * @param {string} options.backRoute - Ruta para el botón "Volver"
- * @param {Function} options.onRetry - Función para reintentar la acción
- */
+// * Muestra un error con diseño atractivo y opciones de acción
+// * @param {HTMLElement} container - Contenedor donde mostrar el error
+// * @param {string} title - Título del error
+// * @param {string} message - Mensaje detallado del error
+// * @param {Object} options - Opciones adicionales
+// * @param {string} options.action - Acción que falló (ej: 'cargar', 'guardar', 'eliminar')
+// * @param {string} options.resource - Recurso afectado (ej: 'asignaciones', 'empleados')
+// * @param {string} options.backRoute - Ruta para el botón "Volver"
+// * @param {Function} options.onRetry - Función para reintentar la acción
+// */
 export function showError(container, title, message, options = {}) {
     const target = container || document.getElementById('content-area');
     const { action = 'procesar', resource = 'datos', backRoute, onRetry } = options;
@@ -63,13 +63,13 @@ export function showError(container, title, message, options = {}) {
 }
 
 /**
- * Muestra un error para listas de datos
- * @param {HTMLElement} container - Contenedor donde mostrar el error
- * @param {string} resource - Recurso que falló al cargar
- * @param {string} message - Mensaje detallado del error
- * @param {string} backRoute - Ruta para volver
- * @param {Function} onRetry - Función para reintentar
- */
+// * Muestra un error para listas de datos
+// * @param {HTMLElement} container - Contenedor donde mostrar el error
+// * @param {string} resource - Recurso que falló al cargar
+// * @param {string} message - Mensaje detallado del error
+// * @param {string} backRoute - Ruta para volver
+// * @param {Function} onRetry - Función para reintentar
+// */
 export function showListError(container, resource, message, backRoute = null, onRetry = null) {
     showError(container, `Error al cargar ${resource}`, message, {
         action: 'cargar',
@@ -80,12 +80,12 @@ export function showListError(container, resource, message, backRoute = null, on
 }
 
 /**
- * Muestra un error para formularios
- * @param {string} action - Acción que falló (Crear/Editar)
- * @param {string} resource - Recurso que se estaba procesando
- * @param {string} message - Mensaje detallado del error
- * @param {Function} onRetry - Función para reintentar
- */
+// * Muestra un error para formularios
+// * @param {string} action - Acción que falló (Crear/Editar)
+// * @param {string} resource - Recurso que se estaba procesando
+// * @param {string} message - Mensaje detallado del error
+// * @param {Function} onRetry - Función para reintentar
+// */
 export function showFormError(action, resource, message, onRetry = null) {
     showError(null, `Error al ${action.toLowerCase()} ${resource}`, message, {
         action: action.toLowerCase(),
@@ -95,13 +95,13 @@ export function showFormError(action, resource, message, onRetry = null) {
 }
 
 /**
- * Muestra un error para detalles
- * @param {string} resource - Recurso del que se cargaban los detalles
- * @param {string|number} id - ID del recurso
- * @param {string} message - Mensaje detallado del error
- * @param {string} backRoute - Ruta para volver
- * @param {Function} onRetry - Función para reintentar
- */
+// * Muestra un error para detalles
+// * @param {string} resource - Recurso del que se cargaban los detalles
+// * @param {string|number} id - ID del recurso
+// * @param {string} message - Mensaje detallado del error
+// * @param {string} backRoute - Ruta para volver
+// * @param {Function} onRetry - Función para reintentar
+// */
 export function showDetailsError(resource, id, message, backRoute = null, onRetry = null) {
     showError(null, `Error al cargar detalles del ${resource}`, message, {
         action: 'cargar',
@@ -112,10 +112,10 @@ export function showDetailsError(resource, id, message, backRoute = null, onRetr
 }
 
 /**
- * Muestra un error simple sin botones de acción
- * @param {HTMLElement} container - Contenedor donde mostrar el error
- * @param {string} message - Mensaje del error
- */
+// * Muestra un error simple sin botones de acción
+// * @param {HTMLElement} container - Contenedor donde mostrar el error
+// * @param {string} message - Mensaje del error
+// */
 export function showSimpleError(container, message) {
     const target = container || document.getElementById('content-area');
     target.innerHTML = `

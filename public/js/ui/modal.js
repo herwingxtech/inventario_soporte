@@ -245,13 +245,13 @@ function closeCurrentModal() {
     if (currentModalOverlay) {
         const cancelButton = currentModalOverlay.querySelector('#confirmationModalCancel');
         if (cancelButton) {
-            // Simulo un clic en cancelar para activar la lógica de cierre y resolución de promesa.
-            // Esto es un poco un hack, idealmente la función closeModalAndResolve sería más independiente.
-            // O, si no hay promesa que resolver, simplemente lo removemos.
-            // Por ahora, para el modal de confirmación, simular cancelar está bien.
+            //* Simulo un clic en cancelar para activar la lógica de cierre y resolución de promesa.
+            //* Esto es un poco un hack, idealmente la función closeModalAndResolve sería más independiente.
+            //* O, si no hay promesa que resolver, simplemente lo removemos.
+            //* Por ahora, para el modal de confirmación, simular cancelar está bien.
             cancelButton.click();
         } else {
-            // Si no es un modal de confirmación (no tiene botón cancelar), simplemente lo quito.
+            //* Si no es un modal de confirmación (no tiene botón cancelar), simplemente lo quito.
              if (body.contains(currentModalOverlay)) {
                 body.removeChild(currentModalOverlay);
             }

@@ -1,4 +1,4 @@
-// public/js/views/mantenimientosView.js
+//public/js/views/mantenimientosView.js
 // * Este módulo se encarga de toda la lógica para la vista de listado
 // * de los registros de Mantenimiento de equipos.
 

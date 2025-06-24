@@ -3,8 +3,8 @@
 // * Aquí gestiono todo lo relacionado con las direcciones IP del inventario: creación, consulta, actualización y eliminación.
 // * Este módulo valida formato de IP, relaciones con sucursales y status, y asegura la integridad de los datos.
 
-const { query } = require('../config/db'); // * Utilizo la función personalizada para consultas a la base de datos.
-
+// * Importo la función query para ejecutar consultas a la base de datos
+const { query } = require('../config/db');
 // ===============================================================
 // * Función de ayuda para validar formato de IPv4/IPv6 (simplificado)
 // * Nota: Solo valida el formato, no garantiza que la IP sea asignable o ruteable.
@@ -13,18 +13,13 @@ function isValidIpAddress(ip) {
     if (!ip || typeof ip !== 'string') return false;
     ip = ip.trim();
     const ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
-    const ipv6Regex = /^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$/i; // Simplificado
+    const ipv6Regex = /^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$/i;
     return ipv4Regex.test(ip) || ipv6Regex.test(ip);
 }
-
-// ===============================================================
-// * Funciones controladoras para cada endpoint de direcciones IP
-// ===============================================================
 
 // * [GET] /api/direcciones-ip - Trae todas las direcciones IP con JOINs a sucursales y status
 const getAllDireccionesIp = async (req, res, next) => {
   try {
-    // * Consulta SQL con JOINs para traer toda la info relevante de cada IP
     const sql = `
       SELECT
         di.id,

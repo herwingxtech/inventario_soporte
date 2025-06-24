@@ -1,15 +1,13 @@
-// public/js/views/empleadosView.js
+//public/js/views/empleadosView.js
 // * Este módulo se encarga de toda la lógica para la vista de listado de Empleados,
 // * utilizando Grid.js para la tabla y delegación de eventos para las acciones.
 
-//? ¿Qué funciones de API necesito? 'getEmpleados', 'deleteEmpleado'.
 import { getEmpleados, deleteEmpleado } from '../api.js';
-// * Importo mis funciones de modales personalizadas.
 import { showConfirmationModal, showInfoModal } from '../ui/modal.js';
 import { showListLoading } from '../utils/loading.js';
 import { showListError } from '../utils/error.js';
 
-// * Referencia al contenedor principal donde se renderizará esta vista.
+
 const contentArea = document.getElementById('content-area');
 let empleadosGridInstance = null; // * Para la instancia del Grid de empleados.
 let gridContainerGlobal = null; // * Contenedor del grid para el listener.
@@ -56,8 +54,8 @@ function showEmpleadosError(message, container) {
 
 // * Formatea la celda de acciones para la tabla de empleados.
 function formatEmpleadosActionsCell(cell, row) {
-    const empleadoId = row.cells[0].data; // Asumo ID es la primera columna.
-    const empleadoNombreCompleto = `${row.cells[2].data || ''} ${row.cells[3].data || ''}`.trim(); // Asumo nombres y apellidos
+    const empleadoId = row.cells[0].data; //* Asumo ID es la primera columna.
+    const empleadoNombreCompleto = `${row.cells[2].data || ''} ${row.cells[3].data || ''}`.trim(); //* Asumo nombres y apellidos
 
     return gridjs.html(`
         <div class="flex items-center justify-center space-x-2">
@@ -129,7 +127,7 @@ async function loadEmpleadosList() {
 
     try {
         const empleados = await getEmpleados();
-        gridContainer.innerHTML = ''; // Limpio carga
+        gridContainer.innerHTML = ''; //* Limpio carga
 
         if (!empleados || empleados.length === 0) {
             showEmpleadosError('No hay empleados registrados.', gridContainer);
@@ -162,25 +160,14 @@ async function loadEmpleadosList() {
                 emp.nombre_empresa || 'N/A',
                 emp.nombre_area || 'N/A',
                 emp.status_nombre || 'N/A',
-                null // Para la celda de acciones
+                null //* Para la celda de acciones
             ]),
             search: true,
             pagination: { enabled: true, limit: 10, summary: true },
             sort: true,
-            style: { /* ... (tus estilos de Tailwind para Grid.js, igual que en equiposView) ... */
-                table: 'min-w-full bg-white border-gray-200 shadow-md rounded-lg',
-                thead: 'bg-gray-200',
-                th: 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200',
-                tbody: 'text-gray-600 text-sm font-light',
-                tr: 'border-b border-gray-200 hover:bg-gray-100',
-                td: 'px-6 py-4 whitespace-nowrap',
-                footer: 'p-4 bg-gray-50 border-t border-gray-200',
-                search: 'p-2 mb-4 border border-gray-300 rounded-md w-full sm:w-auto',
-                paginationButton: 'mx-1 px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-100',
-                paginationButtonCurrent: 'bg-blue-500 text-white border-blue-500',
-                paginationSummary: 'text-sm text-gray-700'
+            style: {
             },
-            language: window.gridjs.l10n.esES // Asumo que el CDN de Grid.js carga l10n
+            language: window.gridjs.l10n.esES
         }).render(gridContainer);
 
         gridContainer.removeEventListener('click', handleEmpleadosGridActions);

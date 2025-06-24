@@ -1,11 +1,7 @@
 // src/controllers/equipos.controller.js
-// * Controlador para manejar las operaciones CRUD de la entidad Equipos.
-
 const { query } = require('../config/db');
 
-// ===============================================================
-// FUNCIONES DE VALIDACIÓN (Ayuda a mantener el código limpio)
-// ===============================================================
+// * FUNCIONES DE VALIDACIÓN para mantener codigo limpio
 function isValidDate(dateString) {
     if (!dateString) return true;
     const regex = /^\d{4}-\d{2}-\d{2}$/;
@@ -16,11 +12,9 @@ function isValidDate(dateString) {
     return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
 }
 
-// ===============================================================
-// FUNCIONES CONTROLADORAS
-// ===============================================================
+// * FUNCIONES CONTROLADORAS para cada endoint de equipos
 
-// [GET] /api/equipos
+// * [GET] /api/equipos
 const getAllEquipos = async (req, res, next) => {
     try {
         const sql = `
@@ -28,15 +22,15 @@ const getAllEquipos = async (req, res, next) => {
             e.id, e.numero_serie, e.nombre_equipo, e.marca, e.modelo,
             e.id_tipo_equipo, te.nombre_tipo AS nombre_tipo_equipo,
             e.id_sucursal_actual, s.nombre AS nombre_sucursal_actual,
-             s.id_empresa, em.nombre AS nombre_empresa,
+            s.id_empresa, em.nombre AS nombre_empresa,
             e.procesador, e.ram, e.disco_duro, e.sistema_operativo, e.mac_address,
             e.otras_caracteristicas, e.fecha_compra, e.fecha_registro, e.fecha_actualizacion,
             e.id_status, st.nombre_status AS status_nombre
           FROM equipos AS e
-         JOIN tipos_equipo AS te ON e.id_tipo_equipo = te.id
-         JOIN sucursales AS s ON e.id_sucursal_actual = s.id
-         JOIN empresas AS em ON s.id_empresa = em.id
-         JOIN status AS st ON e.id_status = st.id
+          JOIN tipos_equipo AS te ON e.id_tipo_equipo = te.id
+          JOIN sucursales AS s ON e.id_sucursal_actual = s.id
+          JOIN empresas AS em ON s.id_empresa = em.id
+          JOIN status AS st ON e.id_status = st.id
         `;
         const equipos = await query(sql);
         res.status(200).json(equipos);
@@ -46,7 +40,7 @@ const getAllEquipos = async (req, res, next) => {
     }
 };
 
-// [GET] /api/equipos/:id
+// * [GET] /api/equipos/:id
 const getEquipoById = async (req, res, next) => {
     try {
         const { id } = req.params;
@@ -75,7 +69,7 @@ const getEquipoById = async (req, res, next) => {
     }
 };
 
-// [POST] /api/equipos
+// * [POST] /api/equipos
 const createEquipo = async (req, res, next) => {
     try {
         const {
@@ -84,20 +78,20 @@ const createEquipo = async (req, res, next) => {
             mac_address, otras_caracteristicas, fecha_compra, id_status
         } = req.body;
 
-        // === Validaciones ===
+        // * === Validaciones ===
         if (!numero_serie || id_tipo_equipo === undefined || id_sucursal_actual === undefined) {
             return res.status(400).json({ message: 'numero_serie, id_tipo_equipo e id_sucursal_actual son obligatorios.' });
         }
         if (numero_serie.trim() === '') return res.status(400).json({ message: 'numero_serie no puede estar vacío.' });
         if (!isValidDate(fecha_compra)) return res.status(400).json({ message: 'Formato de fecha_compra debe ser YYYY-MM-DD.' });
 
-        // ... (tus otras validaciones de FKs para tipo_equipo, sucursal, status) ...
+        // ! otras validaciones de FKs para tipo_equipo, sucursal, status...
 
         let sql = 'INSERT INTO equipos (numero_serie, id_tipo_equipo, id_sucursal_actual';
         const values = [numero_serie, id_tipo_equipo, id_sucursal_actual];
         const placeholders = ['?', '?', '?'];
 
-        // ... (tu lógica para construir el INSERT dinámico) ...
+        // * Lógica para construir el INSERT dinámico
         if (nombre_equipo !== undefined) { sql += ', nombre_equipo'; placeholders.push('?'); values.push(nombre_equipo); }
         if (marca !== undefined) { sql += ', marca'; placeholders.push('?'); values.push(marca); }
         if (modelo !== undefined) { sql += ', modelo'; placeholders.push('?'); values.push(modelo); }
@@ -125,7 +119,7 @@ const createEquipo = async (req, res, next) => {
     }
 };
 
-// [PUT] /api/equipos/:id
+// * [PUT] /api/equipos/:id
 // * Actualiza un equipo. AHORA incluye validación para no cambiar el estado si está asignado o en mantenimiento.
 const updateEquipo = async (req, res, next) => {
     const { id: equipoId } = req.params;
@@ -156,14 +150,14 @@ const updateEquipo = async (req, res, next) => {
                     } else if (estadoActual === STATUS_EN_MANTENIMIENTO) {
                         errorMessage = `El equipo está actualmente "En Mantenimiento". Para liberarlo, debe finalizar el registro de mantenimiento.`;
                     }
-                    return res.status(409).json({ message: errorMessage }); // 409 Conflict
+                    return res.status(409).json({ message: errorMessage }); // ! 409 Conflict
                 }
             }
         }
 
 
-        // === El resto de la lógica de actualización ===
-        // ... (tus otras validaciones de FKs para tipo_equipo, sucursal, etc.) ...
+        // * === El resto de la lógica de actualización ===
+        // ! otras validaciones de FKs para tipo_equipo, sucursal.
         if (updateData.fecha_compra !== undefined && !isValidDate(updateData.fecha_compra)) {
             return res.status(400).json({ message: 'Formato de fecha_compra debe ser YYYY-MM-DD.' });
         }
@@ -190,7 +184,7 @@ const updateEquipo = async (req, res, next) => {
         const result = await query(sqlUpdate, valuesUpdate);
 
         if (result.affectedRows === 0) {
-            // Este caso es raro si la validación de estado pasó, pero es un buen fallback.
+            // ! Este caso es raro si la validación de estado pasó, pero es un buen fallback.
             return res.status(404).json({ message: `Equipo con ID ${equipoId} no encontrado o sin cambios.` });
         }
 
@@ -205,7 +199,7 @@ const updateEquipo = async (req, res, next) => {
     }
 };
 
-// [DELETE] /api/equipos/:id
+// * [DELETE] /api/equipos/:id
 const deleteEquipo = async (req, res, next) => {
     try {
         const { id } = req.params;
@@ -216,7 +210,7 @@ const deleteEquipo = async (req, res, next) => {
         }
         res.status(200).json({ message: `Equipo con ID ${id} eliminado exitosamente.` });
     } catch (error) {
-        console.error(`Herwing - Backend (deleteEquipo): Error para ID ${req.params.id}:`, error);
+        console.error(`Error al eliminar al equipo con ID ${req.params.id}:`, error);
         if (error.code === 'ER_ROW_IS_REFERENCED_2') {
             return res.status(409).json({ message: `No se puede eliminar el equipo con ID ${req.params.id} porque tiene asignaciones asociadas.`, error: error.message });
         }

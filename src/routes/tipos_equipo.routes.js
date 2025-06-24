@@ -10,7 +10,6 @@ const tiposEquipoController = require('../controllers/tipos_equipo.controller');
 
 // ===============================================================
 // DEFINICIÓN DE RUTAS
-// Asociamos cada ruta HTTP a su función controladora correspondiente.
 // Estas rutas se montarán bajo el prefijo /api/tipos-equipo en server.js.
 // ===============================================================
 

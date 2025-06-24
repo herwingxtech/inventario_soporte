@@ -1,9 +1,3 @@
--- -----------------------------------------------------
--- Generado con tu experto guía para tu inventario :)
--- Adaptado para manejar tipos de sucursal y eliminar ubicaciones internas.
--- Asegúrate de usar una base de datos limpia o nueva.
--- -----------------------------------------------------
-
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
@@ -15,10 +9,10 @@
 
 -- -----------------------------------------------------
 -- Schema inventario_soporte
--- Puedes crear un esquema/base de datos específico antes de ejecutar este script
-DROP SCHEMA IF EXISTS `inventario_soporte_test`; -- Descomentar si quieres eliminar la DB existente
+
+DROP SCHEMA IF EXISTS `inventario_soporte_test`; -- Descomentar para eliminar la DB existente
 CREATE SCHEMA IF NOT EXISTS `inventario_soporte_test` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ;
-USE `inventario_soporte_test` ;
+USE `inventario_soporte` ;
 -- -----------------------------------------------------
 
 -- Inicia una transacción
@@ -35,11 +29,8 @@ DROP TABLE IF EXISTS `direcciones_ip`;
 DROP TABLE IF EXISTS `equipos`;
 DROP TABLE IF EXISTS `tipos_equipo`;
 DROP TABLE IF EXISTS `empleados`;
--- Eliminamos ubicaciones_internas como solicitado
--- DROP TABLE IF EXISTS `ubicaciones_internas`; -- Esta tabla ya no existe
-DROP TABLE IF EXISTS `areas`; -- Áreas ahora dependen de Sucursales, así que se dropea antes que Sucursales
+DROP TABLE IF EXISTS `areas`; -- Áreas ahora dependen de Sucursales, así que se elimina antes que Sucursales
 DROP TABLE IF EXISTS `sucursales`;
--- Nueva tabla para tipos de sucursal, dropear antes de sucursales
 DROP TABLE IF EXISTS `tipos_sucursal`;
 DROP TABLE IF EXISTS `empresas`;
 DROP TABLE IF EXISTS `status`;
@@ -55,7 +46,7 @@ CREATE TABLE `status` (
   `nombre_status` VARCHAR(50) NOT NULL UNIQUE,
   `descripcion` VARCHAR(255),
   `fecha_creacion` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `fecha_actualizacion` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP -- Añadido
+  `fecha_actualizacion` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP 
 ) ENGINE = InnoDB;
 
 -- Insertar estados iniciales
@@ -68,13 +59,12 @@ INSERT INTO `status` (`id`, `nombre_status`) VALUES
 -- -----------------------------------------------------
 -- Table `empresas`
 -- Las dos empresas principales
--- Añadimos fecha_actualizacion
 -- -----------------------------------------------------
 CREATE TABLE `empresas` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `nombre` VARCHAR(100) NOT NULL UNIQUE,
   `fecha_registro` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `fecha_actualizacion` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, -- Añadido
+  `fecha_actualizacion` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, 
   `id_status` INT NOT NULL DEFAULT 1,
   CONSTRAINT `fk_empresas_status`
     FOREIGN KEY (`id_status`)
@@ -83,7 +73,7 @@ CREATE TABLE `empresas` (
     ON UPDATE CASCADE
 ) ENGINE = InnoDB;
 
--- Insertar múltiples empresas en una sola sentencia, todas con id_status 1 (Activo)
+
 INSERT INTO `empresas` (`nombre`,`id_status`) VALUES
     ('Tarjetas Moviles Telefonicas', 1),
     ('Lidifon', 1),
@@ -93,15 +83,15 @@ INSERT INTO `empresas` (`nombre`,`id_status`) VALUES
 
 -- -----------------------------------------------------
 -- Table `tipos_sucursal`
--- Nueva tabla para diferenciar tipos de sucursales (Corporativo, Tienda)
+-- Tabla para diferenciar tipos de sucursales (Corporativo, Tienda)
 -- -----------------------------------------------------
 CREATE TABLE `tipos_sucursal` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
-  `nombre_tipo` VARCHAR(50) NOT NULL UNIQUE, -- ej: 'Corporativo', 'Tienda'
+  `nombre_tipo` VARCHAR(50) NOT NULL UNIQUE, -- 'Corporativo', 'Tienda'
   `descripcion` VARCHAR(255)
 ) ENGINE = InnoDB;
 
--- Insertar tipos de sucursal iniciales (asegúrate que los IDs coincidan si son referenciados)
+-- Insertar tipos de sucursal iniciales
 -- 1: Corporativo, 2: Tienda
 INSERT INTO `tipos_sucursal` (`id`, `nombre_tipo`) VALUES
 (1, 'Corporativo'), (2, 'Tienda');
@@ -118,9 +108,9 @@ CREATE TABLE `sucursales` (
   `direccion` VARCHAR(255),
   `numero_telefono` VARCHAR(20),
   `id_empresa` INT NOT NULL,
-  `id_tipo_sucursal` INT NOT NULL, -- Añadido FK a tipos_sucursal
+  `id_tipo_sucursal` INT NOT NULL,
   `fecha_registro` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `fecha_actualizacion` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, -- Añadido
+  `fecha_actualizacion` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, 
   `id_status` INT NOT NULL DEFAULT 1,
   CONSTRAINT `uq_sucursal_nombre_empresa` UNIQUE (`nombre`, `id_empresa`),
   CONSTRAINT `fk_sucursales_empresas`
@@ -128,7 +118,7 @@ CREATE TABLE `sucursales` (
     REFERENCES `empresas` (`id`)
     ON DELETE RESTRICT
     ON UPDATE CASCADE,
-  CONSTRAINT `fk_sucursales_tipos_sucursal` -- Nueva FK
+  CONSTRAINT `fk_sucursales_tipos_sucursal`
     FOREIGN KEY (`id_tipo_sucursal`)
     REFERENCES `tipos_sucursal` (`id`)
     ON DELETE RESTRICT
@@ -140,21 +130,16 @@ CREATE TABLE `sucursales` (
     ON UPDATE CASCADE
 ) ENGINE = InnoDB;
 
--- Eliminamos ubicaciones_internas por solicitud
--- DROP TABLE IF EXISTS `ubicaciones_internas`;
-
-
--- Insertar múltiples sucursales en una sola sentencia
+-- Insertar sucursales 
 INSERT INTO `sucursales` (`nombre`,`direccion`,`numero_telefono`,`id_empresa`,`id_tipo_sucursal`,`id_status`) VALUES
     ('Corporativo TMT Tuxtla', '1a Avenida Norte Poniente #834, Centro, CP 29000, Tuxtla Gutiérrez, Chis.', '9616189200', 1, 1, 1),
     ('Corporativo Lidifon Tuxtla', '1a Avenida Norte Poniente #834, Centro, CP 29000, Tuxtla Gutiérrez, Chis.', '9616189200', 2, 1, 1),
     ('Corporativo TMT Villahermosa', 'Paseo Tabasco 200, Villahermosa, Tab.', '9626255810', 1, 1, 1),
     ('Corporativo TMT Tapachula', '4a. Av. Nte. 70, Los Naranjos, Centro, 30700 Tapachula, Chis.', '9626255810', 1, 1, 1);
 
-
 -- -----------------------------------------------------
 -- Table `areas`
--- Departamentos o áreas, ahora dentro de las SUCURSALES (especialmente corporativas)
+-- Departamentos o áreas, dentro de las SUCURSALES 
 -- Cambiamos id_empresa por id_sucursal y añadimos fecha_actualizacion
 -- -----------------------------------------------------
 CREATE TABLE `areas` (
@@ -165,7 +150,7 @@ CREATE TABLE `areas` (
   `fecha_actualizacion` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `id_status` INT NOT NULL DEFAULT 1,
   CONSTRAINT `uq_area_nombre_empresa` UNIQUE (`nombre`, `id_empresa`),
-  CONSTRAINT `fk_areas_empresas` -- Nombre del CONSTRAINT corregido para reflejar que apunta a 'empresas'
+  CONSTRAINT `fk_areas_empresas` 
     FOREIGN KEY (`id_empresa`)
     REFERENCES `empresas` (`id`)
     ON DELETE CASCADE -- Si se elimina la empresa, se eliminarán sus áreas asociadas
@@ -209,7 +194,6 @@ INSERT INTO `areas` (`nombre`,`id_empresa`,`id_status`) VALUES
 -- -----------------------------------------------------
 -- Table `empleados`
 -- Información de los empleados
--- fecha_actualizacion ya existía
 -- -----------------------------------------------------
 CREATE TABLE `empleados` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -222,8 +206,8 @@ CREATE TABLE `empleados` (
   `fecha_nacimiento` DATE,
   `fecha_ingreso` DATE,
   `id_empresa` INT,
-  `id_sucursal` INT, -- Sigue apuntando a Sucursal (base física o corporativa)
-  `id_area` INT, -- Sigue apuntando a Area (dentro de sucursal corporativa)
+  `id_sucursal` INT, 
+  `id_area` INT, 
   `fecha_actualizacion` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `fecha_registro` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `id_status` INT NOT NULL DEFAULT 1,
@@ -237,7 +221,7 @@ CREATE TABLE `empleados` (
     REFERENCES `sucursales` (`id`)
     ON DELETE SET NULL
     ON UPDATE CASCADE,
-  CONSTRAINT `fk_empleados_areas` -- Ahora apunta a la nueva tabla areas (ligada a sucursal)
+  CONSTRAINT `fk_empleados_areas` 
     FOREIGN KEY (`id_area`)
     REFERENCES `areas` (`id`)
     ON DELETE SET NULL
@@ -351,7 +335,7 @@ CREATE TABLE `tipos_equipo` (
   `nombre_tipo` VARCHAR(100) NOT NULL UNIQUE,
   `descripcion` TEXT,
   `fecha_registro` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `fecha_actualizacion` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP -- Añadido
+  `fecha_actualizacion` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP 
 ) ENGINE = InnoDB;
 
 -- Insertar tipos de equipo iniciales (ejemplos)
@@ -365,7 +349,6 @@ INSERT INTO `tipos_equipo` (`id`, `nombre_tipo`) VALUES
 -- -----------------------------------------------------
 -- Table `equipos`
 -- Tabla unificada para todos los ítems de inventario
--- Eliminamos id_ubicacion_interna_actual, fecha_actualizacion ya existía
 -- -----------------------------------------------------
 CREATE TABLE `equipos` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -375,7 +358,6 @@ CREATE TABLE `equipos` (
   `modelo` VARCHAR(100),
   `id_tipo_equipo` INT NOT NULL,
   `id_sucursal_actual` INT NOT NULL, -- La sucursal donde está físicamente
-  -- Eliminamos id_ubicacion_interna_actual
   `procesador` VARCHAR(100),
   `ram` VARCHAR(50),
   `disco_duro` VARCHAR(50),
@@ -384,7 +366,7 @@ CREATE TABLE `equipos` (
   `otras_caracteristicas` TEXT,
   `fecha_compra` DATE,
   `fecha_registro` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `fecha_actualizacion` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, -- Ya existía
+  `fecha_actualizacion` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, 
   `id_status` INT NOT NULL DEFAULT 1,
   CONSTRAINT `fk_equipos_tipos_equipo`
     FOREIGN KEY (`id_tipo_equipo`)
@@ -407,23 +389,20 @@ CREATE TABLE `equipos` (
 -- -----------------------------------------------------
 -- Table `direcciones_ip`
 -- Gestión de direcciones IP
--- Eliminamos id_ubicacion_interna, fecha_actualizacion ya existía
 -- -----------------------------------------------------
 CREATE TABLE `direcciones_ip` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `direccion_ip` VARCHAR(45) NOT NULL UNIQUE,
-  `id_sucursal` INT, -- Sigue apuntando a Sucursal (donde reside la red/IP)
-  -- Eliminamos id_ubicacion_interna
+  `id_sucursal` INT, 
   `comentario` TEXT,
   `fecha_registro` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `fecha_actualizacion` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, -- Ya existía
+  `fecha_actualizacion` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `id_status` INT NOT NULL DEFAULT 1,
    CONSTRAINT `fk_direcciones_ip_sucursales`
     FOREIGN KEY (`id_sucursal`)
     REFERENCES `sucursales` (`id`)
     ON DELETE SET NULL
     ON UPDATE CASCADE,
-  -- Eliminamos fk_direcciones_ip_ubicaciones_internas
   CONSTRAINT `fk_direcciones_ip_status`
     FOREIGN KEY (`id_status`)
     REFERENCES `status` (`id`)
@@ -713,9 +692,6 @@ CREATE TABLE `asignaciones` (
   `fecha_registro` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `fecha_actualizacion` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `id_status_asignacion` INT NOT NULL DEFAULT 1,
-  -- NOTA: La validación de que SOLO se puede llenar id_sucursal_asignado o id_area_asignado
-  -- (y las reglas sobre tipos de sucursal) DEBE hacerse en el código del backend,
-  -- ya que MySQL no tiene constraints CHECK que soporten esta lógica fácilmente.
   CONSTRAINT `fk_asignaciones_equipos`
     FOREIGN KEY (`id_equipo`)
     REFERENCES `equipos` (`id`)
@@ -726,13 +702,12 @@ CREATE TABLE `asignaciones` (
     REFERENCES `empleados` (`id`)
     ON DELETE SET NULL
     ON UPDATE CASCADE,
-   -- Eliminamos fk_asignaciones_ubicaciones_internas
-   CONSTRAINT `fk_asignaciones_sucursal_asignado` -- Nueva FK
+   CONSTRAINT `fk_asignaciones_sucursal_asignado` 
     FOREIGN KEY (`id_sucursal_asignado`)
     REFERENCES `sucursales` (`id`)
     ON DELETE SET NULL
     ON UPDATE CASCADE,
-   CONSTRAINT `fk_asignaciones_area_asignado` -- Nueva FK
+   CONSTRAINT `fk_asignaciones_area_asignado` 
     FOREIGN KEY (`id_area_asignado`)
     REFERENCES `areas` (`id`)
     ON DELETE SET NULL -- Si se elimina el área, la asignación queda sin área
@@ -747,7 +722,6 @@ CREATE TABLE `asignaciones` (
     REFERENCES `direcciones_ip` (`id`)
     ON DELETE SET NULL
     ON UPDATE CASCADE,
-  -- Eliminamos fk_asignaciones_areas (redundante con id_area_asignado)
   CONSTRAINT `fk_asignaciones_status`
     FOREIGN KEY (`id_status_asignacion`)
     REFERENCES `status` (`id`)
@@ -763,7 +737,6 @@ CREATE TABLE `asignaciones` (
 -- -----------------------------------------------------
 -- Table `mantenimientos`
 -- Registro de mantenimientos para los equipos
--- Añadimos fecha_actualizacion
 -- -----------------------------------------------------
 CREATE TABLE `mantenimientos` (
   `id` INT AUTO_INCREMENT PRIMARY KEY, 
@@ -775,7 +748,7 @@ CREATE TABLE `mantenimientos` (
   `costo` DECIMAL(10, 2),
   `proveedor` VARCHAR(100),
   `fecha_registro` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `fecha_actualizacion` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, -- Añadido
+  `fecha_actualizacion` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, 
   `id_status` INT NOT NULL DEFAULT 1,
   CONSTRAINT `fk_mantenimientos_equipos`
     FOREIGN KEY (`id_equipo`)
@@ -792,7 +765,6 @@ CREATE TABLE `mantenimientos` (
 -- -----------------------------------------------------
 -- Table `roles`
 -- Roles de usuario para el sistema (ej: Admin, Viewer)
--- Añadimos fecha_actualizacion (opcional, rara vez se actualiza)
 -- -----------------------------------------------------
 CREATE TABLE `roles` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -818,7 +790,7 @@ CREATE TABLE `usuarios_sistema` (
   `id_rol` INT NOT NULL,
   `fecha_registro` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `fecha_ultimo_login` TIMESTAMP,
-  `fecha_actualizacion` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, -- Ya existía
+  `fecha_actualizacion` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `id_status` INT NOT NULL DEFAULT 1,
    CONSTRAINT `fk_usuarios_sistema_empleados`
     FOREIGN KEY (`id_empleado`)
@@ -841,7 +813,6 @@ CREATE TABLE `usuarios_sistema` (
 -- -----------------------------------------------------
 -- Table `cuentas_email_corporativo`
 -- Inventario de cuentas de correo.
--- fecha_actualizacion ya existía
 -- -----------------------------------------------------
 CREATE TABLE `cuentas_email_corporativo` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -850,7 +821,7 @@ CREATE TABLE `cuentas_email_corporativo` (
   `password_data` VARCHAR(255),
   `id_empleado_asignado` INT,
   `fecha_creacion` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `fecha_actualizacion` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, -- Ya existía
+  `fecha_actualizacion` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, 
   `id_status` INT NOT NULL DEFAULT 1,
   `observaciones` TEXT,
    CONSTRAINT `fk_cuentas_email_empleados`
@@ -880,7 +851,7 @@ CREATE TABLE `notas` (
   `id_cuenta_email` INT,
   `id_usuario_creacion` INT,
   `fecha_creacion` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `fecha_actualizacion` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, -- Añadido
+  `fecha_actualizacion` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, 
   CONSTRAINT `fk_notas_equipos`
     FOREIGN KEY (`id_equipo`)
     REFERENCES `equipos` (`id`)
@@ -903,7 +874,7 @@ CREATE TABLE `notas` (
     ON UPDATE CASCADE
 ) ENGINE = InnoDB;
 
--- Optional: Tablas para Permisos si necesitas control de acceso más granular por rol
+-- Optional: Tablas para Permisos si necesitamos control de acceso más granular por rol
 -- DROP TABLE IF EXISTS `permisos`;
 -- CREATE TABLE `permisos` (
 --   `id` INT AUTO_INCREMENT PRIMARY KEY,

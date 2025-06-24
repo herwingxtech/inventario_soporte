@@ -1,18 +1,10 @@
 // ! Controlador para la entidad Áreas
-// * Aquí gestiono todo lo relacionado con áreas: creación, consulta, actualización y eliminación.
-// * Las áreas solo pueden crearse en sucursales de tipo 'Corporativo'. Incluye validaciones de negocio y relaciones.
-
 // * Importo la función query para ejecutar consultas a la base de datos personalizada.
 const { query } = require('../config/db');
-
-// ===============================================================
-// * Funciones controladoras para cada endpoint de áreas
-// ===============================================================
 
 // * [GET] /api/areas - Trae todas las áreas con información de sucursal, empresa y status
 const getAllAreas = async (req, res, next) => {
   try {
-    // * Consulta SQL con JOIN para traer áreas y sus relaciones
     const sql = `
       SELECT
         a.id,

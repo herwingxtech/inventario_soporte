@@ -1,4 +1,4 @@
-// public/js/views/direccionesIpView.js
+//public/js/views/direccionesIpView.js
 // * Este módulo se encarga de la vista de listado de Direcciones IP, usando Grid.js.
 
 import { getDireccionesIp, deleteDireccionIp } from '../api.js';
@@ -145,7 +145,7 @@ async function loadDireccionesIpList() {
                 },
                 { id: 'nombre_empresa', name: 'Empresa', sort: true },
                 { id: 'nombre_sucursal', name: 'Sucursal', sort: true },
-                { id: 'comentario', name: 'Comentario', width: '250px', sort: false }, // Comentario puede ser largo
+                { id: 'comentario', name: 'Comentario', width: '250px', sort: false }, //* Comentario puede ser largo
                 { id: 'status_nombre', name: 'Estado', sort: true },
                 { name: 'Acciones', sort: false, width: '120px', formatter: formatIpActionsCell }
             ],
@@ -161,18 +161,7 @@ async function loadDireccionesIpList() {
             search: true,
             pagination: { enabled: true, limit: 10, summary: true },
             sort: true,
-            style: { /* ... (tus estilos de Tailwind para Grid.js) ... */
-                table: 'min-w-full bg-white border-gray-200 shadow-md rounded-lg',
-                thead: 'bg-gray-200',
-                th: 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200',
-                tbody: 'text-gray-600 text-sm font-light',
-                tr: 'border-b border-gray-200 hover:bg-gray-100',
-                td: 'px-6 py-4 whitespace-nowrap',
-                footer: 'p-4 bg-gray-50 border-t border-gray-200',
-                search: 'p-2 mb-4 border border-gray-300 rounded-md w-full sm:w-auto',
-                paginationButton: 'mx-1 px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-100',
-                paginationButtonCurrent: 'bg-blue-500 text-white border-blue-500',
-                paginationSummary: 'text-sm text-gray-700'
+            style: {
             },
             language: window.gridjs.l10n.esES
         }).render(gridContainer);
