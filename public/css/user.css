@@ -1,0 +1,123 @@
+/* ! Archivo de estilos CSS personalizados
+   * Aquí agrego reglas que no cubre Tailwind o que necesito sobreescribir.
+   * Uso comentarios para recordar por qué agrego cada regla o ejemplo. */
+/* * public/css/style.css */
+/* * ... (tus estilos existentes) ... */
+
+/* * Clase para ocultar el header */
+.header-hidden {
+  display: none !important;
+  /* ! Usamos !important para asegurar que sobreescriba otras clases de display de Tailwind si es necesario */
+}
+
+#content-app {
+  display: grid;
+  min-height: 100dvh;
+  grid-template-rows: auto 1fr auto;
+}
+
+/** Centrado global para todas las columnas de Grid.js */
+.gridjs-table td,
+.gridjs-table th {
+  text-align: center !important;
+}
+
+.js-hide {
+  display: none !important;
+}
+
+/** Sidebar colapsado */
+.sidebar-collapsed {
+  width: 64px !important;
+}
+
+.sidebar-collapsed nav ul li a span.material-icons {
+  margin-right: 0 !important;
+  justify-content: center;
+}
+
+.sidebar-collapsed nav ul li a .sidebar-text {
+  display: none !important;
+}
+
+.sidebar-collapsed nav ul li a {
+  justify-content: center !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  width: 48px;
+  height: 48px;
+  margin: 0 auto;
+  border-radius: 9999px;
+  /** círculo */
+  display: flex !important;
+  align-items: center;
+}
+
+.sidebar-collapsed nav ul li a:hover {
+  background-color: #e0e7ff !important;
+  /** azul claro, igual que hover normal */
+}
+
+.sidebar-collapsed nav ul li {
+  display: flex;
+  justify-content: center;
+}
+
+.sidebar-collapsed .mt-auto {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.sidebar-collapsed .flex.items-center.mb-2 {
+  justify-content: center !important;
+}
+
+.sidebar-collapsed #sidebar-avatar {
+  margin: 0 auto;
+}
+
+.sidebar-collapsed .sidebar-text {
+  display: none !important;
+}
+
+.sidebar-collapsed [data-action="logout"] {
+  justify-content: center !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  width: 48px;
+  height: 48px;
+  margin: 0 auto;
+  border-radius: 9999px;
+  display: flex !important;
+  align-items: center;
+}
+
+.sidebar-collapsed [data-action="logout"]:hover {
+  background-color: #e0e7ff !important;
+}
+
+@media (max-width: 767px) {
+  #main-header .md\:hidden#sidebar-toggle {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
+    border-radius: 12px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: none;
+    margin-right: 8px;
+  }
+
+  #main-header .md\:hidden#sidebar-toggle .material-icons {
+    font-size: 2rem;
+    line-height: 1;
+  }
+}
+
+.picker__select--month,.picker__select--year {
+  padding: 0 !important;
+  font-size: 1rem;
+}

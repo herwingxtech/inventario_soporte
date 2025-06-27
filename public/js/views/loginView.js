@@ -2,7 +2,6 @@
 // * Lógica para la vista de Login.
 
 import { login } from '../api.js'; // Necesito la función de login de mi API.
-import { showInfoModal } from '../ui/modal.js';
 
 const loginContent = document.getElementById('login-content');
 
@@ -15,41 +14,46 @@ function renderLoginForm() {
         sessionStorage.removeItem('loginRedirect');
     }
     loginContent.innerHTML = `
-        <div class="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md mx-auto">
-            ${redirectMsg}
-            <div>
-                <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                    Iniciar Sesión
-                </h2>
-                <p class="mt-2 text-center text-sm text-gray-600">
-                    Ingresa a tu cuenta del Inventario IT
-                </p>
+               <div class="authincation h-100">
+            <div class="container h-100">
+                <div class="row justify-content-center h-100 align-items-center">
+                    <div class="col-md-6">
+                        <div class="authincation-content">
+                            <div class="row no-gutters">
+                                <div class="col-xl-12">
+                                    <div class="auth-form">
+                                        <div class="d-flex justify-center text-center mb-3">
+                                            <a href="/">
+                                                <img src="http://erp.linea-digital.com/erp/images/icono2.png" alt="Logo principal">
+                                            </a>
+                                        </div>
+                                        <h4 class="text-center mb-4">Inicio de sesión</h4>
+                                        ${redirectMsg}
+                                        <form id="loginForm" class="mt-8 space-y-6">
+                                            <div class="form-group">
+                                                <label class="mb-1" for="username"><strong>Nombre de usuario</strong></label>
+                                                <input id="username" name="username" type="text" autocomplete="username" required class="form-control" placeholder="Nombre de usuario">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="mb-1" for="password"><strong>Contraseña</strong></label>
+                                                <input id="password" name="password" type="password" autocomplete="current-password" required class="form-control" placeholder="Contraseña">
+                                            </div>
+                        
+                                            <div id="login-error-message" class="text-danger text-sm"></div>
+                                            <div class="text-center">
+                                                <button type="submit" class="btn btn-primary btn-block">Iniciar Sesión</button>
+                                            </div>
+                                        </form>
+                                        <div class="new-account mt-3">
+                                            <p>¿No tienes una cuenta? <a class="text-primary" href="/" id="sign-up-link">Regístrate</a></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <form id="loginForm" class="mt-8 space-y-6">
-                <div class="rounded-md shadow-sm -space-y-px">
-                    <div>
-                        <label for="username" class="sr-only">Nombre de usuario</label>
-                        <input id="username" name="username" type="text" autocomplete="username" required
-                               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                               placeholder="Nombre de usuario">
-                    </div>
-                    <div>
-                        <label for="password" class="sr-only">Contraseña</label>
-                        <input id="password" name="password" type="password" autocomplete="current-password" required
-                               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                               placeholder="Contraseña">
-                    </div>
-                </div>
-
-                <div id="login-error-message" class="text-red-500 text-sm"></div>
-
-                <div>
-                    <button type="submit"
-                            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        Iniciar Sesión
-                    </button>
-                </div>
-            </form>
         </div>
     `;
 
@@ -58,6 +62,8 @@ function renderLoginForm() {
     if (loginForm) {
         loginForm.addEventListener('submit', handleLoginSubmit);
     }
+    // Forzar el tema oscuro de karciz
+    document.body.setAttribute('data-theme-version', 'dark');
 }
 
 // * Maneja el envío del formulario de login.
@@ -85,7 +91,11 @@ async function handleLoginSubmit(event) {
         localStorage.setItem('userData', JSON.stringify(response.user));
 
         // Muestro un mensaje de éxito y redirijo al home.
-        await showInfoModal({ title: '¡Bienvenido!', message: 'Has iniciado sesión correctamente.'});
+        Swal.fire({
+            title: '¡Bienvenido!',
+            text: 'Has iniciado sesión correctamente.',
+            icon: 'success'
+        });
 
         // Refresco la página completa para que la app se reinicialice en estado "logueado".
         // O, mejor, llamo a navigateTo para ir al home sin recargar.

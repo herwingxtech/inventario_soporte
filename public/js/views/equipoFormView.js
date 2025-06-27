@@ -2,9 +2,9 @@
 // * Este módulo maneja la lógica para el formulario de creación y edición de Equipos.
 
 import { createEquipo, getTiposEquipo, getSucursales, getStatuses, getEquipoById, updateEquipo } from '../api.js';
-import { showInfoModal } from '../ui/modal.js';
 import { showFormLoading } from '../utils/loading.js';
 import { showFormError } from '../utils/error.js';
+import { applyUppercaseToFields } from '../utils/textTransform.js';
 
 const contentArea = document.getElementById('content-area');
 
@@ -63,84 +63,166 @@ async function renderEquipoForm(equipoToEdit = null) {
         }
 
         contentArea.innerHTML = `
-            <h2 class="text-2xl font-bold text-gray-800 mb-6">${formTitle}</h2>
-            <form id="equipoForm" class="space-y-6 bg-white p-8 rounded-lg shadow-md">
-                <!-- Campos Obligatorios -->
-                <div>
-                    <label for="numero_serie" class="block text-sm font-medium text-gray-700">Número de Serie <span class="text-red-500">*</span></label>
-                    <input type="text" id="numero_serie" name="numero_serie" required
-                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                           value="${isEditing && currentEquipoData.numero_serie ? currentEquipoData.numero_serie : ''}">
+            <div class="col-xl-8 col-lg-10 mx-auto">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">${formTitle}</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="equipoForm" class="basic-form">
+                            <div class="mb-3">
+                                <label for="numero_serie" class="form-label">Número de Serie <span class="text-danger">*</span></label>
+                                <input type="text" id="numero_serie" name="numero_serie" required class="form-control input-default uppercase-field" placeholder="Ej: SN123456789" value="${isEditing && currentEquipoData.numero_serie ? currentEquipoData.numero_serie : ''}">
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="marca" class="form-label">Marca</label>
+                                    <input type="text" id="marca" name="marca" class="form-control input-default uppercase-field" placeholder="Ej: DELL" value="${isEditing && currentEquipoData.marca ? currentEquipoData.marca : ''}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="modelo" class="form-label">Modelo</label>
+                                    <input type="text" id="modelo" name="modelo" class="form-control input-default uppercase-field" placeholder="Ej: OPTIPLEX 7090" value="${isEditing && currentEquipoData.modelo ? currentEquipoData.modelo : ''}">
                 </div>
-
-                <div>
-                    <label for="id_tipo_equipo" class="block text-sm font-medium text-gray-700">Tipo de Equipo <span class="text-red-500">*</span></label>
-                    <select id="id_tipo_equipo" name="id_tipo_equipo" required
-                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        <option value="">Seleccione un tipo...</option>
-                        ${tiposEquipoCache.map(tipo => `<option value="${tipo.id}" ${isEditing && currentEquipoData.id_tipo_equipo === tipo.id ? 'selected' : ''}>${tipo.nombre_tipo}</option>`).join('')}
-                    </select>
                 </div>
-
-                <div>
-                    <label for="id_sucursal_actual" class="block text-sm font-medium text-gray-700">Sucursal Actual <span class="text-red-500">*</span></label>
-                    <select id="id_sucursal_actual" name="id_sucursal_actual" required
-                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <div class="mb-3">
+                                <label for="id_sucursal_actual" class="form-label">Sucursal Actual <span class="text-danger">*</span></label>
+                                <select id="id_sucursal_actual" name="id_sucursal_actual" required class="form-control select2">
                         <option value="">Seleccione una sucursal...</option>
                         ${sucursalesCache.map(sucursal => `<option value="${sucursal.id}" ${isEditing && currentEquipoData.id_sucursal_actual === sucursal.id ? 'selected' : ''}>${sucursal.nombre}</option>`).join('')}
                     </select>
                 </div>
-
-                <!-- Campos Opcionales -->
-                <!-- ... (resto de campos: nombre, marca, modelo, etc., con la misma lógica de 'value') ... -->
-                 <div>
-                    <label for="nombre_equipo" class="block text-sm font-medium text-gray-700">Nombre del Equipo (Alias)</label>
-                    <input type="text" id="nombre_equipo" name="nombre_equipo" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" value="${isEditing && currentEquipoData.nombre_equipo ? currentEquipoData.nombre_equipo : ''}">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="procesador" class="form-label">Procesador</label>
+                                    <input type="text" id="procesador" name="procesador" class="form-control input-default uppercase-field" placeholder="Ej: INTEL CORE I7-10700" value="${isEditing && currentEquipoData.procesador ? currentEquipoData.procesador : ''}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="ram" class="form-label">RAM</label>
+                                    <input type="text" id="ram" name="ram" class="form-control input-default uppercase-field" placeholder="Ej: 16GB DDR4" value="${isEditing && currentEquipoData.ram ? currentEquipoData.ram : ''}">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="disco_duro" class="form-label">Disco Duro</label>
+                                    <input type="text" id="disco_duro" name="disco_duro" class="form-control input-default uppercase-field" placeholder="Ej: 512GB SSD" value="${isEditing && currentEquipoData.disco_duro ? currentEquipoData.disco_duro : ''}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="sistema_operativo" class="form-label">Sistema Operativo</label>
+                                    <input type="text" id="sistema_operativo" name="sistema_operativo" class="form-control input-default uppercase-field" placeholder="Ej: WINDOWS 10 PRO" value="${isEditing && currentEquipoData.sistema_operativo ? currentEquipoData.sistema_operativo : ''}">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="mac_address" class="form-label">MAC Address</label>
+                                    <input type="text" id="mac_address" name="mac_address" class="form-control input-default uppercase-field" placeholder="Ej: 00:1B:44:11:3A:B7" value="${isEditing && currentEquipoData.mac_address ? currentEquipoData.mac_address : ''}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="fecha_compra" class="form-label">Fecha de Compra</label>
+                                    <input type="text" id="fecha_compra" name="fecha_compra" class="datepicker-default form-control input-default" placeholder="YYYY-MM-DD" autocomplete="off" value="${isEditing && currentEquipoData.fecha_compra ? currentEquipoData.fecha_compra.split('T')[0] : ''}">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="id_tipo_equipo" class="form-label">Tipo de Equipo <span class="text-danger">*</span></label>
+                                <select id="id_tipo_equipo" name="id_tipo_equipo" required class="form-control select2">
+                                    <option value="">Seleccione un tipo...</option>
+                                    ${tiposEquipoCache.map(tipo => `<option value="${tipo.id}" ${isEditing && currentEquipoData.id_tipo_equipo === tipo.id ? 'selected' : ''}>${tipo.nombre_tipo}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="nombre_equipo" class="form-label">Nombre del Equipo (Alias)</label>
+                                <input type="text" id="nombre_equipo" name="nombre_equipo" class="form-control input-default uppercase-field" placeholder="Ej: PC-OFICINA-01" value="${isEditing && currentEquipoData.nombre_equipo ? currentEquipoData.nombre_equipo : ''}">
                 </div>
-                 <!-- ... (más campos) ... -->
-
-                <!-- Estado del Equipo (con lógica de deshabilitación) -->
-                <div>
-                    <label for="id_status" class="block text-sm font-medium text-gray-700">Estado del Equipo <span class="text-red-500">*</span></label>
-                    <select id="id_status" name="id_status" required
-                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${isStatusDisabled ? 'bg-gray-200 cursor-not-allowed' : ''}"
-                            ${isStatusDisabled ? 'disabled' : ''}>
+                            <div class="mb-3">
+                                <label for="id_status" class="form-label">Estado del Equipo <span class="text-danger">*</span></label>
+                                <select id="id_status" name="id_status" required class="form-control select2 ${isStatusDisabled ? 'bg-gray-200 cursor-not-allowed' : ''}" ${isStatusDisabled ? 'disabled' : ''}>
                         <option value="">Seleccione un estado...</option>
-                        ${statusesCache.map(status => {
+                        ${statusesCache
+                          .filter(status => isEditing || ![2, 6, 7, 9, 12].includes(status.id))
+                          .map(status => {
                             const isAutomaticStatus = [STATUS_ASIGNADO_ID, STATUS_EN_MANTENIMIENTO_ID].includes(status.id);
                             const isCurrentStatus = isEditing && currentEquipoData.id_status === status.id;
-                            
-                            if (isStatusDisabled) { // Si está deshabilitado
-                                return isCurrentStatus ? `<option value="${status.id}" selected>${status.nombre_status}</option>` : '';
-                            } else { // Si está habilitado
-                                // Muestro si NO es automático O si es el estado actual del equipo.
-                                if (!isAutomaticStatus || isCurrentStatus) {
-                                    return `<option value="${status.id}" ${isCurrentStatus ? 'selected' : (!isEditing && status.nombre_status === 'Disponible' ? 'selected' : '')}>${status.nombre_status}</option>`;
-                                }
-                                return '';
+                            if (isStatusDisabled) {
+                              return isCurrentStatus ? `<option value="${status.id}" selected>${status.nombre_status}</option>` : '';
+                            } else {
+                              if (!isAutomaticStatus || isCurrentStatus) {
+                                return `<option value="${status.id}" ${isCurrentStatus ? 'selected' : (!isEditing && status.nombre_status === 'Disponible' ? 'selected' : '')}>${status.nombre_status}</option>`;
+                              }
+                              return '';
                             }
-                        }).join('')}
+                          })
+                          .join('')}
                     </select>
                     ${isStatusDisabled ? `<p class="mt-2 text-xs text-gray-500">${statusHelpText}</p>` : ''}
                 </div>
-
-                <!-- ... (resto de campos: otras_caracteristicas, botones, etc.) ... -->
-                 <div>
-                    <label for="otras_caracteristicas" class="block text-sm font-medium text-gray-700">Otras Características / Notas</label>
-                    <textarea id="otras_caracteristicas" name="otras_caracteristicas" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">${isEditing && currentEquipoData.otras_caracteristicas ? currentEquipoData.otras_caracteristicas : ''}</textarea>
+                            <div class="mb-3">
+                                <label for="otras_caracteristicas" class="form-label">Otras Características / Notas</label>
+                                <textarea id="otras_caracteristicas" name="otras_caracteristicas" rows="3" class="form-control uppercase-field" placeholder="DESCRIBA CARACTERÍSTICAS ADICIONALES, ESPECIFICACIONES TÉCNICAS, UBICACIÓN ESPECÍFICA, ETC.">${isEditing && currentEquipoData.otras_caracteristicas ? currentEquipoData.otras_caracteristicas : ''}</textarea>
+                            </div>
+                            <div id="form-error-message" class="text-danger text-sm mb-3"></div>
+                            <div class="d-flex justify-content-end gap-2">
+                                <button type="button" id="cancelEquipoForm" class="btn btn-danger light btn-sl-sm"><span class="me-2"><i class="fa fa-times"></i></span>Cancelar</button>
+                                <button type="submit" class="btn btn-primary btn-sl-sm"><span class="me-2"><i class="fa fa-paper-plane"></i></span>${isEditing ? 'Guardar Cambios' : 'Registrar Equipo'}</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-                <div id="form-error-message" class="text-red-500 text-sm mt-2"></div>
-                <div class="flex justify-end space-x-4">
-                    <button type="button" id="cancelEquipoForm" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">Cancelar</button>
-                    <button type="submit" class="px-4 py-2 border rounded-md text-white bg-blue-600 hover:bg-blue-700">${isEditing ? 'Guardar Cambios' : 'Registrar Equipo'}</button>
                 </div>
-            </form>
         `;
 
+        // Inicializar select2 en los selects buscables
+        if (window.$ && $.fn.select2) {
+            $('#id_tipo_equipo').select2({ width: '100%' });
+            $('#id_sucursal_actual').select2({ width: '100%' });
+            $('#id_status').select2({ width: '100%' });
+        }
+
+        // Inicializar Pickadate para el campo de fecha de compra
+        if (window.$ && $.fn.pickadate) {
+            if ($('#fecha_compra').data('pickadate')) $('#fecha_compra').pickadate('destroy');
+            setTimeout(function() {
+                var currentYear = new Date().getFullYear();
+                var minYear = 1990;
+                var years = currentYear - minYear + 1;
+                $('#fecha_compra').pickadate({
+                    format: 'yyyy-mm-dd',
+                    selectMonths: true,
+                    selectYears: years,
+                    autoclose: true,
+                    min: [minYear, 0, 1],
+                    max: [currentYear, 11, 31],
+                    monthsFull: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+                    monthsShort: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+                    weekdaysFull: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+                    weekdaysShort: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+                    today: 'Hoy',
+                    clear: 'Limpiar',
+                    close: 'Cerrar',
+                    labelMonthNext: 'Mes siguiente',
+                    labelMonthPrev: 'Mes anterior',
+                    labelMonthSelect: 'Selecciona un mes',
+                    labelYearSelect: 'Selecciona un año',
+                    firstDay: 1
+                });
+            }, 0);
+        }
+
+        // Inicializar transformación a mayúsculas en campos de texto
+        applyUppercaseToFields(['numero_serie', 'marca', 'modelo', 'procesador', 'ram', 'disco_duro', 'sistema_operativo', 'mac_address', 'nombre_equipo', 'otras_caracteristicas']);
+
         document.getElementById('equipoForm').addEventListener('submit', (event) => handleEquipoFormSubmit(event, equipoId));
-        document.getElementById('cancelEquipoForm').addEventListener('click', () => {
-             if (typeof window.navigateTo === 'function') window.navigateTo('equiposList');
-         });
+        document.getElementById('cancelEquipoForm').addEventListener('click', async () => {
+            await Swal.fire({
+                title: 'Cancelado',
+                text: 'El formulario de equipo ha sido cancelado.',
+                icon: 'warning',
+                confirmButtonText: 'Aceptar'
+            });
+            if (typeof window.navigateTo === 'function') {
+                window.navigateTo('equipos-list');
+            } else {
+                contentArea.innerHTML = `<p>Por favor, navega manualmente a la lista.</p>`;
+            }
+        });
 
     } catch (error) {
         console.error('Error al renderizar el formulario de equipo:', error);
@@ -187,8 +269,12 @@ async function handleEquipoFormSubmit(event, editingId = null) {
             const nuevoEquipo = await createEquipo(equipoData);
             responseMessage = `Equipo "${nuevoEquipo.numero_serie}" (ID: ${nuevoEquipo.id}) creado exitosamente.`;
         }
-        await showInfoModal({ title: 'Éxito', message: responseMessage });
-        if (typeof window.navigateTo === 'function') window.navigateTo('equiposList');
+        Swal.fire({
+            title: 'Éxito',
+            text: responseMessage,
+            icon: 'success'
+        });
+        if (typeof window.navigateTo === 'function') window.navigateTo('equipos-list');
 
     } catch (error) {
         errorMessageDiv.textContent = error.message || 'Ocurrió un error desconocido.';

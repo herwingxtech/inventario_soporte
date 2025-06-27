@@ -5,14 +5,14 @@
  //* Muestra un spinner de carga con mensaje personalizable
  //* @param {HTMLElement} container - Contenedor donde mostrar el spinner
  //* @param {string} message - Mensaje a mostrar debajo del spinner
- //* @param {string} color - Color del spinner (default: 'purple')
+ //* @param {string} color - Color del spinner (default: 'success')
  //*/
-export function showLoadingSpinner(container, message = 'Cargando...', color = 'blue') {
+export function showLoadingSpinner(container, message = 'Cargando...') {
     const target = container || document.getElementById('content-area');
     target.innerHTML = `
-        <div class="flex flex-col items-center justify-center py-12">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-${color}-500 mb-4"></div>
-            <p class="text-gray-600 text-lg">${message}</p>
+        <div class="d-flex flex-column align-items-center justify-content-center py-5">
+            <div class="spinner-border mb-3" role="status" style="width: 3rem; height: 3rem; border-color: #13b497; border-right-color: transparent;"></div>
+            <p class="text-body h5">${message}</p>
         </div>
     `;
 }

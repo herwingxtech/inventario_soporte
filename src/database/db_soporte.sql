@@ -685,7 +685,7 @@ CREATE TABLE `asignaciones` (
   `id_sucursal_asignado` INT, -- NULLable: Asignado a una sucursal (ej. stock en tienda)
   `id_area_asignado` INT, -- NULLable: Asignado a un área (en corporativo)
   `id_equipo_padre` INT, -- NULLable: Componente de otro equipo
-  `id_ip` INT UNIQUE, -- NULLable: IP principal asociada (UNIQUE en TODA la tabla por defecto, pero la regla es UNIQUE ACTIVA)
+  `id_ip` INT, -- NULLable: IP principal asociada (la unicidad solo se controla para asignaciones activas en el backend)
   `fecha_asignacion` DATETIME NOT NULL,
   `fecha_fin_asignacion` DATETIME, -- NULL = Asignación Activa
   `observacion` TEXT,

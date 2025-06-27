@@ -24,14 +24,20 @@ import { loadCuentasEmailList } from './views/cuentasEmailView.js';
 import { loadMantenimientosList } from './views/mantenimientosView.js';
 import { loadNotasList } from './views/notasView.js';
 import { loadAsignacionesList } from './views/asignacionesView.js';
-import { showAsignacionForm } from './views/asignacionesFormView.js';   
+import { showAsignacionForm } from './views/asignacionesFormView.js';
 import { showAsignacionDetails } from './views/asignacionesDetailsView.js';
 import { loadLoginView } from './views/loginView.js';
 import { loadProfileView } from './views/profileView.js';
-import { showConfirmationModal, showInfoModal } from './ui/modal.js';
-//TODO: Crear e importar showCuentaEmailForm y showCuentaEmailDetails
-//TODO: Crear e importar showMantenimientoForm y showMantenimientoDetails
-//TODO: Crear e importar showNotaForm y showNotaDetails
+import { showCuentaEmailForm } from './views/cuentaEmailFormView.js';
+import { showMantenimientoForm } from './views/mantenimientoFormView.js';
+import { showNotaForm } from './views/notaFormView.js';
+import { showCuentaEmailDetails } from './views/cuentasEmailDetailsView.js';
+import { showMantenimientoDetails } from './views/mantenimientosDetailsView.js';
+import { showNotaDetails } from './views/notaDetailsView.js';
+import { loadDashboard } from './views/dashboardView.js';
+//TODO: Crear e importar showCuentaEmailDetails
+//TODO: Crear e importar showMantenimientoDetails
+//TODO: Crear e importar showNotaDetails
 //? ¿Necesitaré una función para cerrar modales aquí? Si los modales son globales.
 //? import { closeCurrentModal } from './ui/modal.js'; // Asumo que esto existe o lo crearás.
 
@@ -44,55 +50,47 @@ import { showConfirmationModal, showInfoModal } from './ui/modal.js';
 */
 const contentArea = document.getElementById('content-area');
 const mobileMenu = document.getElementById('mobile-menu');
-const mainHeader = document.getElementById('main-header'); 
+const mainHeader = document.getElementById('main-header');
 const homeHeader = document.getElementById('home-header');
 const appContainer = document.body;
 
-
 //* Función para renderizar el contenido inicial de la vista 'home'.
 //* Esta vista se muestra SIN el header principal.
-function renderHomeView() {
-    const userData = JSON.parse(localStorage.getItem('userData'));
-    contentArea.innerHTML = `
-        <div class="flex flex-col items-center justify-center min-h-[60vh]">
-            <h1 class="text-3xl md:text-4xl font-semibold text-gray-900 mb-2 tracking-tight">Bienvenido${userData ? `, ${userData.username}` : ''}!</h1>
-            <p class="text-lg text-gray-500 mb-4">${userData ? `Rol: <span class='font-semibold text-blue-600'>${userData.roleName}</span>` : ''}</p>
-            <p class="text-base text-gray-600 mb-8">Gestiona los recursos tecnológicos de la empresa desde el menú superior.</p>
-            <div class="w-full max-w-2xl mt-8">
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center shadow-sm">
-                    <span class="text-blue-600 font-medium">Selecciona una opción en el menú para comenzar.</span>
-                </div>
-            </div>
-        </div>
-    `;
+async function renderHomeView() {
+    await loadDashboard();
 }
 
 //* Objeto que mapea nombres de vista a las funciones que las cargan/renderizan.
 const viewsMap = {
     'login': loadLoginView,
     'home': renderHomeView,
-    'equiposList': loadEquiposList,
-    'equipoForm': showEquipoForm,
-    'equipoDetails': showEquipoDetails,
-    'empleadosList': loadEmpleadosList,
-    'empleadoForm': showEmpleadoForm,
-    'empleadoDetails': showEmpleadoDetails,
-    'direccionesIpList': loadDireccionesIpList,
-    'direccionIpForm': showDireccionIpForm,
-    'direccionIpDetails': showDireccionIpDetails,
-    'cuentasEmailList': loadCuentasEmailList,
-    'mantenimientosList': loadMantenimientosList,
-    'notasList': loadNotasList,
-    'asignacionesList': loadAsignacionesList,
-    'asignacionForm': showAsignacionForm,       
-    'asignacionDetails': showAsignacionDetails, 
+    'equipos-list': loadEquiposList,
+    'equipo-form': showEquipoForm,
+    'equipo-details': showEquipoDetails,
+    'empleados-list': loadEmpleadosList,
+    'empleado-form': showEmpleadoForm,
+    'empleado-details': showEmpleadoDetails,
+    'direcciones-ip-list': loadDireccionesIpList,
+    'direccion-ip-form': showDireccionIpForm,
+    'direccion-ip-details': showDireccionIpDetails,
+    'cuentas-email-list': loadCuentasEmailList,
+    'mantenimientos-list': loadMantenimientosList,
+    'notas-list': loadNotasList,
+    'asignaciones-list': loadAsignacionesList,
+    'asignacion-form': showAsignacionForm,
+    'asignacion-details': showAsignacionDetails,
     'profile': loadProfileView,
-    //TODO: 'cuentaEmailForm': showCuentaEmailForm, 'cuentaEmailDetails': showCuentaEmailDetails,
-    //TODO: 'mantenimientoForm': showMantenimientoForm, 'mantenimientoDetails': showMantenimientoDetails,
-    //TODO: 'notaForm': showNotaForm, 'notaDetails': showNotaDetails,
-    //TODO: 'usuariosList': loadUsuariosList, 'usuarioForm': showUsuarioForm, 'usuarioDetails': showUsuarioDetails
+    'cuenta-email-form': showCuentaEmailForm,
+    'cuenta-email-details': showCuentaEmailDetails,
+    'mantenimiento-form': showMantenimientoForm,
+    'mantenimiento-details': showMantenimientoDetails,
+    'nota-form': showNotaForm,
+    'nota-details': showNotaDetails,
+    //TODO: 'usuarios-list': loadUsuariosList, 'usuario-form': showUsuarioForm, 'usuario-details': showUsuarioDetails
 };
 
+// Hacer viewsMap global para que el dashboard pueda acceder a él
+window.viewsMap = viewsMap;
 
 // ===============================================================
 //* FUNCIÓN DE NAVEGACIÓN CENTRALIZADA
@@ -113,13 +111,13 @@ function updateSidebarUI() {
     const token = localStorage.getItem('authToken');
     const userData = JSON.parse(localStorage.getItem('userData'));
     const sidebar = document.getElementById('sidebar');
-    const mainContent = document.getElementById('main-content');
+    const mainContent = document.getElementById('main-wrapper');
     const loginContent = document.getElementById('login-content');
     const sidebarAvatar = document.getElementById('sidebar-avatar');
     const sidebarUsername = document.getElementById('sidebar-username');
     const sidebarRole = document.getElementById('sidebar-role');
     const logoutButton = sidebar ? sidebar.querySelector('[data-action="logout"]') : null;
-    //! Oculta sidebar, main-content y muestra login-content solo en login
+    //! Oculta sidebar, main-wrapper y muestra login-content solo en login
     if (!token || !userData || window.currentView === 'login') {
         if (sidebar) sidebar.classList.add('js-hide');
         if (mainContent) mainContent.classList.add('js-hide');
@@ -144,22 +142,37 @@ function navigateTo(viewName, params = null, pushState = true) {
         window.location.replace('/');
         return;
     }
+    
     const loadViewFunction = viewsMap[viewName];
     if (loadViewFunction) {
         loadViewFunction(params);
     } else {
         contentArea.innerHTML = `<p class="text-red-500 font-bold">Error:</p><p class="text-red-500">La vista solicitada "${viewName}" no está implementada.</p>`;
     }
+    
     // Actualiza la URL usando pushState si corresponde
     if (pushState) {
         let url = '/' + viewName;
         if (params) url += '/' + params;
-        history.pushState({ viewName, params }, '', url);
+        
+        // Verificar si ya estamos en la misma vista para evitar entradas duplicadas
+        const currentPath = window.location.pathname;
+        if (currentPath !== url) {
+            // Si estamos navegando desde el home y no hay una entrada previa en el historial,
+            // agregar una entrada del home primero
+            if ((currentPath === '/home' || currentPath === '/') && history.length === 1) {
+                history.pushState({ viewName: 'home', params: null }, '', '/home');
+            }
+            
+            history.pushState({ viewName, params }, '', url);
+        }
         window.currentView = viewName;
     }
+    
     updateSidebarUI();
 }
 window.navigateTo = navigateTo; //* Hago navigateTo global.
+window.updateSidebarUI = updateSidebarUI; //* Hago updateSidebarUI global.
 
 //* Hago globales las funciones de carga de listas para que los formularios puedan llamarlas.
 window.loadEquiposListGlobal = loadEquiposList;
@@ -205,6 +218,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const actionName = actionTrigger.dataset.action;
             if (actionName === 'logout') {
                 handleLogout();
+            } else if (actionName === 'profile') {
+                navigateTo('profile');
             }
             //* Oculta el sidebar en móvil al seleccionar una acción
             if (window.innerWidth < 768 && sidebar && !sidebar.classList.contains('-translate-x-full')) {
@@ -213,16 +228,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    //! === Carga de la vista inicial BASADA EN AUTENTICACIÓN ===
+    //! === Carga de la vista inicial BASADA EN AUTENTICACIÓN Y URL ===
     const token = localStorage.getItem('authToken');
+    const path = window.location.pathname.replace(/^\//, '');
+    const parts = path.split('/');
+    const viewName = parts[0] === '' ? (token ? 'home' : 'login') : parts[0];
+    const params = parts.length > 1 ? parts[1] : null;
+
+    // Agregar una entrada inicial al historial si es la primera carga
+    if (token && (path === '' || path === 'home')) {
+        history.replaceState({ viewName: 'home', params: null }, '', '/home');
+    }
+
     if (token) {
-        //* Si hay un token, el usuario está "logueado".
-        //* Muestro la vista home por defecto.
-        console.log('Exiate un token. Cargando vista home.');
-        navigateTo('home', null, false);
+        // Si hay token, navego a la vista de la URL o home si es raíz
+        navigateTo(viewName, params, false);
     } else {
-        //* Si no hay token, muestro la vista de login.
-        console.log('Herwing no tiene un token. Cargando vista de login.');
+        // Si no hay token, siempre muestro login
         navigateTo('login', null, false);
     }
 
@@ -243,7 +265,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const viewNameFromUrl = partsFromPop[0] === '' ? 'home' : partsFromPop[0];
             const paramsFromUrl = partsFromPop.length > 1 ? partsFromPop[1] : null;
             console.log(`popstate sin estado válido, cargando desde URL actual: "${viewNameFromUrl}"`);
-            navigateTo(viewNameFromUrl, paramsFromUrl, false);
+            
+            // Verificar si la vista es válida antes de navegar
+            if (viewsMap[viewNameFromUrl]) {
+                navigateTo(viewNameFromUrl, paramsFromUrl, false);
+            } else {
+                // Si la vista no es válida, redirigir al home
+                console.log('Vista no válida, redirigiendo al home');
+                navigateTo('home', null, false);
+            }
         }
     });
 
@@ -256,7 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sidebarToggle = document.getElementById('sidebar-toggle');
     const sidebarCollapseBtn = document.getElementById('sidebar-collapse-btn');
     const sidebarCollapseIcon = document.getElementById('sidebar-collapse-icon');
-    const mainContent = document.getElementById('main-content');
+    const mainContent = document.getElementById('main-wrapper');
 
     if (sidebarToggle && sidebar) {
         sidebarToggle.addEventListener('click', (e) => {
@@ -301,18 +331,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
 //* Función para manejar el logout.
 async function handleLogout() {
-    const confirmed = await showConfirmationModal({
+    const confirmed = await Swal.fire({
         title: '¿Cerrar sesión?',
-        message: '¿Estás seguro que deseas cerrar tu sesión?',
+        text: '¿Estás seguro que deseas cerrar tu sesión?',
+        icon: 'warning',
+        showCancelButton: true,
         confirmButtonText: 'Sí, cerrar sesión',
         cancelButtonText: 'Cancelar',
-        confirmButtonClass: 'bg-red-600 hover:bg-red-700 text-white'
     });
-    if (!confirmed) return;
+    if (!confirmed.isConfirmed) return;
     //! Limpio el token y datos del usuario de localStorage.
     localStorage.removeItem('authToken');
     localStorage.removeItem('userData');
     //! Muestro un mensaje y redirijo a la vista de login.
-    await showInfoModal({ title: 'Sesión Cerrada', message: 'Has cerrado sesión exitosamente.'});
+    await Swal.fire({
+        icon: 'info',
+        title: 'Sesión Cerrada',
+        text: 'Has cerrado sesión exitosamente.'
+    });
     window.location.replace('/');
 }

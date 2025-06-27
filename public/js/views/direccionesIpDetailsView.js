@@ -5,6 +5,7 @@
 import { getDireccionIpById } from '../api.js';
 import { showDetailsLoading } from '../utils/loading.js';
 import { showDetailsError } from '../utils/error.js';
+import { getStatusBadge } from '../utils/statusBadge.js';
 
 //* Referencia al contenedor principal donde se renderizará esta vista.
 const contentArea = document.getElementById('content-area');
@@ -23,86 +24,64 @@ function showDireccionIpDetailsError(message) {
 
 //* Renderiza la vista de detalles de la Dirección IP.
 function renderDireccionIpDetails(ip) {
-    contentArea.innerHTML = ''; //* Limpio cualquier contenido previo.
-
+    contentArea.innerHTML = '';
     if (!ip) {
         showDireccionIpDetailsError('No se encontraron datos para esta Dirección IP.');
         return;
     }
-
-    //* Creo el título para esta vista.
-    const title = document.createElement('h2');
-    title.classList.add('text-2xl', 'font-bold', 'text-gray-800', 'mb-6');
+    // Card principal
+    const card = document.createElement('div');
+    card.className = 'card shadow-sm mb-4';
+    // Header
+    const cardHeader = document.createElement('div');
+    cardHeader.className = 'card-header';
+    const title = document.createElement('h4');
+    title.className = 'card-title mb-0';
     title.textContent = `Detalles de la Dirección IP: ${ip.direccion_ip}`;
-    contentArea.appendChild(title);
-
-    //* Contenedor para los detalles.
-    const detailsContainer = document.createElement('div');
-    detailsContainer.classList.add('bg-white', 'p-6', 'rounded-lg', 'shadow-md', 'space-y-4');
-
-    //* Función auxiliar para crear un par de etiqueta-valor.
-    function createDetailItem(label, value) {
-        const itemDiv = document.createElement('div');
-        itemDiv.classList.add('py-2', 'sm:grid', 'sm:grid-cols-3', 'sm:gap-4', 'sm:px-0');
-
+    cardHeader.appendChild(title);
+    card.appendChild(cardHeader);
+    // Body
+    const cardBody = document.createElement('div');
+    cardBody.className = 'card-body';
+    const detailsGrid = document.createElement('dl');
+    detailsGrid.className = 'row mb-0';
+    function addDetail(label, value, isStatus) {
         const dt = document.createElement('dt');
-        dt.classList.add('text-sm', 'font-medium', 'text-gray-500');
+        dt.className = 'col-sm-4 text-sm-end text-muted';
         dt.textContent = label;
-
         const dd = document.createElement('dd');
-        dd.classList.add('mt-1', 'text-sm', 'text-gray-900', 'sm:mt-0', 'sm:col-span-2');
-        dd.textContent = value || 'N/A'; //* Muestro N/A si el valor es nulo o vacío.
-
-        itemDiv.appendChild(dt);
-        itemDiv.appendChild(dd);
-        return itemDiv;
+        dd.className = 'col-sm-8 mb-2';
+        dd.innerHTML = isStatus ? getStatusBadge(value) : (value || 'N/A');
+        detailsGrid.appendChild(dt);
+        detailsGrid.appendChild(dd);
     }
-
-    //* Creo y añado los ítems de detalle.
-    detailsContainer.appendChild(createDetailItem('ID', ip.id));
-    detailsContainer.appendChild(createDetailItem('Dirección IP', ip.direccion_ip));
-    detailsContainer.appendChild(createDetailItem('Sucursal Asociada', ip.nombre_sucursal)); //* Del JOIN
-    detailsContainer.appendChild(createDetailItem('Comentario / Notas', ip.comentario));
-    detailsContainer.appendChild(createDetailItem('Estado', ip.status_nombre)); //* Del JOIN
-
+    addDetail('ID', ip.id);
+    addDetail('Dirección IP', ip.direccion_ip);
+    addDetail('Sucursal Asociada', ip.nombre_sucursal);
+    addDetail('Comentario / Notas', ip.comentario);
+    addDetail('Estado', ip.status_nombre, true);
     const fechaRegistroFormateada = ip.fecha_registro ? new Date(ip.fecha_registro).toLocaleString() : 'N/A';
     const fechaActualizacionFormateada = ip.fecha_actualizacion ? new Date(ip.fecha_actualizacion).toLocaleString() : 'N/A';
-
-    detailsContainer.appendChild(createDetailItem('Fecha de Registro', fechaRegistroFormateada));
-    detailsContainer.appendChild(createDetailItem('Última Actualización', fechaActualizacionFormateada));
-
-
-    contentArea.appendChild(detailsContainer);
-
-    //* Botones de acción (Editar, Volver a la lista).
+    addDetail('Fecha de Registro', fechaRegistroFormateada);
+    addDetail('Última Actualización', fechaActualizacionFormateada);
+    cardBody.appendChild(detailsGrid);
+    card.appendChild(cardBody);
+    // Botones de acción
     const actionsDiv = document.createElement('div');
-    actionsDiv.classList.add('mt-6', 'flex', 'justify-end', 'space-x-3');
-
-    const editButton = document.createElement('button');
-    editButton.classList.add('px-4', 'py-2', 'border', 'border-yellow-500', 'text-yellow-600', 'rounded-md', 'hover:bg-yellow-50');
-    editButton.textContent = 'Editar Dirección IP';
-    editButton.addEventListener('click', () => {
-        //* Navego al formulario de edición de la Dirección IP.
-        if (typeof window.navigateTo === 'function') {
-            window.navigateTo('direccionIpForm', String(ip.id)); //* Paso el ID de la IP.
-        }
-    });
-
-    const backToListButton = document.createElement('button');
-    backToListButton.classList.add('px-4', 'py-2', 'border', 'border-gray-300', 'rounded-md', 'text-gray-700', 'hover:bg-gray-50');
-    backToListButton.textContent = 'Volver a la Lista';
-    backToListButton.addEventListener('click', () => {
-        //* Navego de vuelta a la lista de Direcciones IP.
-        if (typeof window.navigateTo === 'function') {
-            window.navigateTo('direccionesIpList');
-        }
-    });
-
-    actionsDiv.appendChild(backToListButton);
-    actionsDiv.appendChild(editButton);
-    contentArea.appendChild(actionsDiv);
-
-    console.log('Herwing renderizó los detalles de la Dirección IP.');
+    actionsDiv.className = 'card-footer d-flex justify-content-end gap-2';
+    const backBtn = document.createElement('button');
+    backBtn.className = 'btn btn-danger light btn-sl-sm';
+    backBtn.innerHTML = '<i class="fa fa-arrow-left me-2"></i>Volver a la Lista';
+    backBtn.onclick = () => { if (typeof window.navigateTo === 'function') window.navigateTo('direcciones-ip-list'); };
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn btn-primary btn-sl-sm';
+    editBtn.innerHTML = '<i class="fa fa-edit me-2"></i>Editar Dirección IP';
+    editBtn.onclick = () => { if (typeof window.navigateTo === 'function') window.navigateTo('direccion-ip-form', String(ip.id)); };
+    actionsDiv.appendChild(backBtn);
+    actionsDiv.appendChild(editBtn);
+    card.appendChild(actionsDiv);
+    contentArea.appendChild(card);
+    console.log('Detalles de la Dirección IP renderizados (estilo card).');
 }
 
 

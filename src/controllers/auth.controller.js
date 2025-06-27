@@ -55,7 +55,7 @@ const login = async (req, res, next) => {
         // * Firmo el token usando el payload, mi clave secreta de .env, y opciones como la expiración.
         // * '1h' significa que el token expirará en 1 hora. Podemos usar '7d', '30m', etc.
         const token = jwt.sign(payload, process.env.JWT_SECRET, {
-            expiresIn: '1h'
+            expiresIn: '24h'
         });
 
         console.log(`Login exitoso para usuario: "${username}". Token generado.`);

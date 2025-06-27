@@ -1,0 +1,83 @@
+/**
+ * Estilos para campos de texto en mayúsculas
+ */
+
+.uppercase-field {
+    text-transform: uppercase;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+.uppercase-field::placeholder {
+    text-transform: none;
+    font-weight: normal;
+    letter-spacing: normal;
+}
+
+.uppercase-field:focus {
+    text-transform: uppercase;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+/* Para campos que ya tienen datos cargados */
+.uppercase-field[value]:not([value=""]) {
+    text-transform: uppercase;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+/* Estilos específicos para textareas */
+textarea.uppercase-field {
+    text-transform: uppercase;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    line-height: 1.4;
+}
+
+textarea.uppercase-field::placeholder {
+    text-transform: none;
+    font-weight: normal;
+    letter-spacing: normal;
+    line-height: 1.4;
+}
+
+/* Estilo especial para campos de nombres y apellidos */
+#nombres.uppercase-field,
+#apellidos.uppercase-field {
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+/* Estilo para campos de códigos/números de serie */
+#numero_serie.uppercase-field,
+#numero_empleado.uppercase-field {
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+/* Estilo para campos de direcciones IP */
+#direccion_ip.uppercase-field {
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+/* Estilo para campo MAC Address */
+#mac_address.uppercase-field {
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+/* Estilos para textareas específicos */
+#otras_caracteristicas.uppercase-field,
+#comentario.uppercase-field,
+#descripcion.uppercase-field,
+#contenido.uppercase-field,
+#notas.uppercase-field {
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    line-height: 1.5;
+} 

@@ -15,9 +15,9 @@ import {
     getStatuses
 } from '../api.js';
 
-import { showInfoModal } from '../ui/modal.js';
 import { showFormLoading } from '../utils/loading.js';
 import { showFormError } from '../utils/error.js';
+import { applyUppercaseToFields } from '../utils/textTransform.js';
 
 // * Referencia al contenedor principal donde se renderizará este formulario.
 const contentArea = document.getElementById('content-area');
@@ -83,130 +83,165 @@ async function renderEmpleadoForm(empleadoToEdit = null) {
 
         // * Limpio el área de contenido y construyo el HTML del formulario.
         contentArea.innerHTML = `
-            <h2 class="text-2xl font-bold text-gray-800 mb-6">${formTitle}</h2>
-            <form id="empleadoForm" class="space-y-6 bg-white p-8 rounded-lg shadow-md">
-                <!-- Campos Obligatorios -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="nombres" class="block text-sm font-medium text-gray-700">Nombres <span class="text-red-500">*</span></label>
-                        <input type="text" id="nombres" name="nombres" required
-                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                               value="${isEditing && currentEmpleadoData.nombres ? currentEmpleadoData.nombres : ''}">
+            <div class="col-xl-8 col-lg-10 mx-auto">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">${formTitle}</h4>
                     </div>
-                    <div>
-                        <label for="apellidos" class="block text-sm font-medium text-gray-700">Apellidos <span class="text-red-500">*</span></label>
-                        <input type="text" id="apellidos" name="apellidos" required
-                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                               value="${isEditing && currentEmpleadoData.apellidos ? currentEmpleadoData.apellidos : ''}">
-                    </div>
-                </div>
-
-                <!-- Campos Opcionales -->
-                <div>
-                    <label for="numero_empleado" class="block text-sm font-medium text-gray-700">Número de Empleado (Interno)</label>
-                    <input type="text" id="numero_empleado" name="numero_empleado"
-                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                           value="${isEditing && currentEmpleadoData.numero_empleado ? currentEmpleadoData.numero_empleado : ''}">
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="email_personal" class="block text-sm font-medium text-gray-700">Email Personal</label>
-                        <input type="email" id="email_personal" name="email_personal"
-                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                               value="${isEditing && currentEmpleadoData.email_personal ? currentEmpleadoData.email_personal : ''}">
-                    </div>
-                    <div>
-                        <label for="telefono" class="block text-sm font-medium text-gray-700">Teléfono</label>
-                        <input type="tel" id="telefono" name="telefono"
-                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                               value="${isEditing && currentEmpleadoData.telefono ? currentEmpleadoData.telefono : ''}">
+                    <div class="card-body">
+                        <form id="empleado-form" class="basic-form">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="nombres" class="form-label">Nombres <span class="text-danger">*</span></label>
+                                    <input type="text" id="nombres" name="nombres" required class="form-control input-default uppercase-field" placeholder="Ej: JUAN CARLOS" value="${isEditing && currentEmpleadoData.nombres ? currentEmpleadoData.nombres : ''}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="apellidos" class="form-label">Apellidos <span class="text-danger">*</span></label>
+                                    <input type="text" id="apellidos" name="apellidos" required class="form-control input-default uppercase-field" placeholder="Ej: GARCÍA LÓPEZ" value="${isEditing && currentEmpleadoData.apellidos ? currentEmpleadoData.apellidos : ''}">
                     </div>
                 </div>
-
-                <div>
-                    <label for="puesto" class="block text-sm font-medium text-gray-700">Puesto</label>
-                    <input type="text" id="puesto" name="puesto"
-                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                           value="${isEditing && currentEmpleadoData.puesto ? currentEmpleadoData.puesto : ''}">
+                            <div class="mb-3">
+                                <label for="numero_empleado" class="form-label">Número de Empleado (Interno)</label>
+                                <input type="text" id="numero_empleado" name="numero_empleado" class="form-control input-default uppercase-field" placeholder="Ej: EMP001" value="${isEditing && currentEmpleadoData.numero_empleado ? currentEmpleadoData.numero_empleado : ''}">
                 </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="fecha_nacimiento" class="block text-sm font-medium text-gray-700">Fecha de Nacimiento</label>
-                        <input type="date" id="fecha_nacimiento" name="fecha_nacimiento"
-                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                               value="${isEditing && currentEmpleadoData.fecha_nacimiento ? currentEmpleadoData.fecha_nacimiento.split('T')[0] : ''}">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="email_personal" class="form-label">Email Personal</label>
+                                    <input type="email" id="email_personal" name="email_personal" class="form-control input-default" placeholder="usuario@ejemplo.com" value="${isEditing && currentEmpleadoData.email_personal ? currentEmpleadoData.email_personal : ''}">
                     </div>
-                    <div>
-                        <label for="fecha_ingreso" class="block text-sm font-medium text-gray-700">Fecha de Ingreso</label>
-                        <input type="date" id="fecha_ingreso" name="fecha_ingreso"
-                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                               value="${isEditing && currentEmpleadoData.fecha_ingreso ? currentEmpleadoData.fecha_ingreso.split('T')[0] : ''}">
+                                <div class="col-md-6 mb-3">
+                                    <label for="telefono" class="form-label">Teléfono</label>
+                                    <input type="tel" id="telefono" name="telefono" class="form-control input-default" placeholder="Ej: 555-123-4567" value="${isEditing && currentEmpleadoData.telefono ? currentEmpleadoData.telefono : ''}">
                     </div>
                 </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div>
-                        <label for="id_sucursal" class="block text-sm font-medium text-gray-700">Sucursal Asignada</label>
-                        <select id="id_sucursal" name="id_sucursal"
-                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <div class="mb-3">
+                                <label for="puesto" class="form-label">Puesto</label>
+                                <input type="text" id="puesto" name="puesto" class="form-control input-default uppercase-field" placeholder="Ej: DESARROLLADOR SENIOR" value="${isEditing && currentEmpleadoData.puesto ? currentEmpleadoData.puesto : ''}">
+                </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="fecha_nacimiento" class="form-label">Fecha de Nacimiento</label>
+                                    <input type="text" id="fecha_nacimiento" name="fecha_nacimiento" class="datepicker-default form-control input-default" value="${isEditing && currentEmpleadoData.fecha_nacimiento ? currentEmpleadoData.fecha_nacimiento.split('T')[0] : ''}" placeholder="YYYY-MM-DD" autocomplete="off">
+                    </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="fecha_ingreso" class="form-label">Fecha de Ingreso</label>
+                                    <input type="text" id="fecha_ingreso" name="fecha_ingreso" class="datepicker-default form-control input-default" value="${isEditing && currentEmpleadoData.fecha_ingreso ? currentEmpleadoData.fecha_ingreso.split('T')[0] : ''}" placeholder="YYYY-MM-DD" autocomplete="off">
+                    </div>
+                </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="id_sucursal" class="form-label">Sucursal Asignada</label>
+                                    <select id="id_sucursal" name="id_sucursal" class="form-control select2">
                             <option value="">Seleccione sucursal (Opcional)</option>
                             ${sucursalesCache.map(sucursal => `<option value="${sucursal.id}" ${isEditing && currentEmpleadoData.id_sucursal === sucursal.id ? 'selected' : ''}>${sucursal.nombre}</option>`).join('')}
                         </select>
                     </div>
-                    <div>
-                        <label for="id_area" class="block text-sm font-medium text-gray-700">Área Asignada</label>
-                        <select id="id_area" name="id_area"
-                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                <div class="col-md-4 mb-3">
+                                    <label for="id_area" class="form-label">Área Asignada</label>
+                                    <select id="id_area" name="id_area" class="form-control select2">
                             <option value="">Seleccione área (Opcional)</option>
                             ${areasCache.map(area => `<option value="${area.id}" ${isEditing && currentEmpleadoData.id_area === area.id ? 'selected' : ''}>${area.nombre} (Suc: ${area.nombre_empresa})</option>`).join('')}
-                            <!--//? Debería filtrar las áreas según la sucursal seleccionada? -->
                         </select>
                     </div>
-                     <div>
-                        <label for="id_status" class="block text-sm font-medium text-gray-700">Estado <span class="text-red-500">*</span></label>
-                        <select id="id_status" name="id_status" required
-                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                <div class="col-md-4 mb-3">
+                                    <label for="id_status" class="form-label">Estado <span class="text-danger">*</span></label>
+                                    <select id="id_status" name="id_status" required class="form-control select2">
                             <option value="">Seleccione un estado...</option>
-                            ${statusesCache.map(status => `<option value="${status.id}" ${isEditing && currentEmpleadoData.id_status === status.id ? 'selected' : (!isEditing && status.id === 1 ? 'selected' : '')}>${status.nombre_status}</option>`).join('')}
+                            ${statusesCache
+                              .filter(status => isEditing || ![2, 6, 7, 9, 12].includes(status.id))
+                              .map(status => `<option value="${status.id}" ${isEditing && currentEmpleadoData.id_status === status.id ? 'selected' : (!isEditing && status.id === 1 ? 'selected' : '')}>${status.nombre_status}</option>`)
+                              .join('')}
                         </select>
                     </div>
                 </div>
-
-                <!-- Div para mostrar mensajes de error del formulario -->
-                <div id="form-error-message" class="text-red-500 text-sm mt-2"></div>
-
-                <!-- Botones de acción -->
-                <div class="flex justify-end space-x-4 pt-4">
-                    <button type="button" id="cancelEmpleadoForm" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                        ${isEditing ? 'Guardar Cambios' : 'Registrar Empleado'}
-                    </button>
+                            <div id="form-error-message" class="text-danger text-sm mb-3"></div>
+                            <div class="d-flex justify-content-end gap-2">
+                                <button type="button" id="cancelEmpleadoForm" class="btn btn-danger light btn-sl-sm"><span class="me-2"><i class="fa fa-times"></i></span>Cancelar</button>
+                                <button type="submit" class="btn btn-primary btn-sl-sm"><span class="me-2"><i class="fa fa-paper-plane"></i></span>${isEditing ? 'Guardar Cambios' : 'Registrar Empleado'}</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-            </form>
+            </div>
         `;
 
-        // * Añado el event listener al formulario.
-        // * Paso el ID del empleado si estamos editando.
-        document.getElementById('empleadoForm').addEventListener('submit', (event) => handleEmpleadoFormSubmit(event, empleadoId));
-        // * Listener para el botón Cancelar.
+        // Inicializar select2 en los selects buscables
+        if (window.$ && $.fn.select2) {
+            $('#id_sucursal').select2({ width: '100%' });
+            $('#id_area').select2({ width: '100%' });
+            $('#id_status').select2({ width: '100%' });
+        }
+        // Inicializar Pickadate en español en los campos de fecha SIEMPRE después de renderizar
+        if (window.$ && $.fn.pickadate) {
+            // Destruir pickers anteriores si existen
+            if ($('#fecha_nacimiento').data('pickadate')) $('#fecha_nacimiento').pickadate('destroy');
+            if ($('#fecha_ingreso').data('pickadate')) $('#fecha_ingreso').pickadate('destroy');
+            setTimeout(function() {
+                var currentYear = new Date().getFullYear();
+                var minYearNacimiento = 1940;
+                var minYearIngreso = 2000;
+                var yearsNacimiento = currentYear - minYearNacimiento + 1;
+                var yearsIngreso = currentYear - minYearIngreso + 1;
+                $('#fecha_nacimiento').pickadate({
+                    format: 'yyyy-mm-dd',
+                    selectMonths: true,
+                    selectYears: yearsNacimiento,
+                    autoclose: true,
+                    min: [minYearNacimiento, 0, 1],
+                    max: [currentYear, 11, 31],
+                    monthsFull: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+                    monthsShort: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+                    weekdaysFull: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+                    weekdaysShort: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+                    today: 'Hoy',
+                    clear: 'Limpiar',
+                    close: 'Cerrar',
+                    labelMonthNext: 'Mes siguiente',
+                    labelMonthPrev: 'Mes anterior',
+                    labelMonthSelect: 'Selecciona un mes',
+                    labelYearSelect: 'Selecciona un año',
+                    firstDay: 1
+                });
+                $('#fecha_ingreso').pickadate({
+                    format: 'yyyy-mm-dd',
+                    selectMonths: true,
+                    selectYears: yearsIngreso,
+                    autoclose: true,
+                    min: [minYearIngreso, 0, 1],
+                    max: [currentYear, 11, 31],
+                    monthsFull: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+                    monthsShort: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+                    weekdaysFull: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+                    weekdaysShort: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+                    today: 'Hoy',
+                    clear: 'Limpiar',
+                    close: 'Cerrar',
+                    labelMonthNext: 'Mes siguiente',
+                    labelMonthPrev: 'Mes anterior',
+                    labelMonthSelect: 'Selecciona un mes',
+                    labelYearSelect: 'Selecciona un año',
+                    firstDay: 1
+                });
+            }, 0);
+        }
+
+        // Inicializar transformación a mayúsculas en campos de texto
+        applyUppercaseToFields(['nombres', 'apellidos', 'numero_empleado', 'puesto']);
+
+        document.getElementById('empleado-form').addEventListener('submit', (event) => handleEmpleadoFormSubmit(event, empleadoId));
         document.getElementById('cancelEmpleadoForm').addEventListener('click', async () => {
-
-            await showInfoModal({
+            await Swal.fire({
                 title: 'Cancelado',
-                message: 'El formulario de empleado ha sido cancelado.'
+                text: 'El formulario de empleado ha sido cancelado.',
+                icon: 'warning',
+                confirmButtonText: 'Aceptar'
             });
-
-             // * Navego a la lista de equipos.
-             if (typeof window.navigateTo === 'function') {
-                window.navigateTo('empleadosList');
+            if (typeof window.navigateTo === 'function') {
+                window.navigateTo('empleados-list');
             } else {
-                contentArea.innerHTML = `<p class="text-green-500">Por favor, navega manualmente a la lista.</p>`;
-            }   
-         });
+                contentArea.innerHTML = `<p>Por favor, navega manualmente a la lista.</p>`;
+            }
+        });
 
     } catch (error) {
         console.error('Error al renderizar el formulario de empleado:', error);
@@ -253,25 +288,29 @@ async function handleEmpleadoFormSubmit(event, editingId = null) {
         if (editingId) {
             // * Estamos editando un equipo existente.
             await updateEmpleado(editingId, empleadoData); //* Llamo a la función de API para actualizar.
-            responseMessage = `Empleado con ID ${editingId} actualizado exitosamente.`;
+            responseMessage = `Empleado "${empleadoData.nombres} ${empleadoData.apellidos}" actualizado exitosamente en el sistema.`;
             console.log(responseMessage);
-            await showInfoModal({
-                title: 'Éxito',
-                message: responseMessage
+            await Swal.fire({
+                title: 'Empleado Actualizado Exitosamente',
+                text: responseMessage,
+                icon: 'success',
+                confirmButtonText: 'Entendido',
             });
         } else {
             // * Estamos creando un nuevo equipo.
             const nuevoEmpleado = await createEmpleado(empleadoData); //* Llamo a la función de API para crear.
-            responseMessage = `Empleado "${nuevoEmpleado.nombres} ${nuevoEmpleado.apellidos} " (ID: ${nuevoEmpleado.id}) creado exitosamente.`;
+            responseMessage = `Empleado "${nuevoEmpleado.nombres} ${nuevoEmpleado.apellidos}" registrado exitosamente en el sistema.`;
             console.log(responseMessage);
-            await showInfoModal({
-                title: 'Éxito',
-                message: responseMessage
+            await Swal.fire({
+                title: 'Empleado Registrado Exitosamente',
+                text: responseMessage,
+                icon: 'success',
+                confirmButtonText: 'Entendido',
             });
         }
         // * Después de éxito, navego de vuelta a la lista de empleados.
         if (typeof window.navigateTo === 'function') {
-            window.navigateTo('empleadosList');
+            window.navigateTo('empleados-list');
         } else {
             contentArea.innerHTML = `<p class="text-green-500">${responseMessage} Por favor, navega manualmente a la lista.</p>`;
         }   
