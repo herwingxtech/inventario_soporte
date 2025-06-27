@@ -1,7 +1,9 @@
 # Dependencies
 node_modules/
 package-lock.json
+eba bdjejdj
 
+prueba/
 # Environment variables
 .env
 .env.local

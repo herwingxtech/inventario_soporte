@@ -4,6 +4,7 @@
 import { getEquipoById } from '../api.js';
 import { showDetailsLoading } from '../utils/loading.js';
 import { showDetailsError } from '../utils/error.js';
+import { getStatusBadge } from '../utils/statusBadge.js';
 
 // * Referencia al contenedor principal donde se renderizará esta vista.
 const contentArea = document.getElementById('content-area');
@@ -22,98 +23,83 @@ function showEquipoDetailsError(message) {
 
 // * Renderiza la vista de detalles del equipo.
 function renderEquipoDetails(equipo) {
-    contentArea.innerHTML = ''; //* Limpio cualquier contenido previo.
+    contentArea.innerHTML = '';
 
     if (!equipo) {
         showEquipoDetailsError('No se encontraron datos para este equipo.');
         return;
     }
 
-    // * Creo el título para esta vista.
-    const title = document.createElement('h2');
-    title.classList.add('text-2xl', 'font-bold', 'text-gray-800', 'mb-6');
+    // Card principal
+    const card = document.createElement('div');
+    card.className = 'card shadow-sm mb-4';
+
+    // Header
+    const cardHeader = document.createElement('div');
+    cardHeader.className = 'card-header';
+    const title = document.createElement('h4');
+    title.className = 'card-title mb-0';
     title.textContent = `Detalles del Equipo: ${equipo.nombre_equipo || equipo.numero_serie}`;
-    contentArea.appendChild(title);
+    cardHeader.appendChild(title);
+    card.appendChild(cardHeader);
 
-    // * Contenedor para los detalles con un diseño de dos columnas en pantallas medianas.
-    const detailsContainer = document.createElement('div');
-    detailsContainer.classList.add('bg-white', 'p-6', 'rounded-lg', 'shadow-md', 'space-y-4');
+    // Body
+    const cardBody = document.createElement('div');
+    cardBody.className = 'card-body';
 
-    // * Función auxiliar para crear un par de etiqueta-valor.
-    function createDetailItem(label, value) {
-        const itemDiv = document.createElement('div');
-        itemDiv.classList.add('py-2', 'sm:grid', 'sm:grid-cols-3', 'sm:gap-4', 'sm:px-0'); //* Estilo de definición
-
-        const dt = document.createElement('dt'); //* Etiqueta
-        dt.classList.add('text-sm', 'font-medium', 'text-gray-500');
+    // Grid de detalles
+    const detailsGrid = document.createElement('dl');
+    detailsGrid.className = 'row mb-0';
+    function addDetail(label, value, isStatus) {
+        const dt = document.createElement('dt');
+        dt.className = 'col-sm-4 text-sm-end text-muted';
         dt.textContent = label;
-
-        const dd = document.createElement('dd'); //* Valor
-        dd.classList.add('mt-1', 'text-sm', 'text-gray-900', 'sm:mt-0', 'sm:col-span-2');
-        dd.textContent = value || 'N/A'; //* Muestro N/A si el valor es nulo o vacío.
-
-        itemDiv.appendChild(dt);
-        itemDiv.appendChild(dd);
-        return itemDiv;
+        const dd = document.createElement('dd');
+        dd.className = 'col-sm-8 mb-2';
+        dd.innerHTML = isStatus ? getStatusBadge(value) : (value || 'N/A');
+        detailsGrid.appendChild(dt);
+        detailsGrid.appendChild(dd);
     }
-
-    // * Creo y añado los ítems de detalle.
-    detailsContainer.appendChild(createDetailItem('ID', equipo.id));
-    detailsContainer.appendChild(createDetailItem('Número de Serie', equipo.numero_serie));
-    detailsContainer.appendChild(createDetailItem('Nombre del Equipo (Alias)', equipo.nombre_equipo));
-    detailsContainer.appendChild(createDetailItem('Tipo de Equipo', equipo.nombre_tipo_equipo)); //* Del JOIN
-    detailsContainer.appendChild(createDetailItem('Marca', equipo.marca));
-    detailsContainer.appendChild(createDetailItem('Modelo', equipo.modelo));
-    detailsContainer.appendChild(createDetailItem('Sucursal Actual', equipo.nombre_sucursal_actual)); //* Del JOIN
-    detailsContainer.appendChild(createDetailItem('Procesador', equipo.procesador));
-    detailsContainer.appendChild(createDetailItem('RAM', equipo.ram));
-    detailsContainer.appendChild(createDetailItem('Disco Duro', equipo.disco_duro));
-    detailsContainer.appendChild(createDetailItem('Sistema Operativo', equipo.sistema_operativo));
-    detailsContainer.appendChild(createDetailItem('MAC Address', equipo.mac_address));
-    // Formateo de fechas
+    addDetail('ID', equipo.id);
+    addDetail('Número de Serie', equipo.numero_serie);
+    addDetail('Nombre del Equipo (Alias)', equipo.nombre_equipo);
+    addDetail('Tipo de Equipo', equipo.nombre_tipo_equipo);
+    addDetail('Marca', equipo.marca);
+    addDetail('Modelo', equipo.modelo);
+    addDetail('Sucursal Actual', equipo.nombre_sucursal_actual);
+    addDetail('Procesador', equipo.procesador);
+    addDetail('RAM', equipo.ram);
+    addDetail('Disco Duro', equipo.disco_duro);
+    addDetail('Sistema Operativo', equipo.sistema_operativo);
+    addDetail('MAC Address', equipo.mac_address);
     const fechaCompraFormateada = equipo.fecha_compra ? new Date(equipo.fecha_compra).toLocaleDateString() : 'N/A';
     const fechaRegistroFormateada = equipo.fecha_registro ? new Date(equipo.fecha_registro).toLocaleString() : 'N/A';
     const fechaActualizacionFormateada = equipo.fecha_actualizacion ? new Date(equipo.fecha_actualizacion).toLocaleString() : 'N/A';
+    addDetail('Fecha de Compra', fechaCompraFormateada);
+    addDetail('Fecha de Registro', fechaRegistroFormateada);
+    addDetail('Última Actualización', fechaActualizacionFormateada);
+    addDetail('Estado', equipo.status_nombre, true);
+    addDetail('Otras Características / Notas', equipo.otras_caracteristicas);
+    cardBody.appendChild(detailsGrid);
+    card.appendChild(cardBody);
 
-    detailsContainer.appendChild(createDetailItem('Fecha de Compra', fechaCompraFormateada));
-    detailsContainer.appendChild(createDetailItem('Fecha de Registro', fechaRegistroFormateada));
-    detailsContainer.appendChild(createDetailItem('Última Actualización', fechaActualizacionFormateada));
-    detailsContainer.appendChild(createDetailItem('Estado', equipo.status_nombre)); //* Del JOIN
-    detailsContainer.appendChild(createDetailItem('Otras Características / Notas', equipo.otras_caracteristicas));
-
-
-    contentArea.appendChild(detailsContainer);
-
-    // * Botones de acción (ej. Editar, Volver a la lista)
+    // Botones de acción
     const actionsDiv = document.createElement('div');
-    actionsDiv.classList.add('mt-6', 'flex', 'justify-end', 'space-x-3');
+    actionsDiv.className = 'card-footer d-flex justify-content-end gap-2';
+    const backBtn = document.createElement('button');
+    backBtn.className = 'btn btn-danger light btn-sl-sm';
+    backBtn.innerHTML = '<i class="fa fa-arrow-left me-2"></i>Volver a la Lista';
+    backBtn.onclick = () => { if (typeof window.navigateTo === 'function') window.navigateTo('equipos-list'); };
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn btn-primary btn-sl-sm';
+    editBtn.innerHTML = '<i class="fa fa-edit me-2"></i>Editar Equipo';
+    editBtn.onclick = () => { if (typeof window.navigateTo === 'function') window.navigateTo('equipo-form', String(equipo.id)); };
+    actionsDiv.appendChild(backBtn);
+    actionsDiv.appendChild(editBtn);
+    card.appendChild(actionsDiv);
 
-    const editButton = document.createElement('button');
-    editButton.classList.add('px-4', 'py-2', 'border', 'border-yellow-500', 'text-yellow-600', 'rounded-md', 'hover:bg-yellow-50');
-    editButton.textContent = 'Editar Equipo';
-    editButton.addEventListener('click', () => {
-        //* Navegar al formulario de edición
-        if (typeof window.navigateTo === 'function') {
-            window.navigateTo('equipoForm', String(equipo.id));
-        }
-    });
-
-    const backToListButton = document.createElement('button');
-    backToListButton.classList.add('px-4', 'py-2', 'border', 'border-gray-300', 'rounded-md', 'text-gray-700', 'hover:bg-gray-50');
-    backToListButton.textContent = 'Volver a la Lista';
-    backToListButton.addEventListener('click', () => {
-        //* Navegar de vuelta a la lista de equipos
-        if (typeof window.navigateTo === 'function') {
-            window.navigateTo('equiposList');
-        }
-    });
-
-    actionsDiv.appendChild(backToListButton);
-    actionsDiv.appendChild(editButton);
-    contentArea.appendChild(actionsDiv);
-
-
-    console.log('Detalles del equipo renderizados.');
+    contentArea.appendChild(card);
+    console.log('Detalles del equipo renderizados (estilo card).');
 }
 
 
@@ -129,6 +115,7 @@ export async function showEquipoDetails(params) {
         return;
     }
     try {
+        showDetailsLoading('equipo', equipoId);
         const equipo = await getEquipoById(equipoId);
         renderEquipoDetails(equipo);
     } catch (error) {

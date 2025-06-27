@@ -7,12 +7,13 @@
 //? Para poblar selects: 'getEquipos', 'getEmpleados', 'getSucursales', 'getAreas', 'getDireccionesIp', 'getStatuses'.
 import {
     createAsignacion, updateAsignacion, getAsignacionById,
-    getEquipos, getEmpleados, getSucursales, getAreas, getDireccionesIp, getStatuses
+    getEquipos, getEmpleados, getSucursales, getAreas, getStatuses, getDireccionesIp,
+    updateEquipo, updateDireccionIp
 } from '../api.js';
 //* Importo mis funciones de modales para una mejor UX.
-import { showInfoModal } from '../ui/modal.js';
 import { showFormLoading } from '../utils/loading.js';
 import { showFormError } from '../utils/error.js';
+import { applyUppercaseToFields } from '../utils/textTransform.js';
 
 //* Referencia al contenedor principal donde voy a renderizar este formulario.
 const contentArea = document.getElementById('content-area');
@@ -124,7 +125,7 @@ async function renderAsignacionForm(asignacionToEdit = null) {
 
         //* Lógica para filtrar las IPs para el select 'id_ip':
         //* 1. Incluir siempre la IP actualmente asignada si estamos editando.
-        //* 2. Incluir todas las IPs cuyo status sea 'Disponible'.
+        //* 2. Incluir todas las IPs cuyo status sea 'Disponible' y que no tengan asignación activa.
         let ipsParaSelect = [];
         const currentAsignacionIpId = currentAsignacionData ? currentAsignacionData.id_ip : null;
 
@@ -136,13 +137,13 @@ async function renderAsignacionForm(asignacionToEdit = null) {
             }
         }
 
-        //* Ahora, añade las IPs disponibles (asegúrate de no duplicar si la IP asignada ya era disponible).
-        //* Se asume que el objeto IP de la API tiene una propiedad 'status_nombre' o 'nombre_status'.
-        const availableIps = ipsCache.filter(ip => 
-            (ip.status_nombre === 'Disponible' || ip.nombre_status === 'Disponible')
+        // Filtrar IPs disponibles y sin asignación activa
+        // Suponemos que la API de IPs trae un campo 'asignacion_activa' o similar, si no, solo filtramos por status
+        const availableIps = ipsCache.filter(ip =>
+            (ip.status_nombre === 'Disponible' || ip.nombre_status === 'Disponible') &&
+            (!ip.asignacion_activa || ip.id === currentAsignacionIpId)
         );
 
-        //* Combina y quita duplicados (en caso de que la IP asignada también fuera "Disponible")
         availableIps.forEach(ip => {
             if (!ipsParaSelect.some(existingIp => existingIp.id === ip.id)) {
                 ipsParaSelect.push(ip);
@@ -168,154 +169,143 @@ async function renderAsignacionForm(asignacionToEdit = null) {
 
         //* Limpio el área de contenido y construyo el HTML del formulario.
         contentArea.innerHTML = `
-          <h2 class="text-2xl font-bold text-gray-800 mb-6">${formTitle}</h2>
-          <form id="asignacionForm" class="space-y-6 bg-white p-8 rounded-lg shadow-md">
-              <!-- Equipo (Obligatorio) -->
-              <div>
-                  <label for="id_equipo" class="block text-sm font-medium text-gray-700">Equipo (Número de Serie) <span class="text-red-500">*</span></label>
-                  <select id="id_equipo" name="id_equipo" required
-                          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            <div class="col-xl-8 col-lg-10 mx-auto">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">${formTitle}</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="asignacionForm" class="basic-form">
+                            <div class="mb-3">
+                                <label for="id_equipo" class="form-label">Equipo (Número de Serie) <span class="text-danger">*</span></label>
+                                <select id="id_equipo" name="id_equipo" required class="form-control select2">
                       <option value="">Seleccione un equipo...</option>
                       ${equiposParaSelect.map(eq => `<option value="${eq.id}" ${isEditing && currentAsignacionData && currentAsignacionData.id_equipo === eq.id ? 'selected' : ''}>${eq.numero_serie} - ${eq.nombre_equipo || 'Sin Nombre'}</option>`).join('')}
                   </select>
               </div>
-
-              <!-- Fecha de Asignación (Obligatorio) -->
-              <div>
-                  <label for="fecha_asignacion" class="block text-sm font-medium text-gray-700">Fecha de Asignación <span class="text-red-500">*</span></label>
-                  <input type="datetime-local" id="fecha_asignacion" name="fecha_asignacion" required
-                         class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                         value="${isEditing && currentAsignacionData && currentAsignacionData.fecha_asignacion ? new Date(currentAsignacionData.fecha_asignacion).toISOString().substring(0, 16) : ''}">
-                         <!-- Formato para datetime-local:YYYY-MM-DDTHH:mm -->
+                            <div class="mb-3">
+                                <label for="fecha_asignacion" class="form-label">Fecha de Asignación <span class="text-danger">*</span></label>
+                                <input type="text" id="fecha_asignacion" name="fecha_asignacion" required class="datepicker-default form-control input-default" value="${isEditing && currentAsignacionData && currentAsignacionData.fecha_asignacion ? new Date(currentAsignacionData.fecha_asignacion).toISOString().substring(0, 16) : ''}" placeholder="YYYY-MM-DD" autocomplete="off">
               </div>
-
-              <hr class="my-6 border-gray-300">
-              <p class="text-lg font-semibold text-gray-700">Asignar A (Opcional, pero al menos uno para activas):</p>
-
-              <!-- Empleado (Opcional) -->
-              <div>
-                  <label for="id_empleado" class="block text-sm font-medium text-gray-700">Empleado Asignado</label>
-                  <select id="id_empleado" name="id_empleado"
-                          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <hr class="my-4">
+              <p class="text-lg font-semibold text-body">Asignar A (Opcional, pero al menos uno para activas):</p>
+                            <div class="mb-3">
+                                <label for="id_empleado" class="form-label">Empleado Asignado</label>
+                                <select id="id_empleado" name="id_empleado" class="form-control select2">
                       <option value="">Ninguno</option>
                       ${empleadosCache.map(emp => `<option value="${emp.id}" ${isEditing && currentAsignacionData && currentAsignacionData.id_empleado === emp.id ? 'selected' : ''}>${emp.nombres} ${emp.apellidos} (ID: ${emp.id})</option>`).join('')}
                   </select>
               </div>
-
-              <!-- Sucursal Asignada (Opcional) -->
-              <div>
-                  <label for="id_sucursal_asignado" class="block text-sm font-medium text-gray-700">Sucursal (para stock o ubicación general)</label>
-                  <select id="id_sucursal_asignado" name="id_sucursal_asignado"
-                          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <div class="mb-3">
+                                <label for="id_sucursal_asignado" class="form-label">Sucursal (para stock o ubicación general)</label>
+                                <select id="id_sucursal_asignado" name="id_sucursal_asignado" class="form-control select2">
                       <option value="">Ninguna</option>
                       ${sucursalesCache.map(suc => `<option value="${suc.id}" ${isEditing && currentAsignacionData && currentAsignacionData.id_sucursal_asignado === suc.id ? 'selected' : ''}>${suc.nombre}</option>`).join('')}
                   </select>
               </div>
-
-              <!-- Área Asignada (Opcional) -->
-              <div>
-                  <label for="id_area_asignado" class="block text-sm font-medium text-gray-700">Área (en sucursal corporativa)</label>
-                  <select id="id_area_asignado" name="id_area_asignado"
-                          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <div class="mb-3">
+                                <label for="id_area_asignado" class="form-label">Área (en sucursal corporativa)</label>
+                                <select id="id_area_asignado" name="id_area_asignado" class="form-control select2">
                       <option value="">Ninguna</option>
                       ${areasCache.map(area => `<option value="${area.id}" ${isEditing && currentAsignacionData && currentAsignacionData.id_area_asignado === area.id ? 'selected' : ''}>${area.nombre} (Suc ID: ${area.nombre_empresa})</option>`).join('')}
                   </select>
               </div>
-
-              <hr class="my-6 border-gray-300">
-              <p class="text-lg font-semibold text-gray-700">Detalles Adicionales (Opcional):</p>
-
-              <!-- Equipo Padre (Opcional) -->
-              <div>
-                  <label for="id_equipo_padre" class="block text-sm font-medium text-gray-700">Componente de (Equipo Padre)</label>
-                  <select id="id_equipo_padre" name="id_equipo_padre"
-                          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <hr class="my-4">
+              <p class="text-lg font-semibold text-body">Detalles Adicionales (Opcional):</p>
+                            <div class="mb-3">
+                                <label for="id_equipo_padre" class="form-label">Componente de (Equipo Padre)</label>
+                                <select id="id_equipo_padre" name="id_equipo_padre" class="form-control select2">
                       <option value="">Ninguno</option>
-                      ${equiposParaPadre
-                .map(eq => `<option value="${eq.id}" ${isEditing && currentAsignacionData && currentAsignacionData.id_equipo_padre === eq.id ? 'selected' : ''}>${eq.numero_serie} - ${eq.nombre_equipo || 'Sin Nombre'}</option>`).join('')}
+                                    ${equiposParaPadre.map(eq => `<option value="${eq.id}" ${isEditing && currentAsignacionData && currentAsignacionData.id_equipo_padre === eq.id ? 'selected' : ''}>${eq.numero_serie} - ${eq.nombre_equipo || 'Sin Nombre'}</option>`).join('')}
                   </select>
               </div>
-
-              <!-- Dirección IP (Opcional) -->
-              <div>
-                  <label for="id_ip" class="block text-sm font-medium text-gray-700">Dirección IP Asignada</label>
-                  <select id="id_ip" name="id_ip"
-                          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <div class="mb-3">
+                                <label for="id_ip" class="form-label">Dirección IP Asignada</label>
+                                <select id="id_ip" name="id_ip" class="form-control select2">
                       <option value="">Ninguna (o DHCP)</option>
-                      ${ipsParaSelect //* Usamos el array ipsParaSelect ya filtrado y ordenado
-                        .map(ip => `<option value="${ip.id}" ${isEditing && currentAsignacionData && currentAsignacionData.id_ip === ip.id ? 'selected' : ''}>${ip.direccion_ip} (${ip.status_nombre || ip.nombre_status || 'N/A'})</option>`).join('')}
+                                    ${ipsParaSelect.map(ip => `<option value="${ip.id}" ${isEditing && currentAsignacionData && currentAsignacionData.id_ip === ip.id ? 'selected' : ''}>${ip.direccion_ip} (${ip.status_nombre || ip.nombre_status || 'N/A'})</option>`).join('')}
                   </select>
               </div>
-
-              <!-- Fecha de Fin de Asignación (Opcional - para finalizar) -->
-              <div>
-                  <label for="fecha_fin_asignacion" class="block text-sm font-medium text-gray-700">Fecha de Fin de Asignación</label>
-                  <input type="datetime-local" id="fecha_fin_asignacion" name="fecha_fin_asignacion"
-                         class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                         value="${isEditing && currentAsignacionData && currentAsignacionData.fecha_fin_asignacion ? new Date(currentAsignacionData.fecha_fin_asignacion).toISOString().substring(0, 16) : ''}">
-              </div>
-
-              <!-- Estado de la Asignación (Obligatorio) -->
-              <div>
-                  <label for="id_status_asignacion" class="block text-sm font-medium text-gray-700">Estado de la Asignación <span class="text-red-500">*</span></label>
-                 <select id="id_status_asignacion" name="id_status_asignacion" required
-    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <div class="mb-3">
+                                <label for="id_status" class="form-label">Estado de la Asignación <span class="text-danger">*</span></label>
+                                <select id="id_status" name="id_status" required class="form-control select2">
     <option value="">Seleccione un estado...</option>
-    ${(
-                isEditing
-                    ? statusesCache
-                    : statusesCache.filter(
-                        status =>
-                            status.nombre_status !== 'Finalizado' &&
-                            status.nombre_status !== 'Cancelado' &&
-                            status.nombre_status !== 'Anulado' &&
-                            status.nombre_status !== 'Baja' &&
-                            status.nombre_status !== 'Bloqueado'
-                    )
-            )
-                .map(
-                    status =>
-                        `<option value="${status.id}" ${isEditing && currentAsignacionData && currentAsignacionData.id_status_asignacion === status.id
-                            ? 'selected'
-                            : (!isEditing && status.nombre_status === 'Activo' ? 'selected' : '')
-                        }>${status.nombre_status}</option>`
-                )
-                .join('')
-            }
+                                    ${statusesCache
+                                      .filter(status => isEditing || ![2, 6, 7, 9, 12].includes(status.id))
+                                      .map(status => `<option value="${status.id}" ${isEditing && currentAsignacionData && currentAsignacionData.id_status_asignacion === status.id ? 'selected' : (!isEditing && status.id === 1 ? 'selected' : '')}>${status.nombre_status}</option>`)
+                                      .join('')}
 </select>
               </div>
-
-              <div>
-                  <label for="observacion" class="block text-sm font-medium text-gray-700">Observaciones</label>
-                  <textarea id="observacion" name="observacion" rows="3"
-                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">${isEditing && currentAsignacionData && currentAsignacionData.observacion ? currentAsignacionData.observacion : ''}</textarea>
+                            <div class="mb-3">
+                                <label for="comentario" class="form-label">Comentario</label>
+                                <textarea id="comentario" name="comentario" rows="3" class="form-control" placeholder="DESCRIBA DETALLES DE LA ASIGNACIÓN, UBICACIÓN ESPECÍFICA, PROPÓSITO, OBSERVACIONES, ETC.">${isEditing && currentAsignacionData && currentAsignacionData.comentario ? currentAsignacionData.comentario : ''}</textarea>
               </div>
-
-              <!-- Div para mostrar mensajes de error del formulario -->
-              <div id="form-error-message" class="text-red-500 text-sm mt-2"></div>
-
-              <!-- Botones de acción -->
-              <div class="flex justify-end space-x-4 pt-4">
-                  <button type="button" id="cancelAsignacionForm" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">Cancelar</button>
-                  <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700">
-                      ${isEditing ? 'Guardar Cambios' : 'Registrar Asignación'}
-                  </button>
+                            <div id="form-error-message" class="text-danger text-sm mb-3"></div>
+                            <div class="d-flex justify-content-end gap-2">
+                                <button type="button" id="cancelAsignacionForm" class="btn btn-danger light btn-sl-sm"><span class="me-2"><i class="fa fa-times"></i></span>Cancelar</button>
+                                <button type="submit" class="btn btn-primary btn-sl-sm"><span class="me-2"><i class="fa fa-paper-plane"></i></span>${isEditing ? 'Guardar Cambios' : 'Registrar Asignación'}</button>
               </div>
           </form>
-      `;
+                    </div>
+                </div>
+            </div>
+        `;
 
-        //* Añado el event listener al formulario.
+        // Inicializar select2 en los selects buscables
+        if (window.$ && $.fn.select2) {
+            $('#id_equipo').select2({ width: '100%' });
+            $('#id_empleado').select2({ width: '100%' });
+            $('#id_sucursal_asignado').select2({ width: '100%' });
+            $('#id_area_asignado').select2({ width: '100%' });
+            $('#id_equipo_padre').select2({ width: '100%' });
+            $('#id_ip').select2({ width: '100%' });
+            $('#id_status').select2({ width: '100%' });
+        }
+        // Inicializar Pickadate en español en el campo de fecha SIEMPRE después de renderizar
+        if (window.$ && $.fn.pickadate) {
+            if ($('#fecha_asignacion').data('pickadate')) $('#fecha_asignacion').pickadate('destroy');
+            setTimeout(function() {
+                var currentYear = new Date().getFullYear();
+                var minYearAsignacion = 2000;
+                var yearsAsignacion = currentYear - minYearAsignacion + 1;
+                $('#fecha_asignacion').pickadate({
+                    format: 'yyyy-mm-dd',
+                    selectMonths: true,
+                    selectYears: yearsAsignacion,
+                    autoclose: true,
+                    min: [minYearAsignacion, 0, 1],
+                    max: [currentYear, 11, 31],
+                    monthsFull: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+                    monthsShort: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+                    weekdaysFull: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+                    weekdaysShort: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+                    today: 'Hoy',
+                    clear: 'Limpiar',
+                    close: 'Cerrar',
+                    labelMonthNext: 'Mes siguiente',
+                    labelMonthPrev: 'Mes anterior',
+                    labelMonthSelect: 'Selecciona un mes',
+                    labelYearSelect: 'Selecciona un año',
+                    firstDay: 1
+                });
+            }, 0);
+        }
+
+        // Inicializar transformación a mayúsculas en campos de texto
+        applyUppercaseToFields(['comentario']);
+
         document.getElementById('asignacionForm').addEventListener('submit', (event) => handleAsignacionFormSubmit(event, asignacionId));
-        //* Listener para el botón Cancelar.
         document.getElementById('cancelAsignacionForm').addEventListener('click', async () => {
-            await showInfoModal({
+            await Swal.fire({
                 title: 'Cancelado',
-                message: 'El formulario de Asignacion ha sido cancelado.'
+                text: 'El formulario de asignación ha sido cancelado.',
+                icon: 'warning',
+                confirmButtonText: 'Aceptar'
             });
             if (typeof window.navigateTo === 'function') {
-                window.navigateTo('asignacionesList'); //* Regreso a la lista de Asignaciones.
+                window.navigateTo('asignaciones-list');
             } else {
-                contentArea.innerHTML = '<p>Operación cancelada.</p>';
+                contentArea.innerHTML = `<p>Por favor, navega manualmente a la lista.</p>`;
             }
         });
 
@@ -339,8 +329,12 @@ async function handleAsignacionFormSubmit(event, editingId = null) {
 
     //* Convierto FormData a un objeto, manejando valores vacíos y numéricos.
     for (let [key, value] of formData.entries()) {
-        if (['id_equipo', 'id_empleado', 'id_sucursal_asignado', 'id_area_asignado', 'id_equipo_padre', 'id_ip', 'id_status_asignacion'].includes(key)) {
-            asignacionData[key] = value ? parseInt(value, 10) : null; //* Si está vacío, envío null.
+        if ([
+            'id_equipo', 'id_empleado', 'id_sucursal_asignado', 'id_area_asignado', 'id_equipo_padre', 'id_ip'
+        ].includes(key)) {
+            asignacionData[key] = value ? parseInt(value, 10) : null;
+        } else if (key === 'id_status') {
+            asignacionData['id_status_asignacion'] = value ? parseInt(value, 10) : null;
         } else if (key === 'fecha_asignacion' || key === 'fecha_fin_asignacion') {
             //* El input datetime-local devuelve "YYYY-MM-DDTHH:mm". MySQL espera "YYYY-MM-DD HH:mm:ss".
             //* Si el valor está vacío, lo mandamos como null.
@@ -353,7 +347,7 @@ async function handleAsignacionFormSubmit(event, editingId = null) {
                 asignacionData[key] = null;
             }
         } else {
-            //* Para campos de texto como 'observacion', si está vacío, enviar null.
+            //* Para campos de texto como 'comentario', si está vacío, enviar null.
             asignacionData[key] = value.trim() === '' ? null : value;
         }
     }
@@ -375,29 +369,69 @@ async function handleAsignacionFormSubmit(event, editingId = null) {
 
     try {
         let responseMessage = '';
+        let updatedAsignacion = null;
         if (editingId) {
             await updateAsignacion(editingId, asignacionData);
             responseMessage = `Asignación con ID ${editingId} actualizada exitosamente.`;
+            updatedAsignacion = { ...asignacionData, id: editingId };
         } else {
             const nuevaAsignacion = await createAsignacion(asignacionData); //* La API devuelve el objeto creado.
             responseMessage = `Asignación (ID: ${nuevaAsignacion.id}) para el equipo ID ${nuevaAsignacion.id_equipo} registrada exitosamente.`;
+            updatedAsignacion = nuevaAsignacion;
         }
-        console.log(responseMessage);
-        //* Uso mi modal de información.
-        await showInfoModal({ title: 'Operación Exitosa', message: responseMessage });
+
+        // --- NUEVO BLOQUE: Si el estado es "Finalizada", actualiza equipo e IP a "Disponible" ---
+        // IDs de estado según tu base de datos
+        const DISPONIBLE_ID = 5; // Disponible (coincide con backend)
+        const ASIGNADO_ID = 4;   // Asignado
+        const FINALIZADA_ID = 6; // Finalizada
+
+        if (editingId) {
+            // No actualices equipo/IP aquí, el backend lo hace automáticamente al finalizar la asignación
+        } else {
+            // Al crear una asignación, equipo e IP pasan a asignado
+            if (asignacionData.id_equipo) {
+                await updateEquipo(asignacionData.id_equipo, { id_status: ASIGNADO_ID });
+            }
+            if (asignacionData.id_ip) {
+                await updateDireccionIp(asignacionData.id_ip, { id_status: ASIGNADO_ID });
+            }
+        }
+        // --- FIN NUEVO BLOQUE ---
+
+        await Swal.fire({
+            title: 'Operación Exitosa',
+            text: responseMessage,
+            icon: 'success',
+            confirmButtonText: 'Aceptar'
+        });
 
         if (typeof window.navigateTo === 'function') {
-            window.navigateTo('asignacionesList'); //* Navego a la lista después del éxito.
+            window.navigateTo('asignaciones-list'); //* Navego a la lista después del éxito.
         }
 
     } catch (error) {
         console.error('Error al enviar el formulario de Asignación:', error);
         const errorDiv = document.getElementById('form-error-message');
+        // Mejora el mensaje de error para duplicado de IP
         if (errorDiv) {
-            errorDiv.textContent = error.message || 'Ocurrió un error desconocido.';
+            if (error.message && error.message.includes('Duplicate entry') && error.message.includes('id_ip')) {
+                errorDiv.textContent = 'La IP seleccionada ya está asignada a otra asignación activa. Por favor, elige otra IP o finaliza la asignación anterior.';
+            } else {
+                errorDiv.textContent = error.message || 'Ocurrió un error desconocido.';
+            }
         } else {
             //* Fallback si el div de error no está, uso mi modal.
-            await showInfoModal({ title: 'Error', message: error.message || 'Ocurrió un error desconocido al procesar el formulario.' });
+            let msg = error.message;
+            if (msg && msg.includes('Duplicate entry') && msg.includes('id_ip')) {
+                msg = 'La IP seleccionada ya está asignada a otra asignación activa. Por favor, elige otra IP o finaliza la asignación anterior.';
+            }
+            await Swal.fire({
+                title: 'Error',
+                text: msg || 'Ocurrió un error desconocido al procesar el formulario.',
+                icon: 'error',
+                confirmButtonText: 'Aceptar'
+            });
         }
     }
 }

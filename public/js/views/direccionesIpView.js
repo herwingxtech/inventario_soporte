@@ -1,40 +1,36 @@
 //public/js/views/direccionesIpView.js
 // * Este módulo se encarga de la vista de listado de Direcciones IP, usando Grid.js.
 
+//public/js/views/direccionesIpView.js
+// * Este módulo se encarga de la vista de listado de Direcciones IP, usando Grid.js.
+
 import { getDireccionesIp, deleteDireccionIp } from '../api.js';
-import { showConfirmationModal, showInfoModal } from '../ui/modal.js';
 import { showListLoading } from '../utils/loading.js';
 import { showListError } from '../utils/error.js';
+import { getStatusBadge } from '../utils/statusBadge.js';
 
 const contentArea = document.getElementById('content-area');
 let ipsGridInstance = null;
 let gridContainerGlobal = null;
+let direccionesIpDataTable = null;
 
 function renderDireccionesIpListViewLayout() {
     contentArea.innerHTML = '';
-    const title = document.createElement('h2');
-    title.classList.add('text-2xl', 'font-bold', 'text-gray-800', 'mb-6');
-    title.textContent = 'Lista de Direcciones IP';
-    contentArea.appendChild(title);
-
-    const createButtonContainer = document.createElement('div');
-    createButtonContainer.classList.add('mb-4', 'text-right');
-    const createButton = document.createElement('button');
-    createButton.classList.add('bg-yellow-500', 'hover:bg-yellow-600', 'text-white', 'font-bold', 'py-2', 'px-4', 'rounded');
-    createButton.textContent = 'Nueva Dirección IP';
-    createButton.dataset.view = 'direccionIpForm';
-    createButtonContainer.appendChild(createButton);
-    contentArea.appendChild(createButtonContainer);
-
-    // Responsive wrapper
-    const responsiveDiv = document.createElement('div');
-    responsiveDiv.className = 'overflow-x-auto w-full';
-    const gridContainer = document.createElement('div');
-    gridContainer.id = 'direccionesip-grid-container';
-    responsiveDiv.appendChild(gridContainer);
-    contentArea.appendChild(responsiveDiv);
-    gridContainerGlobal = gridContainer;
-    return gridContainer;
+    const cardContainer = document.createElement('div');
+    cardContainer.classList.add('card');
+    const cardHeader = document.createElement('div');
+    cardHeader.classList.add('card-header');
+    const cardTitle = document.createElement('h4');
+    cardTitle.classList.add('card-title', 'fs-20', 'font-w700');
+    cardTitle.textContent = 'Lista de Direcciones IP';
+    cardHeader.appendChild(cardTitle);
+    cardContainer.appendChild(cardHeader);
+    const cardBody = document.createElement('div');
+    cardBody.classList.add('card-body');
+    cardBody.innerHTML = `<div id="direccionesip-list-loading"></div>`;
+    cardContainer.appendChild(cardBody);
+    contentArea.appendChild(cardContainer);
+    return cardBody;
 }
 
 function showDireccionesIpLoading(container) {
@@ -43,68 +39,75 @@ function showDireccionesIpLoading(container) {
 }
 
 function showDireccionesIpError(message, container) {
-    const target = container || gridContainerGlobal || contentArea;
+    const target = container || contentArea;
     showListError(target, 'Direcciones IP', message, 'direccionesIpList', () => loadDireccionesIpList());
 }
 
-function formatIpActionsCell(cell, row) {
-    const ipId = row.cells[0].data;
-    const direccionIp = row.cells[1].data;
-
-    return gridjs.html(`
-        <div class="flex items-center justify-center space-x-2">
-            <button title="Ver Detalles de la IP"
-                    class="btn-action-view w-6 h-6 transform hover:text-blue-500 hover:scale-110"
-                    data-action="view" data-id="${ipId}">
-                <svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7S1.732 16.057 2.458 12z"></path></svg>
-            </button>
-            <button title="Editar Dirección IP"
-                    class="btn-action-edit w-6 h-6 transform hover:text-yellow-500 hover:scale-110"
-                    data-action="edit" data-id="${ipId}">
-                <svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-            </button>
-            <button title="Eliminar Dirección IP"
-                    class="btn-action-delete w-6 h-6 transform hover:text-red-500 hover:scale-110"
-                    data-action="delete" data-id="${ipId}" data-direccion-ip="${direccionIp}">
-                <svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m14 0H5m2 0V5a2 2 0 012-2h6a2 2 0 012 2v2"></path></svg>
-            </button>
+function formatIpActionsCell(data, type, row) {
+    if (type === 'display') {
+        const ipId = row[0];
+        const direccionIp = row[1];
+        return `
+            <div class="d-flex">
+                <a href="javascript:void(0);" class="btn btn-primary shadow btn-xs sharp me-1"
+                   title="Ver Detalles" data-action="view" data-id="${ipId}">
+                    <i class="fas fa-eye"></i>
+                </a>
+                <a href="javascript:void(0);" class="btn btn-warning shadow btn-xs sharp me-1"
+                   title="Editar Dirección IP" data-action="edit" data-id="${ipId}">
+                    <i class="fas fa-pencil-alt"></i>
+                </a>
+                <a href="javascript:void(0);" class="btn btn-danger shadow btn-xs sharp"
+                   title="Eliminar Dirección IP" data-action="delete" data-id="${ipId}" data-direccion-ip="${direccionIp}">
+                    <i class="fa fa-trash"></i>
+                </a>
         </div>
-    `);
+        `;
+    }
+    return data;
 }
 
-function handleIpGridActions(event) {
-    const button = event.target.closest('button[data-action]');
+function handleIpTableActions(event) {
+    const button = event.target.closest('a[data-action]');
     if (!button) return;
-
     const action = button.dataset.action;
     const ipId = button.dataset.id;
     const direccionIp = button.dataset.direccionIp;
-
-    console.log(`Herwing - Acción detectada: ${action} para Dirección IP ID: ${ipId}`);
-
     if (action === 'view') {
         if (typeof window.navigateTo === 'function') {
-            window.navigateTo('direccionIpDetails', String(ipId));
+            window.navigateTo('direccion-ip-details', String(ipId));
         }
     } else if (action === 'edit') {
         if (typeof window.navigateTo === 'function') {
-            window.navigateTo('direccionIpForm', String(ipId));
+            window.navigateTo('direccion-ip-form', String(ipId));
         }
     } else if (action === 'delete') {
         (async () => {
-            const confirmed = await showConfirmationModal({
-                title: 'Confirmar Eliminación',
-                message: `¿Estás seguro de eliminar la Dirección IP "${direccionIp}" (ID: ${ipId})?`,
+            const confirmed = await Swal.fire({
+                title: 'Confirmar Eliminación de Dirección IP',
+                text: `¿Está seguro de que desea eliminar la dirección IP "${direccionIp}" del sistema? Esta acción eliminará permanentemente el registro y podría afectar asignaciones activas.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, Eliminar IP',
+                cancelButtonText: 'Cancelar'
             });
-            if (confirmed) {
+            if (confirmed.value) {
                 try {
                     await deleteDireccionIp(ipId);
-                    await showInfoModal({ title: 'Éxito', message: 'Dirección IP eliminada correctamente.'});
-                    if (typeof window.navigateTo === 'function') {
-                        window.navigateTo('direccionesIpList');
-                    }
+                    await Swal.fire({
+                        title: 'Dirección IP Eliminada Exitosamente',
+                        text: `La dirección IP "${direccionIp}" ha sido eliminada del sistema de manera permanente.`,
+                        icon: 'success',
+                        confirmButtonText: 'Entendido'
+                    });
+                    await reloadDireccionesIpTable();
                 } catch (error) {
-                    await showInfoModal({ title: 'Error', message: `Error al eliminar la Dirección IP: ${error.message}`});
+                    await Swal.fire({
+                        title: 'Error al Eliminar Dirección IP',
+                        text: `No se pudo eliminar la dirección IP "${direccionIp}". Error: ${error.message}`,
+                        icon: 'error',
+                        confirmButtonText: 'Entendido'
+                    });
                 }
             }
         })();
@@ -112,69 +115,78 @@ function handleIpGridActions(event) {
 }
 
 async function loadDireccionesIpList() {
-    console.log('Herwing está cargando la vista de lista de Direcciones IP con Grid.js...');
-    const gridContainer = renderDireccionesIpListViewLayout();
-    showDireccionesIpLoading(gridContainer);
-
+    const cardBody = renderDireccionesIpListViewLayout();
+    import('../utils/loading.js').then(({ showListLoading }) => {
+        showListLoading(document.getElementById('direccionesip-list-loading'), 'direcciones IP');
+    });
     try {
         const direccionesIp = await getDireccionesIp();
-        gridContainer.innerHTML = '';
-
         if (!direccionesIp || direccionesIp.length === 0) {
-            showDireccionesIpError('No hay IPs registradas.', gridContainer);
+            showDireccionesIpError('No hay IPs registradas.', cardBody);
             return;
         }
-
-        ipsGridInstance = new gridjs.Grid({
-            columns: [
-                { id: 'id', name: 'ID', width: '80px', sort: true },
-                {
-                    id: 'direccion_ip',
-                    name: 'Dirección IP',
-                    sort: {
-                        compare: (a, b) => {
-                            const ipToArr = ip => ip.split('.').map(Number);
-                            const arrA = ipToArr(a);
-                            const arrB = ipToArr(b);
-                            for (let i = 0; i < 4; i++) {
-                                if (arrA[i] !== arrB[i]) return arrA[i] - arrB[i];
-                            }
-                            return 0;
-                        }
-                    }
-                },
-                { id: 'nombre_empresa', name: 'Empresa', sort: true },
-                { id: 'nombre_sucursal', name: 'Sucursal', sort: true },
-                { id: 'comentario', name: 'Comentario', width: '250px', sort: false }, //* Comentario puede ser largo
-                { id: 'status_nombre', name: 'Estado', sort: true },
-                { name: 'Acciones', sort: false, width: '120px', formatter: formatIpActionsCell }
-            ],
+        cardBody.innerHTML = '';
+        const responsiveDiv = document.createElement('div');
+        responsiveDiv.className = 'table-responsive';
+        const tableContainer = document.createElement('table');
+        tableContainer.id = 'direccionesip-datatable';
+        tableContainer.className = 'display';
+        tableContainer.style.minWidth = '845px';
+        responsiveDiv.appendChild(tableContainer);
+        cardBody.appendChild(responsiveDiv);
+        direccionesIpDataTable = $('#direccionesip-datatable').DataTable({
             data: direccionesIp.map(ip => [
                 ip.id,
                 ip.direccion_ip,
                 ip.nombre_empresa || 'N/A',
                 ip.nombre_sucursal || 'N/A',
                 ip.comentario || 'N/A',
-                ip.status_nombre || 'N/A',
+                getStatusBadge(ip.status_nombre || 'N/A'),
                 null
             ]),
-            search: true,
-            pagination: { enabled: true, limit: 10, summary: true },
-            sort: true,
-            style: {
-            },
-            language: window.gridjs.l10n.esES
-        }).render(gridContainer);
-
-        gridContainer.removeEventListener('click', handleIpGridActions);
-        gridContainer.addEventListener('click', handleIpGridActions);
-
-        console.log('Herwing renderizó la tabla de Direcciones IP con Grid.js.');
-
+            columns: [
+                { title: 'ID', data: 0, width: '80px' },
+                { title: 'Dirección IP', data: 1 },
+                { title: 'Empresa', data: 2 },
+                { title: 'Sucursal', data: 3 },
+                { title: 'Comentario', data: 4 },
+                { title: 'Estado', data: 5 },
+                { title: 'Acciones', data: 6, width: '120px', render: formatIpActionsCell }
+            ],
+            columnDefs: [
+                {
+                    targets: -1,
+                    orderable: false,
+                    searchable: false
+                }
+            ],
+            initComplete: function() {
+                $('#direccionesip-datatable').on('click', 'a[data-action]', handleIpTableActions);
+            }
+        });
     } catch (error) {
-        console.error('Error al cargar o renderizar IPs con Grid.js:', error);
-        showDireccionesIpError(error.message, gridContainer);
+        showDireccionesIpError(error.message, cardBody);
     }
 }
 
-export { loadDireccionesIpList };
+async function reloadDireccionesIpTable() {
+    if (window.direccionesIpDataTable) {
+        try {
+            const direccionesIp = await getDireccionesIp();
+            const tableData = direccionesIp.map(ip => [
+                ip.id,
+                ip.direccion_ip,
+                ip.nombre_empresa || 'N/A',
+                ip.nombre_sucursal || 'N/A',
+                ip.comentario || 'N/A',
+                getStatusBadge(ip.status_nombre || 'N/A'),
+                null
+            ]);
+            window.direccionesIpDataTable.clear().rows.add(tableData).draw();
+    } catch (error) {
+            console.error('Error al recargar la tabla:', error);
+        }
+    }
+}
+
+export { loadDireccionesIpList, reloadDireccionesIpTable };

@@ -1,4 +1,4 @@
-//public/js/views/direccionIpFormView.js
+//public/js/views/direccionesIpFormView.js
 //* Este módulo se encarga de la lógica para el formulario de creación y edición de Direcciones IP.
 
 //? Funciones de API necesarias: 'createDireccionIp', 'updateDireccionIp', 'getDireccionIpById'.
@@ -11,9 +11,10 @@ import {
   getStatuses
 } from '../api.js';
 
-import { showInfoModal } from '../ui/modal.js'; //* Asumo que showInfoModal existe aquí.
 import { showFormLoading } from '../utils/loading.js';
 import { showFormError } from '../utils/error.js';
+import { applyUppercaseToFields } from '../utils/textTransform.js';
+
 //* Referencia al contenedor principal donde se renderizará este formulario.
 const contentArea = document.getElementById('content-area');
 
@@ -68,74 +69,83 @@ async function renderDireccionIpForm(ipToEdit = null) {
           statusesCache = await getStatuses();
       }
 
+      // * Lógica para deshabilitar el campo de estado si la IP tiene asignación activa.
+      let isStatusDisabled = false;
+      let statusHelpText = '';
+      if (isEditing && currentIpData && currentIpData.asignacion_activa) {
+          isStatusDisabled = true;
+          statusHelpText = 'Estado gestionado por Asignaciones. Finalice la asignación activa para liberar.';
+      }
+
       //* Limpio el área de contenido y construyo el HTML del formulario.
       contentArea.innerHTML = `
-          <h2 class="text-2xl font-bold text-gray-800 mb-6">${formTitle}</h2>
-          <form id="direccionIpForm" class="space-y-6 bg-white p-8 rounded-lg shadow-md">
-              <!-- Campo Obligatorio -->
-              <div>
-                  <label for="direccion_ip" class="block text-sm font-medium text-gray-700">Dirección IP <span class="text-red-500">*</span></label>
-                  <input type="text" id="direccion_ip" name="direccion_ip" required
-                         placeholder="Ej: 192.168.1.100 o 2001:db8::1"
-                         class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                         value="${isEditing && currentIpData.direccion_ip ? currentIpData.direccion_ip : ''}">
+          <div class="col-xl-8 col-lg-10 mx-auto">
+              <div class="card">
+                  <div class="card-header">
+                      <h4 class="card-title">${formTitle}</h4>
+                  </div>
+                  <div class="card-body">
+                      <form id="direccion-ip-form" class="basic-form">
+                          <div class="mb-3">
+                              <label for="direccion_ip" class="form-label">Dirección IP <span class="text-danger">*</span></label>
+                              <input type="text" id="direccion_ip" name="direccion_ip" required placeholder="Ej: 192.168.1.100 o 2001:db8::1" class="form-control input-default uppercase-field" value="${isEditing && currentIpData.direccion_ip ? currentIpData.direccion_ip : ''}">
+                          </div>
+                          <div class="mb-3">
+                              <label for="id_sucursal" class="form-label">Sucursal Asociada</label>
+                              <select id="id_sucursal" name="id_sucursal" class="form-control select2">
+                                  <option value="">Ninguna (IP General/Corporativa)</option>
+                                  ${sucursalesCache.map(sucursal => `<option value="${sucursal.id}" ${isEditing && currentIpData.id_sucursal === sucursal.id ? 'selected' : ''}>${sucursal.nombre}</option>`).join('')}
+                              </select>
+                          </div>
+                          <div class="mb-3">
+                              <label for="id_status" class="form-label">Estado de la IP <span class="text-danger">*</span></label>
+                              <select id="id_status" name="id_status" required class="form-control select2 ${isStatusDisabled ? 'bg-gray-200 cursor-not-allowed' : ''}" ${isStatusDisabled ? 'disabled' : ''}>
+                                  <option value="">Seleccione un estado...</option>
+                                  ${statusesCache
+                                    .filter(status => isEditing || ![2, 6, 7, 9, 12].includes(status.id))
+                                    .map(status => `<option value="${status.id}" ${isEditing && currentIpData.id_status === status.id ? 'selected' : (!isEditing && status.id === 5 ? 'selected' : '')}>${status.nombre_status}</option>`)
+                                    .join('')}
+                              </select>
+                              ${isStatusDisabled ? `<p class="mt-2 text-xs text-gray-500">${statusHelpText}</p>` : ''}
+                          </div>
+                          <div class="mb-3">
+                              <label for="comentario" class="form-label">Comentario</label>
+                              <textarea id="comentario" name="comentario" rows="3" class="form-control uppercase-field" placeholder="DESCRIBA EL PROPÓSITO DE ESTA IP, DISPOSITIVO ASOCIADO, UBICACIÓN, ETC.">${isEditing && currentIpData.comentario ? currentIpData.comentario : ''}</textarea>
+                          </div>
+                          <div id="form-error-message" class="text-danger text-sm mb-3"></div>
+                          <div class="d-flex justify-content-end gap-2">
+                              <button type="button" id="cancelDireccionIpForm" class="btn btn-danger light btn-sl-sm"><span class="me-2"><i class="fa fa-times"></i></span>Cancelar</button>
+                              <button type="submit" class="btn btn-primary btn-sl-sm"><span class="me-2"><i class="fa fa-paper-plane"></i></span>${isEditing ? 'Guardar Cambios' : 'Registrar IP'}</button>
+                          </div>
+                      </form>
+                  </div>
               </div>
-
-              <!-- Campos Opcionales -->
-              <div>
-                  <label for="id_sucursal" class="block text-sm font-medium text-gray-700">Sucursal Asociada</label>
-                  <select id="id_sucursal" name="id_sucursal"
-                          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                      <option value="">Ninguna (IP General/Corporativa)</option>
-                      ${sucursalesCache.map(sucursal => `<option value="${sucursal.id}" ${isEditing && currentIpData.id_sucursal === sucursal.id ? 'selected' : ''}>${sucursal.nombre}</option>`).join('')}
-                  </select>
-              </div>
-
-               <div>
-                  <label for="id_status" class="block text-sm font-medium text-gray-700">Estado de la IP <span class="text-red-500">*</span></label>
-                  <select id="id_status" name="id_status" required
-                          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                      <option value="">Seleccione un estado...</option>
-                      ${statusesCache.map(status => `<option value="${status.id}" ${isEditing && currentIpData.id_status === status.id ? 'selected' : (!isEditing && status.id === 5 ? 'selected' : '')}>${status.nombre_status}</option>`).join('')}
-                      <!--//? Por defecto para nueva IP, ¿'Disponible' (ID 5) o 'Activo' (ID 1)? Usaré Disponible (5). -->
-                  </select>
-              </div>
-
-              <div>
-                  <label for="comentario" class="block text-sm font-medium text-gray-700">Comentario / Notas</label>
-                  <textarea id="comentario" name="comentario" rows="3"
-                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">${isEditing && currentIpData.comentario ? currentIpData.comentario : ''}</textarea>
-              </div>
-
-              <!-- Div para mostrar mensajes de error del formulario -->
-              <div id="form-error-message" class="text-red-500 text-sm mt-2"></div>
-
-              <!-- Botones de acción -->
-              <div class="flex justify-end space-x-4 pt-4">
-                  <button type="button" id="cancelDireccionIpForm" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                      Cancelar
-                  </button>
-                  <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
-                      ${isEditing ? 'Guardar Cambios' : 'Registrar IP'}
-                  </button>
-              </div>
-          </form>
+          </div>
       `;
 
-      //* Añado el event listener al formulario.
-      document.getElementById('direccionIpForm').addEventListener('submit', (event) => handleDireccionIpFormSubmit(event, ipId));
-      //* Listener para el botón Cancelar.
+      // Inicializar select2 en los selects buscables
+      if (window.$ && $.fn.select2) {
+          $('#id_sucursal').select2({ width: '100%' });
+          $('#id_status').select2({ width: '100%' });
+      }
+
+      // Inicializar transformación a mayúsculas en campos de texto
+      applyUppercaseToFields(['direccion_ip', 'comentario']);
+
+      document.getElementById('direccion-ip-form').addEventListener('submit', (event) => handleDireccionIpFormSubmit(event, ipId));
       document.getElementById('cancelDireccionIpForm').addEventListener('click', async () => {
-        await showInfoModal({
+        await Swal.fire({
             title: 'Cancelado',
-            message: 'El formulario de Dirección IP ha sido cancelado.'
+            text: 'El formulario de dirección IP ha sido cancelado.',
+            icon: 'warning',
+            confirmButtonText: 'Aceptar'
         });
-           if (typeof window.navigateTo === 'function') {
-               window.navigateTo('direccionesIpList'); //* Regreso a la lista de IPs.
-           } else {
-               contentArea.innerHTML = '<p>Operación cancelada.</p>';
-           }
-       });
+        if (typeof window.navigateTo === 'function') {
+            window.navigateTo('direcciones-ip-list');
+        } else {
+            contentArea.innerHTML = `<p>Por favor, navega manualmente a la lista.</p>`;
+        }
+      });
 
   } catch (error) {
       console.error('Error al renderizar el formulario de Dirección IP:', error);
@@ -178,23 +188,25 @@ async function handleDireccionIpFormSubmit(event, editingId = null) {
         let responseMessage = '';
         if (editingId) {
             await updateDireccionIp(editingId, ipData);
-            responseMessage = `Dirección IP con ID ${editingId} actualizada exitosamente.`;
+            responseMessage = `Dirección IP "${ipData.direccion_ip}" actualizada exitosamente en el sistema.`;
             console.log(responseMessage);
         } else {
             const nuevaIp = await createDireccionIp(ipData);
-            responseMessage = `Dirección IP "${nuevaIp.direccion_ip}" (ID: ${nuevaIp.id}) registrada exitosamente.`;
+            responseMessage = `Dirección IP "${nuevaIp.direccion_ip}" registrada exitosamente en el sistema.`;
             console.log(responseMessage);
         }
 
         //* Uso mi modal de información para el mensaje de éxito.
-        await showInfoModal({
-            title: 'Operación Exitosa',
-            message: responseMessage
+        await Swal.fire({
+            title: editingId ? 'IP Actualizada Exitosamente' : 'IP Registrada Exitosamente',
+            text: responseMessage,
+            icon: 'success',
+            confirmButtonText: 'Entendido'
         });
 
         //* Después de éxito, navego de vuelta a la lista de IPs.
         if (typeof window.navigateTo === 'function') {
-            window.navigateTo('direccionesIpList');
+            window.navigateTo('direcciones-ip-list');
         } else {
              //* Esto es un fallback si navigateTo no está disponible.
             contentArea.innerHTML = `<p class="text-green-500">${responseMessage} Por favor, navega manualmente a la lista.</p>`;
@@ -208,9 +220,11 @@ async function handleDireccionIpFormSubmit(event, editingId = null) {
             errorMessageDiv.textContent = error.message || 'Ocurrió un error desconocido.';
         } else {
             //* Fallback si el div no existe, uso mi modal de info para el error.
-            await showInfoModal({
-                title: 'Error',
-                message: error.message || 'Ocurrió un error desconocido al procesar el formulario.'
+            await Swal.fire({
+                title: 'Error al Procesar Formulario',
+                text: error.message || 'Ocurrió un error inesperado al procesar el formulario. Por favor, inténtelo nuevamente.',
+                icon: 'error',
+                confirmButtonText: 'Entendido'
             });
         }
     }
@@ -240,6 +254,14 @@ async function showDireccionIpForm(params = null) {
       }
   } else {
       showDireccionIpFormLoading('Crear');
+  }
+
+  // * Lógica para deshabilitar el campo de estado si la IP tiene asignación activa.
+  let isStatusDisabled = false;
+  let statusHelpText = '';
+  if (ipToEdit && ipToEdit.asignacion_activa) {
+      isStatusDisabled = true;
+      statusHelpText = 'Estado gestionado por Asignaciones. Finalice la asignación activa para liberar.';
   }
 
   await renderDireccionIpForm(ipToEdit);

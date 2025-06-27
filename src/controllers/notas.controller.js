@@ -67,14 +67,14 @@ const getNotaById = async (req, res, next) => {
         e.numero_serie AS equipo_numero_serie,
         n.id_mantenimiento,
         m.fecha_inicio AS mantenimiento_fecha_inicio,
-        n.id_usuario_sistema,
+        n.id_usuario_creacion AS id_usuario_sistema,
         us.username AS usuario_creador,
-        n.fecha_registro,
+        n.fecha_creacion AS fecha_registro,
         n.fecha_actualizacion
       FROM notas AS n
       LEFT JOIN equipos AS e ON n.id_equipo = e.id
       LEFT JOIN mantenimientos AS m ON n.id_mantenimiento = m.id
-      LEFT JOIN usuarios_sistema AS us ON n.id_usuario_sistema = us.id
+      LEFT JOIN usuarios_sistema AS us ON n.id_usuario_creacion = us.id
       WHERE n.id = ?
     `;
     const params = [id];
@@ -133,7 +133,7 @@ const createNota = async (req, res, next) => {
     const placeholders = ['?', '?'];
     if (id_equipo !== undefined && id_equipo !== null) { sql += ', id_equipo'; placeholders.push('?'); values.push(id_equipo); }
     if (id_mantenimiento !== undefined && id_mantenimiento !== null) { sql += ', id_mantenimiento'; placeholders.push('?'); values.push(id_mantenimiento); }
-    if (id_usuario_sistema !== undefined && id_usuario_sistema !== null) { sql += ', id_usuario_sistema'; placeholders.push('?'); values.push(id_usuario_sistema); }
+    if (id_usuario_sistema !== undefined && id_usuario_sistema !== null) { sql += ', id_usuario_creacion'; placeholders.push('?'); values.push(id_usuario_sistema); }
     sql += ') VALUES (' + placeholders.join(', ') + ')';
     const result = await query(sql, values);
     const newNotaId = result.insertId;
@@ -201,7 +201,7 @@ const updateNota = async (req, res, next) => {
     if (contenido !== undefined) { updates.push('contenido = ?'); params.push(contenido); }
     if (id_equipo !== undefined) { updates.push('id_equipo = ?'); params.push(id_equipo); }
     if (id_mantenimiento !== undefined) { updates.push('id_mantenimiento = ?'); params.push(id_mantenimiento); }
-    if (id_usuario_sistema !== undefined) { updates.push('id_usuario_sistema = ?'); params.push(id_usuario_sistema); }
+    if (id_usuario_sistema !== undefined) { updates.push('id_usuario_creacion = ?'); params.push(id_usuario_sistema); }
     if (updates.length === 0) {
       return res.status(400).json({ message: 'No se proporcionaron campos válidos para actualizar.' });
     }
