@@ -99,7 +99,7 @@ app.use((err, req, res, next) => {
 });
 
 // ! Inicio del servidor
-app.listen(port, () => {
+app.listen(port,'0.0.0.0', () => {
   console.log(`Servidor escuchando en http://localhost:${port}`);
   // * Pruebo la conexión al pool de la base de datos al arrancar
    pool.getConnection()
