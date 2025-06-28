@@ -1,7 +1,6 @@
 # Dependencies
 node_modules/
 package-lock.json
-eba bdjejdj
 
 prueba/
 # Environment variables
@@ -9,8 +8,7 @@ prueba/
 .env.local
 .env.*.local
 *.sh
-*.md
-
+public/**.md
 # Logs
 logs
 *.log
@@ -51,3 +49,45 @@ build/
 *.swo
 .temp
 .cache
+
+# Ignorar TODO por defecto
+*
+
+# Permitir SOLO este archivo
+!README_INSTALACION.md
+!.gitignore
+
+# Permitir directorios específicos (opcional)
+!src/
+!public/
+!package.json
+!server.js
+
+# Pero dentro de esos directorios, ignorar archivos específicos
+src/**/*.log
+src/**/*.tmp
+public/**/*.log
+public/**/*.tmp
+
+# Ignorar node_modules incluso si está en directorios permitidos
+**/node_modules/
+
+# Ignorar archivos de entorno
+**/.env
+**/.env.local
+**/.env.*.local
+
+# Ignorar archivos de sistema
+**/.DS_Store
+**/Thumbs.db
+**/*.swp
+**/*.swo
+
+# Ignorar logs
+**/*.log
+**/logs/
+
+# Ignorar archivos temporales
+**/*.tmp
+**/*.temp
+**/.cache/
