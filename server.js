@@ -23,9 +23,44 @@ const { protect } = require('./src/middleware/auth.middleware'); // * Middleware
 const app = express();
 const port = process.env.PORT || 3000; // * Puerto del servidor (por defecto 3000 si no hay .env)
 
+// * Middleware para manejar el prefijo /inventario/ en producción
+app.use((req, res, next) => {
+  // Si la URL comienza con /inventario/, la removemos para el procesamiento interno
+  if (req.url.startsWith('/inventario/')) {
+    req.url = req.url.replace('/inventario', '');
+    // Si queda solo /, lo convertimos a /
+    if (req.url === '') {
+      req.url = '/';
+    }
+  }
+  next();
+});
+
+// * Configuración de MIME types para archivos estáticos
+app.use((req, res, next) => {
+  if (req.url.endsWith('.css')) {
+    res.setHeader('Content-Type', 'text/css');
+  } else if (req.url.endsWith('.js')) {
+    res.setHeader('Content-Type', 'application/javascript');
+  } else if (req.url.endsWith('.svg')) {
+    res.setHeader('Content-Type', 'image/svg+xml');
+  }
+  next();
+});
+
 // * Middleware para servir archivos estáticos desde la carpeta 'public'.
 // * Todo lo que esté en 'public' se puede acceder directamente por URL.
-app.use(express.static('public'));
+app.use(express.static('public', {
+  setHeaders: (res, path, stat) => {
+    if (path.endsWith('.css')) {
+      res.set('Content-Type', 'text/css');
+    } else if (path.endsWith('.js')) {
+      res.set('Content-Type', 'application/javascript');
+    } else if (path.endsWith('.svg')) {
+      res.set('Content-Type', 'image/svg+xml');
+    }
+  }
+}));
 
 // * Middleware para parsear JSON en las peticiones (body-parser integrado)
 app.use(express.json());
@@ -101,6 +136,7 @@ app.use((err, req, res, next) => {
 // ! Inicio del servidor
 app.listen(port, () => {
   console.log(`Servidor escuchando en http://localhost:${port}`);
+  console.log(`Configurado para manejar prefijo /inventario/ en producción`);
   // * Pruebo la conexión al pool de la base de datos al arrancar
    pool.getConnection()
     .then(connection => {

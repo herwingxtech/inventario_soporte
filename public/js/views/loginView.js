@@ -23,7 +23,7 @@ function renderLoginForm() {
                                 <div class="col-xl-12">
                                     <div class="auth-form">
                                         <div class="d-flex justify-center text-center mb-3">
-                                            <a href="/">
+                                            <a href="/inventario/">
                                                 <img src="http://erp.linea-digital.com/erp/images/icono2.png" alt="Logo principal">
                                             </a>
                                         </div>
@@ -45,7 +45,7 @@ function renderLoginForm() {
                                             </div>
                                         </form>
                                         <div class="new-account mt-3">
-                                            <p>¿No tienes una cuenta? <a class="text-primary" href="/" id="sign-up-link">Regístrate</a></p>
+                                            <p>¿No tienes una cuenta? <a class="text-primary" href="/inventario/" id="sign-up-link">Regístrate</a></p>
                                         </div>
                                     </div>
                                 </div>
@@ -102,7 +102,7 @@ async function handleLoginSubmit(event) {
         if (typeof window.navigateTo === 'function') {
             window.navigateTo('home');
         } else {
-            window.location.href = '/'; // Fallback a recargar la página.
+            window.location.href = '/inventario/'; // Fallback a recargar la página.
         }
 
     } catch (error) {
