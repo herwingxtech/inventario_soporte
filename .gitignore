@@ -63,6 +63,13 @@ build/
 !package.json
 !server.js
 
+# Permitir subdirectorios de public
+!public/**
+!public/vendor/**
+!public/vendor/bootstrap-select/**
+!public/vendor/bootstrap-select/dist/**
+!public/vendor/bootstrap-select/dist/css/**
+
 # Pero dentro de esos directorios, ignorar archivos específicos
 src/**/*.log
 src/**/*.tmp
