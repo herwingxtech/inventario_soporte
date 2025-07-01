@@ -8,11 +8,11 @@ RUN apt update && \
     rm -rf /var/lib/apt/lists/*
 
 # Copia tu archivo de configuración de Apache
-COPY inventario.conf /etc/apache2/sites-available/inventario.conf
+COPY soporte.conf /etc/apache2/sites-available/soporte.conf
 
 # Elimina la configuración por defecto y habilita la nueva
 RUN a2dissite 000-default.conf && \
-    a2ensite inventario.conf
+    a2ensite soporte.conf
 
 # Copia los archivos estáticos de tu aplicación (si Apache los va a servir)
 # Esto es crucial para el Alias en Apache. Asegúrate que la ruta source sea correcta.
