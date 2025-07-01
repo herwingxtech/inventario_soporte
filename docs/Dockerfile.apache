@@ -1,0 +1,26 @@
+# Usa una imagen base de Ubuntu para Apache
+FROM ubuntu:latest
+
+# Instala Apache y módulos necesarios
+RUN apt update && \
+    apt install -y apache2 && \
+    a2enmod proxy proxy_http headers mime rewrite ssl && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copia tu archivo de configuración de Apache
+COPY inventario.conf /etc/apache2/sites-available/inventario.conf
+
+# Elimina la configuración por defecto y habilita la nueva
+RUN a2dissite 000-default.conf && \
+    a2ensite inventario.conf
+
+# Copia los archivos estáticos de tu aplicación (si Apache los va a servir)
+# Esto es crucial para el Alias en Apache. Asegúrate que la ruta source sea correcta.
+# Si tu proyecto tiene una carpeta 'public' en la raíz, debería ser algo como:
+COPY public /var/www/html/inventario_soporte/public
+
+# Expone el puerto 80 de Apache
+EXPOSE 80
+
+# Comando para mantener Apache corriendo en primer plano
+CMD ["apache2ctl", "-D", "FOREGROUND"]

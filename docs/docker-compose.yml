@@ -1,0 +1,104 @@
+version: '3.8'
+
+services:
+  # ===============================================
+  # SERVICIO DE BASE DE DATOS MYSQL (OPCIONAL)
+  # Descomenta esta sección si no tienes una DB remota
+  # ===============================================
+  #inventario-db:
+  #  build:
+  #    context: .
+  #    dockerfile: Dockerfile.mysql
+  #  container_name: inventario-mysql-db
+  #  restart: always
+  #  environment:
+  #    # Estas variables sobrescriben las del Dockerfile si es necesario
+  #    MYSQL_ROOT_PASSWORD: inventario_root_2024
+  #    MYSQL_DATABASE: inventario_soporte
+  #    MYSQL_USER: inventario_user
+  #    MYSQL_PASSWORD: inventario_pass_2024
+  #  ports:
+  #    - "3306:3306"
+  #  volumes:
+  #    # Persistencia de datos
+  #    - mysql_data:/var/lib/mysql
+  #    # Persistencia de logs
+  #    - mysql_logs:/var/log/mysql
+  #  networks:
+  #    - inventario-network
+  #  # Health check ya está configurado en el Dockerfile
+
+  # ===============================================
+  # APLICACIÓN NODE.JS
+  # ===============================================
+  inventario-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.nodejs
+    container_name: inventario-nodejs-app
+    restart: always
+    environment:
+      # ===============================================
+      # CONFIGURACIÓN DE BASE DE DATOS
+      # ===============================================
+      # Para DB remota (configuración actual):
+      DB_HOST: 192.168.0.140
+      DB_USER: herwingx
+      DB_PASSWORD: LDSinf08l$
+      DB_NAME: inventario_soporte
+      DB_PORT: 3306
+      
+      # Para DB local con Docker (descomenta y cambia arriba):
+      # DB_HOST: inventario-db
+      # DB_USER: inventario_user
+      # DB_PASSWORD: tu_contraseña_usuario
+      # DB_NAME: inventario_soporte
+      # DB_PORT: 3306
+      # Configuración JWT
+      JWT_SECRET: KnLEgII2PGV1cxNy8aCFA1x4CP10mFwTt7GLSqjJ3X0lhWP4kf
+      JWT_EXPIRE: 24h
+      # Configuración de la aplicación
+      # Estas URLs apuntan al Apache dentro de la red Docker o a la IP del host
+      APP_URL: http://localhost/inventario
+      API_URL: http://localhost/inventario/api
+      PORT: 3000 # Puerto interno de la aplicación Node.js
+      NODE_ENV: production
+    # Mapea el volumen para el código de la aplicación.
+    # El "." es el directorio actual donde está tu docker-compose.yml y tu código.
+    # COMENTADO PARA PRODUCCIÓN - esto sobreescribe node_modules instalado en la imagen
+    #volumes:
+    #  - .:/app
+    
+    # Si usas MySQL local, descomenta esta línea:
+    #depends_on:
+    #  - inventario-db
+    
+    networks:
+      - inventario-network
+
+  apache-proxy:
+    build:
+      context: .
+      dockerfile: Dockerfile.apache
+    container_name: inventario-apache-proxy
+    restart: always
+    ports:
+      - "80:80" # Mapea el puerto 80 del contenedor al puerto 80 de tu máquina Fedora
+    depends_on:
+      - inventario-app # Asegura que la aplicación Node.js se inicie primero
+    networks:
+      - inventario-network
+
+networks:
+  inventario-network:
+    driver: bridge
+
+# ===============================================
+# VOLÚMENES PARA PERSISTENCIA DE DATOS (OPCIONAL)
+# Descomenta si usas la base de datos MySQL local
+# ===============================================
+#volumes:
+#  mysql_data:
+#    driver: local
+#  mysql_logs:
+#    driver: local

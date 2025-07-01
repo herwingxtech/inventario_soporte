@@ -1,0 +1,142 @@
+# Usa una imagen base de MySQL más reciente
+FROM mysql:latest
+
+# Información del mantenedor
+LABEL maintainer="HerwingXTech"
+LABEL description="MySQL Database for Inventario Soporte Application"
+
+# Variables de entorno para configuración inicial
+ENV MYSQL_ROOT_PASSWORD=inventario_root_2024
+ENV MYSQL_DATABASE=inventario_soporte
+ENV MYSQL_USER=inventario_user
+ENV MYSQL_PASSWORD=inventario_pass_2024
+
+# Configuración personalizada de MySQL
+# Crea un directorio para configuraciones personalizadas
+RUN mkdir -p /etc/mysql/conf.d
+
+# Copia configuración personalizada de MySQL
+COPY <<EOF /etc/mysql/conf.d/custom.cnf
+[mysqld]
+# Configuración de caracteres UTF8
+character-set-server=utf8mb4
+collation-server=utf8mb4_unicode_ci
+
+# Configuración de rendimiento
+max_connections=200
+innodb_buffer_pool_size=256M
+innodb_log_file_size=64M
+
+# Configuración de seguridad
+skip-name-resolve
+explicit_defaults_for_timestamp=ON
+
+# Configuración de logs
+log-error=/var/log/mysql/error.log
+slow_query_log=1
+slow_query_log_file=/var/log/mysql/slow.log
+long_query_time=2
+
+# Configuración de zona horaria
+default-time-zone='-06:00'
+
+[mysql]
+# Cliente MySQL con UTF8
+default-character-set=utf8mb4
+
+[client]
+# Cliente por defecto con UTF8
+default-character-set=utf8mb4
+EOF
+
+# Crea directorio para logs
+RUN mkdir -p /var/log/mysql && \
+    chown mysql:mysql /var/log/mysql
+
+# Script de inicialización personalizada
+COPY <<EOF /docker-entrypoint-initdb.d/01-init.sql
+-- Script de inicialización personalizada
+-- Este script se ejecuta después de db_soporte.sql
+
+-- Crear usuario adicional para aplicación
+CREATE USER IF NOT EXISTS 'app_user'@'%' IDENTIFIED BY 'app_secure_pass_2024';
+GRANT SELECT, INSERT, UPDATE, DELETE ON inventario_soporte.* TO 'app_user'@'%';
+
+-- Crear usuario de solo lectura para reportes
+CREATE USER IF NOT EXISTS 'readonly_user'@'%' IDENTIFIED BY 'readonly_pass_2024';
+GRANT SELECT ON inventario_soporte.* TO 'readonly_user'@'%';
+
+-- Aplicar permisos
+FLUSH PRIVILEGES;
+
+-- Mostrar información de la base de datos
+SELECT 'Inventario Soporte Database initialized successfully!' as Status;
+SHOW DATABASES;
+EOF
+
+# Script de verificación post-inicialización
+COPY <<EOF /docker-entrypoint-initdb.d/99-verify.sql
+-- Verificación final de la instalación
+USE inventario_soporte;
+
+-- Verificar que las tablas principales existan
+SELECT 
+    'Tables verification:' as Info,
+    COUNT(*) as table_count 
+FROM information_schema.tables 
+WHERE table_schema = 'inventario_soporte';
+
+-- Verificar datos iniciales en tabla status
+SELECT 
+    'Status table data:' as Info,
+    COUNT(*) as status_count 
+FROM status;
+
+-- Verificar datos iniciales en tabla empresas
+SELECT 
+    'Empresas table data:' as Info,
+    COUNT(*) as empresas_count 
+FROM empresas;
+
+-- Mostrar usuarios creados
+SELECT 
+    'Database users:' as Info,
+    user,
+    host 
+FROM mysql.user 
+WHERE user IN ('inventario_user', 'app_user', 'readonly_user');
+EOF
+
+# Copia el script SQL principal de la aplicación
+# Este debe estar presente en el directorio del proyecto
+COPY src/database/db_soporte.sql /docker-entrypoint-initdb.d/50-db_soporte.sql
+
+# Script de health check personalizado
+COPY <<EOF /usr/local/bin/healthcheck.sh
+#!/bin/bash
+set -e
+
+# Verificar que MySQL esté corriendo
+mysql --user="\${MYSQL_USER}" --password="\${MYSQL_PASSWORD}" --host=localhost --execute="SELECT 1;" > /dev/null 2>&1
+
+# Verificar que la base de datos de la aplicación exista
+mysql --user="\${MYSQL_USER}" --password="\${MYSQL_PASSWORD}" --host=localhost --execute="USE inventario_soporte; SELECT COUNT(*) FROM status;" > /dev/null 2>&1
+
+echo "MySQL health check passed!"
+EOF
+
+# Hacer ejecutable el script de health check
+RUN chmod +x /usr/local/bin/healthcheck.sh
+
+# Configurar health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD ["/usr/local/bin/healthcheck.sh"]
+
+# Exponer puerto MySQL
+EXPOSE 3306
+
+# Crear volumen para datos persistentes
+VOLUME ["/var/lib/mysql", "/var/log/mysql"]
+
+# Comando por defecto (heredado de la imagen base)
+# CMD ["mysqld"]
