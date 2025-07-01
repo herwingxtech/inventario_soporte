@@ -23,11 +23,11 @@ const { protect } = require('./src/middleware/auth.middleware'); // * Middleware
 const app = express();
 const port = process.env.PORT || 3000; // * Puerto del servidor (por defecto 3000 si no hay .env)
 
-// * Middleware para manejar el prefijo /inventario/ en producción
+// * Middleware para manejar el prefijo /soporte/ en producción
 app.use((req, res, next) => {
-  // Si la URL comienza con /inventario/, la removemos para el procesamiento interno
-  if (req.url.startsWith('/inventario/')) {
-    req.url = req.url.replace('/inventario', '');
+  // Si la URL comienza con /soporte/, la removemos para el procesamiento interno
+  if (req.url.startsWith('/soporte/')) {
+    req.url = req.url.replace('/soporte', '');
     // Si queda solo /, lo convertimos a /
     if (req.url === '') {
       req.url = '/';
@@ -136,7 +136,7 @@ app.use((err, req, res, next) => {
 // ! Inicio del servidor
 app.listen(port, () => {
   console.log(`Servidor escuchando en http://localhost:${port}`);
-  console.log(`Configurado para manejar prefijo /inventario/ en producción`);
+  console.log(`Configurado para manejar prefijo /soporte/ en producción`);
   // * Pruebo la conexión al pool de la base de datos al arrancar
    pool.getConnection()
     .then(connection => {

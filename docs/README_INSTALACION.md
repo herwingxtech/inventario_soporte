@@ -1,4 +1,4 @@
-# Guía de Instalación - Sistema de Inventario Soporte
+# Guía de Instalación - Sistema de Soporte
 ## Ubuntu Server - IP: 192.168.0.54
 
 ### Requisitos Previos
@@ -106,8 +106,8 @@ JWT_SECRET=KnLEgII2PGV1cxNy8aCFA1x4CP10mFwTt7GLSqjJ3X0lhWP4kf
 JWT_EXPIRE=24h
 
 # Configuración de la aplicación
-APP_URL=http://192.168.0.54/inventario
-API_URL=http://192.168.0.54/inventario/api
+APP_URL=http://localhost/soporte
+API_URL=http://localhost/soporte/api
 EOF
 ```
 
@@ -124,7 +124,7 @@ sudo chmod 644 /var/www/html/inventario_soporte/.env
 
 ### 5.1 Crear archivo de configuración de Apache
 ```bash
-sudo tee /etc/apache2/sites-available/inventario.conf > /dev/null << 'EOF'
+sudo tee /etc/apache2/sites-available/soporte.conf > /dev/null << 'EOF'
 <VirtualHost *:80>
     ServerName 192.168.0.54
     
@@ -136,27 +136,27 @@ sudo tee /etc/apache2/sites-available/inventario.conf > /dev/null << 'EOF'
     ProxyRequests Off
     
     # Proxy para la API - MÁS ESPECÍFICO PRIMERO
-    ProxyPass /inventario/api/ http://localhost:3000/api/
-    ProxyPassReverse /inventario/api/ http://localhost:3000/api/
+    ProxyPass /soporte/api/ http://localhost:3000/api/
+    ProxyPassReverse /soporte/api/ http://localhost:3000/api/
     
     # Proxy para la aplicación principal - MÁS GENERAL DESPUÉS
-    ProxyPass /inventario/ http://localhost:3000/inventario/
-    ProxyPassReverse /inventario/ http://localhost:3000/inventario/
+    ProxyPass /soporte/ http://localhost:3000/soporte/
+    ProxyPassReverse /soporte/ http://localhost:3000/soporte/
     
     # Headers necesarios para el proxy
     RequestHeader set X-Forwarded-Proto "http"
     RequestHeader set X-Forwarded-Port "80"
-    RequestHeader set X-Forwarded-Prefix "/inventario"
+    RequestHeader set X-Forwarded-Prefix "/soporte"
     
-    # Configuración para archivos estáticos del inventario
+    # Configuración para archivos estáticos del soporte
     <Directory /var/www/html/inventario_soporte/public>
         Options -Indexes +FollowSymLinks
         AllowOverride All
         Require all granted
     </Directory>
     
-    # Alias para archivos estáticos del inventario
-    Alias /inventario /var/www/html/inventario_soporte/public
+    # Alias para archivos estáticos del soporte
+    Alias /soporte /var/www/html/inventario_soporte/public
     
     # Configuración de MIME types
     <IfModule mod_mime.c>
@@ -194,7 +194,7 @@ EOF
 ### 5.2 Habilitar el sitio
 ```bash
 sudo a2dissite 000-default.conf
-sudo a2ensite inventario.conf
+sudo a2ensite soporte.conf
 ```
 
 ### 5.3 Verificar configuración
@@ -213,9 +213,9 @@ sudo service apache2 restart
 
 ### 6.1 Crear servicio systemd
 ```bash
-sudo tee /etc/systemd/system/inventario-soporte.service > /dev/null << 'EOF'
+sudo tee /etc/systemd/system/soporte.service > /dev/null << 'EOF'
 [Unit]
-Description=Sistema de Inventario Soporte
+Description=Sistema de Soporte
 After=network.target
 
 [Service]
@@ -233,8 +233,8 @@ Environment=DB_NAME=inventario_soporte
 Environment=DB_PORT=3306
 Environment=JWT_SECRET=KnLEgII2PGV1cxNy8aCFA1x4CP10mFwTt7GLSqjJ3X0lhWP4kf
 Environment=JWT_EXPIRE=24h
-Environment=APP_URL=http://192.168.0.54/inventario
-Environment=API_URL=http://192.168.0.54/inventario/api
+Environment=APP_URL=http://localhost/soporte
+Environment=API_URL=http://localhost/soporte/api
 
 [Install]
 WantedBy=multi-user.target
@@ -244,37 +244,37 @@ EOF
 ### 6.2 Habilitar e iniciar el servicio
 ```bash
 sudo systemctl daemon-reload
-sudo systemctl enable inventario-soporte.service
-sudo systemctl start inventario-soporte.service
+sudo systemctl enable soporte.service
+sudo systemctl start soporte.service
 ```
 
 ### 6.3 Verificar estado del servicio
 ```bash
-sudo systemctl status inventario-soporte.service
+sudo systemctl status soporte.service
 ```
 
 ---
 
-## ⚠️ Importante: Configuración del Prefijo `/inventario/`
+## ⚠️ Importante: Configuración del Prefijo `/soporte/`
 
 ### ¿Por qué necesitamos esta configuración?
 
-La aplicación está configurada para funcionar bajo el prefijo `/inventario/` para no interferir con otros sistemas en el servidor. Esto permite:
+La aplicación está configurada para funcionar bajo el prefijo `/soporte/` para no interferir con otros sistemas en el servidor. Esto permite:
 
-- **Acceso a la aplicación**: `http://192.168.0.54/inventario/`
-- **Acceso a la API**: `http://192.168.0.54/inventario/api/`
-- **Otras aplicaciones**: `http://192.168.0.54/` (sin interferencia)
+- **Acceso a la aplicación**: `http://localhost/soporte/`
+- **Acceso a la API**: `http://localhost/soporte/api/`
+- **Otras aplicaciones**: `http://localhost/` (sin interferencia)
 
 ### 🔧 Configuración en server.js
 
 El archivo `server.js` incluye un middleware especial que maneja el prefijo:
 
 ```javascript
-// * Middleware para manejar el prefijo /inventario/ en producción
+// * Middleware para manejar el prefijo /soporte/ en producción
 app.use((req, res, next) => {
-  // Si la URL comienza con /inventario/, la removemos para el procesamiento interno
-  if (req.url.startsWith('/inventario/')) {
-    req.url = req.url.replace('/inventario', '');
+  // Si la URL comienza con /soporte/, la removemos para el procesamiento interno
+  if (req.url.startsWith('/soporte/')) {
+    req.url = req.url.replace('/soporte', '');
     // Si queda solo /, lo convertimos a /
     if (req.url === '') {
       req.url = '/';
@@ -286,10 +286,10 @@ app.use((req, res, next) => {
 
 ### 📋 URLs de acceso correctas:
 
-- **Login**: `http://192.168.0.54/inventario/`
-- **Dashboard**: `http://192.168.0.54/inventario/home`
-- **Equipos**: `http://192.168.0.54/inventario/equipos`
-- **API Login**: `http://192.168.0.54/inventario/api/auth/login`
+- **Login**: `http://localhost/soporte/`
+- **Dashboard**: `http://localhost/soporte/home`
+- **Equipos**: `http://localhost/soporte/equipos`
+- **API Login**: `http://localhost/soporte/api/auth/login`
 
 ---
 
@@ -297,7 +297,7 @@ app.use((req, res, next) => {
 
 ### 🔍 Problema identificado:
 
-Si después del login te redirige a `192.168.0.54/home` (sin `/inventario/`) o al logout te manda a `192.168.0.54/`, es porque el frontend tiene rutas hardcodeadas que necesitan ser corregidas.
+Si después del login te redirige a `localhost/home` (sin `/soporte/`) o al logout te manda a `localhost/`, es porque el frontend tiene rutas hardcodeadas que necesitan ser corregidas.
 
 ### 🛠️ Solución: Corregir archivos JavaScript
 
@@ -316,41 +316,41 @@ sudo nano /var/www/html/inventario_soporte/public/js/main.js
 // Línea ~173: Cambiar
 window.location.replace('/');
 // Por:
-window.location.replace('/inventario/');
+window.location.replace('/soporte/');
 
 // Línea ~353: Cambiar
 window.location.replace('/');
 // Por:
-window.location.replace('/inventario/');
+window.location.replace('/soporte/');
 
 // Línea ~150: Cambiar
 let url = '/' + viewName;
 // Por:
-let url = '/inventario/' + viewName;
+let url = '/soporte/' + viewName;
 
 // Línea ~155: Cambiar
 if ((currentPath === '/home' || currentPath === '/') && history.length === 1) {
     history.pushState({ viewName: 'home', params: null }, '', '/home');
 }
 // Por:
-if ((currentPath === '/inventario/home' || currentPath === '/inventario/') && history.length === 1) {
-    history.pushState({ viewName: 'home', params: null }, '', '/inventario/home');
+if ((currentPath === '/soporte/home' || currentPath === '/soporte/') && history.length === 1) {
+    history.pushState({ viewName: 'home', params: null }, '', '/soporte/home');
 }
 
 // Línea ~230: Cambiar
 const path = window.location.pathname.replace(/^\//, '');
 // Por:
-const path = window.location.pathname.replace(/^\/inventario\/?/, '');
+const path = window.location.pathname.replace(/^\/soporte\/?/, '');
 
 // Línea ~235: Cambiar
 history.replaceState({ viewName: 'home', params: null }, '', '/home');
 // Por:
-history.replaceState({ viewName: 'home', params: null }, '', '/inventario/home');
+history.replaceState({ viewName: 'home', params: null }, '', '/soporte/home');
 
 // Línea ~250: Cambiar
 const pathFromPop = window.location.pathname.replace(/^\//, '');
 // Por:
-const pathFromPop = window.location.pathname.replace(/^\/inventario\/?/, '');
+const pathFromPop = window.location.pathname.replace(/^\/soporte\/?/, '');
 ```
 
 #### 6.5 Corregir loginView.js
@@ -368,17 +368,17 @@ sudo nano /var/www/html/inventario_soporte/public/js/views/loginView.js
 // Línea ~25: Cambiar
 <a href="/">
 // Por:
-<a href="/inventario/">
+<a href="/soporte/">
 
 // Línea ~50: Cambiar
 <a class="text-primary" href="/" id="sign-up-link">Regístrate</a>
 // Por:
-<a class="text-primary" href="/inventario/" id="sign-up-link">Regístrate</a>
+<a class="text-primary" href="/soporte/" id="sign-up-link">Regístrate</a>
 
 // Línea ~115: Cambiar
 window.location.href = '/';
 // Por:
-window.location.href = '/inventario/';
+window.location.href = '/soporte/';
 ```
 
 #### 6.6 Corregir index.html
@@ -396,12 +396,12 @@ sudo nano /var/www/html/inventario_soporte/public/index.html
 <!-- Línea ~70: Cambiar -->
 <a href="/" class="brand-logo">
 <!-- Por: -->
-<a href="/inventario/" class="brand-logo">
+<a href="/soporte/" class="brand-logo">
 
 <!-- Línea ~71: Cambiar -->
 <img src="/assets/logo-white.svg" alt="" srcset="">
 <!-- Por: -->
-<img src="/inventario/assets/logo-white.svg" alt="" srcset="">
+<img src="/soporte/assets/logo-white.svg" alt="" srcset="">
 ```
 
 ### 🔄 Script automatizado para aplicar correcciones:
@@ -419,25 +419,25 @@ sudo cp /var/www/html/inventario_soporte/public/js/views/loginView.js /var/www/h
 sudo cp /var/www/html/inventario_soporte/public/index.html /var/www/html/inventario_soporte/public/index.html.backup
 
 # Corregir main.js
-sudo sed -i 's|window\.location\.replace('\''/'\'')|window.location.replace('\''/inventario/'\'')|g' /var/www/html/inventario_soporte/public/js/main.js
-sudo sed -i 's|let url = '\''/'\'' + viewName|let url = '\''/inventario/'\'' + viewName|g' /var/www/html/inventario_soporte/public/js/main.js
-sudo sed -i 's|currentPath === '\''/home'\'' \|\| currentPath === '\''/'\''|currentPath === '\''/inventario/home'\'' \|\| currentPath === '\''/inventario/'\''|g' /var/www/html/inventario_soporte/public/js/main.js
-sudo sed -i 's|history\.pushState.*'\''/home'\''|history.pushState({ viewName: '\''home'\'', params: null }, '\'''\''', '\''/inventario/home'\'')|g' /var/www/html/inventario_soporte/public/js/main.js
-sudo sed -i 's|window\.location\.pathname\.replace(/^\/, '\'''\''')|window.location.pathname.replace(/^\/inventario\/?/, '\'''\''')|g' /var/www/html/inventario_soporte/public/js/main.js
-sudo sed -i 's|history\.replaceState.*'\''/home'\''|history.replaceState({ viewName: '\''home'\'', params: null }, '\'''\''', '\''/inventario/home'\'')|g' /var/www/html/inventario_soporte/public/js/main.js
+sudo sed -i 's|window\.location\.replace('\''/'\'')|window.location.replace('\''/soporte/'\'')|g' /var/www/html/inventario_soporte/public/js/main.js
+sudo sed -i 's|let url = '\''/'\'' + viewName|let url = '\''/soporte/'\'' + viewName|g' /var/www/html/inventario_soporte/public/js/main.js
+sudo sed -i 's|currentPath === '\''/home'\'' \|\| currentPath === '\''/'\''|currentPath === '\''/soporte/home'\'' \|\| currentPath === '\''/soporte/'\''|g' /var/www/html/inventario_soporte/public/js/main.js
+sudo sed -i 's|history\.pushState.*'\''/home'\''|history.pushState({ viewName: '\''home'\'', params: null }, '\'''\''', '\''/soporte/home'\'')|g' /var/www/html/inventario_soporte/public/js/main.js
+sudo sed -i 's|window\.location\.pathname\.replace(/^\/, '\'''\''')|window.location.pathname.replace(/^\/soporte\/?/, '\'''\''')|g' /var/www/html/inventario_soporte/public/js/main.js
+sudo sed -i 's|history\.replaceState.*'\''/home'\''|history.replaceState({ viewName: '\''home'\'', params: null }, '\'''\''', '\''/soporte/home'\'')|g' /var/www/html/inventario_soporte/public/js/main.js
 
 # Corregir loginView.js
-sudo sed -i 's|href="/"|href="/inventario/"|g' /var/www/html/inventario_soporte/public/js/views/loginView.js
-sudo sed -i 's|window\.location\.href = '\''/'\''|window.location.href = '\''/inventario/'\''|g' /var/www/html/inventario_soporte/public/js/views/loginView.js
+sudo sed -i 's|href="/"|href="/soporte/"|g' /var/www/html/inventario_soporte/public/js/views/loginView.js
+sudo sed -i 's|window\.location\.href = '\''/'\''|window.location.href = '\''/soporte/'\''|g' /var/www/html/inventario_soporte/public/js/views/loginView.js
 
 # Corregir index.html
-sudo sed -i 's|href="/" class="brand-logo"|href="/inventario/" class="brand-logo"|g' /var/www/html/inventario_soporte/public/index.html
-sudo sed -i 's|src="/assets/|src="/inventario/assets/|g' /var/www/html/inventario_soporte/public/index.html
+sudo sed -i 's|href="/" class="brand-logo"|href="/soporte/" class="brand-logo"|g' /var/www/html/inventario_soporte/public/index.html
+sudo sed -i 's|src="/assets/|src="/soporte/assets/|g' /var/www/html/inventario_soporte/public/index.html
 
 echo "Correcciones aplicadas. Reiniciando servicios..."
 
 # Reiniciar servicios
-sudo systemctl restart inventario-soporte
+sudo systemctl restart soporte
 sudo service apache2 restart
 
 echo "¡Correcciones completadas!"
@@ -471,36 +471,36 @@ node server.js &
 
 #### ✅ `systemctl` (Recomendado para producción)
 ```bash
-sudo systemctl start inventario-soporte
-sudo systemctl enable inventario-soporte
+sudo systemctl start soporte
+sudo systemctl enable soporte
 ```
 **Ventajas:**
 - **Se reinicia automáticamente** si se cae
 - **Inicia automáticamente** cuando arranca el servidor
 - **Fácil de gestionar**: `start/stop/restart/status/enable/disable`
-- **Logs centralizados** con `journalctl -u inventario-soporte -f`
+- **Logs centralizados** con `journalctl -u soporte -f`
 - **Persistencia**: Sobrevive a reinicios del servidor
-- **Monitoreo profesional**: `sudo systemctl status inventario-soporte`
+- **Monitoreo profesional**: `sudo systemctl status soporte`
 
 #### 📋 Comandos de gestión del servicio:
 ```bash
 # Iniciar servicio
-sudo systemctl start inventario-soporte
+sudo systemctl start soporte
 
 # Detener servicio
-sudo systemctl stop inventario-soporte
+sudo systemctl stop soporte
 
 # Reiniciar servicio
-sudo systemctl restart inventario-soporte
+sudo systemctl restart soporte
 
 # Ver estado
-sudo systemctl status inventario-soporte
+sudo systemctl status soporte
 
 # Habilitar inicio automático
-sudo systemctl enable inventario-soporte
+sudo systemctl enable soporte
 
 # Ver logs en tiempo real
-sudo journalctl -u inventario-soporte -f
+sudo journalctl -u soporte -f
 ```
 
 **En resumen:**
@@ -580,15 +580,15 @@ EOF
 # Hacer una copia de seguridad
 sudo cp /var/www/html/inventario_soporte/public/index.html /var/www/html/inventario_soporte/public/index.html.backup
 
-# Corregir las rutas para usar el prefijo /inventario/
-sudo sed -i 's|href="/|href="/inventario/|g' /var/www/html/inventario_soporte/public/index.html
-sudo sed -i 's|src="/|src="/inventario/|g' /var/www/html/inventario_soporte/public/index.html
+# Corregir las rutas para usar el prefijo /soporte/
+sudo sed -i 's|href="/|href="/soporte/|g' /var/www/html/inventario_soporte/public/index.html
+sudo sed -i 's|src="/|src="/soporte/|g' /var/www/html/inventario_soporte/public/index.html
 ```
 
 ### 7.3 Corregir rutas en api.js
 ```bash
 # Corregir la URL de la API
-sudo sed -i 's|const API_URL = window.location.origin + '\''/api'\'';|const API_URL = window.location.origin + '\''/inventario/api'\'';|g' /var/www/html/inventario_soporte/public/js/api.js
+sudo sed -i 's|const API_URL = window.location.origin + '\''/api'\'';|const API_URL = window.location.origin + '\''/soporte/api'\'';|g' /var/www/html/inventario_soporte/public/js/api.js
 ```
 
 ---
@@ -601,7 +601,7 @@ sudo sed -i 's|const API_URL = window.location.origin + '\''/api'\'';|const API_
 sudo service apache2 status
 
 # Verificar estado del servicio Node.js
-sudo systemctl status inventario-soporte.service
+sudo systemctl status soporte.service
 
 # Verificar puertos
 sudo netstat -tlnp | grep -E ":(80|3000)"
@@ -616,16 +616,16 @@ mysql -h 192.168.0.140 -u herwingx -p'LDSinf08l$' -e "SELECT 1;"
 ### 8.3 Probar archivos estáticos
 ```bash
 # Probar archivos CSS
-curl -I http://192.168.0.54/inventario/css/style.css
+curl -I http://localhost/soporte/css/style.css
 
 # Probar archivos JS
-curl -I http://192.168.0.54/inventario/js/main.js
+curl -I http://localhost/soporte/js/main.js
 ```
 
 ### 8.4 Probar API
 ```bash
 # Probar API de login
-curl -X POST http://192.168.0.54/inventario/api/auth/login \
+curl -X POST http://localhost/soporte/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"linea","password":"digital"}'
 ```
@@ -633,20 +633,20 @@ curl -X POST http://192.168.0.54/inventario/api/auth/login \
 ### 8.5 Probar aplicación completa
 ```bash
 # Probar acceso a la aplicación
-curl -I http://192.168.0.54/inventario/
+curl -I http://localhost/soporte/
 
 # Verificar que el middleware del prefijo funciona
-curl -I http://192.168.0.54/inventario/home
+curl -I http://localhost/soporte/home
 ```
 
 ### 8.6 Verificar navegación completa
 ```bash
 # Probar flujo completo de login y navegación
-echo "1. Abrir http://192.168.0.54/inventario/"
+echo "1. Abrir http://localhost/soporte/"
 echo "2. Hacer login con usuario: linea, password: digital"
-echo "3. Verificar que redirige a http://192.168.0.54/inventario/home"
+echo "3. Verificar que redirige a http://localhost/soporte/home"
 echo "4. Navegar a diferentes secciones"
-echo "5. Hacer logout y verificar que va a http://192.168.0.54/inventario/"
+echo "5. Hacer logout y verificar que va a http://localhost/soporte/"
 ```
 
 ---
@@ -676,10 +676,10 @@ EOF
 ## Paso 10: Acceso a la Aplicación
 
 ### 10.1 URLs de acceso
-- **Aplicación:** http://192.168.0.54/inventario
-- **API:** http://192.168.0.54/inventario/api
-- **Dashboard:** http://192.168.0.54/inventario/home
-- **Equipos:** http://192.168.0.54/inventario/equipos
+- **Aplicación:** http://localhost/soporte
+- **API:** http://localhost/soporte/api
+- **Dashboard:** http://localhost/soporte/home
+- **Equipos:** http://localhost/soporte/equipos
 
 ### 10.2 Credenciales de login
 - **Usuario:** `linea`
@@ -695,24 +695,24 @@ EOF
 sudo service apache2 restart
 
 # Reiniciar aplicación Node.js
-sudo systemctl restart inventario-soporte
+sudo systemctl restart soporte
 ```
 
 ### Ver logs
 ```bash
 # Logs de Apache
-sudo tail -f /var/log/apache2/inventario_error.log
-sudo tail -f /var/log/apache2/inventario_access.log
+sudo tail -f /var/log/apache2/soporte_error.log
+sudo tail -f /var/log/apache2/soporte_access.log
 
 # Logs de la aplicación
-sudo journalctl -u inventario-soporte.service -f
+sudo journalctl -u soporte.service -f
 ```
 
 ### Verificar estado
 ```bash
 # Estado de servicios
 sudo service apache2 status
-sudo systemctl status inventario-soporte.service
+sudo systemctl status soporte.service
 
 # Puertos en uso
 sudo netstat -tlnp | grep -E ":(80|3000)"
@@ -761,9 +761,9 @@ sudo pkill -f node
 
 ### ❌ Problema: Login funciona pero redirección incorrecta
 **Síntomas:**
-- Login exitoso en `192.168.0.54/inventario/`
-- Después del login va a `192.168.0.54/home` (sin `/inventario/`)
-- Logout va a `192.168.0.54/` (sin `/inventario/`)
+- Login exitoso en `localhost/soporte/`
+- Después del login va a `localhost/home` (sin `/soporte/`)
+- Logout va a `localhost/` (sin `/soporte/`)
 
 **Causa:** Rutas hardcodeadas en archivos JavaScript del frontend
 
@@ -771,7 +771,7 @@ sudo pkill -f node
 
 ### ❌ Problema: No se puede acceder a la aplicación
 **Síntomas:**
-- Error 404 al acceder a `192.168.0.54/inventario/`
+- Error 404 al acceder a `localhost/soporte/`
 - API no responde
 
 **Causa:** Servicio Node.js no está corriendo
@@ -779,13 +779,13 @@ sudo pkill -f node
 **Solución:**
 ```bash
 # Verificar estado del servicio
-sudo systemctl status inventario-soporte
+sudo systemctl status soporte
 
 # Si no está corriendo, iniciarlo
-sudo systemctl start inventario-soporte
+sudo systemctl start soporte
 
 # Verificar logs
-sudo journalctl -u inventario-soporte -f
+sudo journalctl -u soporte -f
 ```
 
 ### ❌ Problema: Archivos estáticos no cargan
@@ -798,8 +798,8 @@ sudo journalctl -u inventario-soporte -f
 **Solución:**
 ```bash
 # Aplicar correcciones de rutas
-sudo sed -i 's|href="/|href="/inventario/|g' /var/www/html/inventario_soporte/public/index.html
-sudo sed -i 's|src="/|src="/inventario/|g' /var/www/html/inventario_soporte/public/index.html
+sudo sed -i 's|href="/|href="/soporte/|g' /var/www/html/inventario_soporte/public/index.html
+sudo sed -i 's|src="/|src="/soporte/|g' /var/www/html/inventario_soporte/public/index.html
 ```
 
 ---
@@ -809,8 +809,8 @@ sudo sed -i 's|src="/|src="/inventario/|g' /var/www/html/inventario_soporte/publ
 ### ❌ Problema: Errores de MIME type y bootstrap-select
 **Síntomas:**
 ```
-Refused to apply style from 'http://192.168.0.54/inventario/vendor/bootstrap-select/dist/css/bootstrap-select.min.css' because its MIME type ('text/html') is not a supported stylesheet MIME type
-GET http://192.168.0.54/inventario/vendor/bootstrap-select/dist/js/bootstrap-select.min.js net::ERR_ABORTED 404 (Not Found)
+Refused to apply style from 'http://localhost/soporte/vendor/bootstrap-select/dist/css/bootstrap-select.min.css' because its MIME type ('text/html') is not a supported stylesheet MIME type
+GET http://localhost/soporte/vendor/bootstrap-select/dist/js/bootstrap-select.min.js net::ERR_ABORTED 404 (Not Found)
 Uncaught TypeError: $(...).selectpicker is not a function
 ```
 
@@ -945,22 +945,22 @@ EOF
 
 **5. Reiniciar servicios:**
 ```bash
-sudo systemctl restart inventario-soporte
+sudo systemctl restart soporte
 sudo service apache2 restart
 ```
 
 **6. Verificar que funciona:**
 ```bash
 # Probar acceso a archivos
-curl -I http://192.168.0.54/inventario/vendor/bootstrap-select/dist/css/bootstrap-select.min.css
-curl -I http://192.168.0.54/inventario/vendor/bootstrap-select/dist/js/bootstrap-select.min.js
+curl -I http://localhost/soporte/vendor/bootstrap-select/dist/css/bootstrap-select.min.css
+curl -I http://localhost/soporte/vendor/bootstrap-select/dist/js/bootstrap-select.min.js
 
 # Verificar MIME types
-curl -H "Accept: text/css" http://192.168.0.54/inventario/vendor/bootstrap-select/dist/css/bootstrap-select.min.css | head -1
+curl -H "Accept: text/css" http://localhost/soporte/vendor/bootstrap-select/dist/css/bootstrap-select.min.css | head -1
 ```
 
 ### ✅ Verificación final:
-1. **Abrir** http://192.168.0.54/inventario/
+1. **Abrir** http://localhost/soporte/
 2. **Verificar** que no hay errores en la consola del navegador
 3. **Probar** el modo oscuro (icono de sol/luna en la esquina superior derecha)
 4. **Verificar** que los selectores funcionan correctamente
@@ -971,7 +971,7 @@ curl -H "Accept: text/css" http://192.168.0.54/inventario/vendor/bootstrap-selec
 sudo tail -f /var/log/apache2/error.log
 
 # Ver logs de la aplicación
-sudo journalctl -u inventario-soporte -f
+sudo journalctl -u soporte -f
 
 # Verificar que los archivos existen
 ls -la /var/www/html/inventario_soporte/public/vendor/bootstrap-select/dist/
@@ -981,14 +981,14 @@ ls -la /var/www/html/inventario_soporte/public/vendor/bootstrap-select/dist/
 
 ## Notas Importantes
 
-1. **Cambiar IPs**: Reemplazar `192.168.0.54` con la IP del nuevo servidor
+1. **Cambiar IPs**: Reemplazar `localhost` con la IP del nuevo servidor
 2. **Cambiar credenciales**: Actualizar credenciales de base de datos según corresponda
 3. **Firewall**: Asegurar que los puertos 80 y 3000 estén abiertos
 4. **SSL**: Para producción, configurar certificados SSL
 5. **Backup**: Hacer backup regular de la base de datos
-6. **Subcarpeta**: La aplicación está configurada para acceder desde `/inventario/` para no interferir con otros sistemas
-7. **Middleware del prefijo**: El server.js incluye middleware especial para manejar `/inventario/`
-8. **Rutas del frontend**: Los archivos JavaScript deben tener rutas corregidas para incluir `/inventario/`
+6. **Subcarpeta**: La aplicación está configurada para acceder desde `/soporte/` para no interferir con otros sistemas
+7. **Middleware del prefijo**: El server.js incluye middleware especial para manejar `/soporte/`
+8. **Rutas del frontend**: Los archivos JavaScript deben tener rutas corregidas para incluir `/soporte/`
 9. **Archivos estáticos**: Los archivos vendor deben estar correctamente copiados y con MIME types configurados
 10. **Modo oscuro**: Requiere que bootstrap-select y otros archivos estén correctamente cargados
 
@@ -998,7 +998,7 @@ ls -la /var/www/html/inventario_soporte/public/vendor/bootstrap-select/dist/
 
 ```
 /var/www/html/
-├── inventario_soporte/          # Aplicación de inventario
+├── inventario_soporte/          # Aplicación de soporte
 │   ├── .env                     # Variables de entorno
 │   ├── server.js                # Servidor principal (con middleware de prefijo)
 │   ├── package.json             # Dependencias Node.js
@@ -1026,5 +1026,5 @@ ls -la /var/www/html/inventario_soporte/public/vendor/bootstrap-select/dist/
 
 ---
 
-¡Instalación completada! La aplicación estará disponible en http://192.168.0.54/inventario
+¡Instalación completada! La aplicación estará disponible en http://localhost/soporte
 EOF

@@ -139,7 +139,7 @@ function navigateTo(viewName, params = null, pushState = true) {
     const token = localStorage.getItem('authToken');
     if (!token && viewName !== 'login') {
         sessionStorage.setItem('loginRedirect', '1');
-        window.location.replace('/inventario/');
+        window.location.replace('/soporte/');
         return;
     }
     
@@ -152,7 +152,7 @@ function navigateTo(viewName, params = null, pushState = true) {
     
     // Actualiza la URL usando pushState si corresponde
     if (pushState) {
-        let url = '/inventario/' + viewName;
+        let url = '/soporte/' + viewName;
         if (params) url += '/' + params;
         
         // Verificar si ya estamos en la misma vista para evitar entradas duplicadas
@@ -160,8 +160,8 @@ function navigateTo(viewName, params = null, pushState = true) {
         if (currentPath !== url) {
             // Si estamos navegando desde el home y no hay una entrada previa en el historial,
             // agregar una entrada del home primero
-            if ((currentPath === '/inventario/home' || currentPath === '/inventario/') && history.length === 1) {
-                history.pushState({ viewName: 'home', params: null }, '', '/inventario/home');
+            if ((currentPath === '/soporte/home' || currentPath === '/soporte/') && history.length === 1) {
+                history.pushState({ viewName: 'home', params: null }, '', '/soporte/home');
             }
             
             history.pushState({ viewName, params }, '', url);
@@ -230,14 +230,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     //! === Carga de la vista inicial BASADA EN AUTENTICACIÓN Y URL ===
     const token = localStorage.getItem('authToken');
-    const path = window.location.pathname.replace(/^\/inventario\/?/, '');
+    const path = window.location.pathname.replace(/^\/soporte\/?/, '');
     const parts = path.split('/');
     const viewName = parts[0] === '' ? (token ? 'home' : 'login') : parts[0];
     const params = parts.length > 1 ? parts[1] : null;
 
     // Agregar una entrada inicial al historial si es la primera carga
     if (token && (path === '' || path === 'home')) {
-        history.replaceState({ viewName: 'home', params: null }, '', '/inventario/home');
+        history.replaceState({ viewName: 'home', params: null }, '', '/soporte/home');
     }
 
     if (token) {
@@ -260,7 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
             //* Si no hay estado (ej. el usuario llegó a la página por primera vez y luego usó "atrás"
             //* hasta antes del primer pushState, o si el estado no es el esperado),
             //* cargo la vista según la URL actual.
-            const pathFromPop = window.location.pathname.replace(/^\/inventario\/?/, '');
+            const pathFromPop = window.location.pathname.replace(/^\/soporte\/?/, '');
             const partsFromPop = pathFromPop.split('/');
             const viewNameFromUrl = partsFromPop[0] === '' ? 'home' : partsFromPop[0];
             const paramsFromUrl = partsFromPop.length > 1 ? partsFromPop[1] : null;
@@ -349,5 +349,5 @@ async function handleLogout() {
         title: 'Sesión Cerrada',
         text: 'Has cerrado sesión exitosamente.'
     });
-    window.location.replace('/inventario/');
+    window.location.replace('/soporte/');
 }

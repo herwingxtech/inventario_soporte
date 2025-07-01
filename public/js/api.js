@@ -6,7 +6,7 @@
 //* Uso una función genérica para peticiones y manejo de errores, y funciones específicas para cada entidad.
 //* URL base de la API backend.
 
-const API_URL = window.location.origin + '/inventario/api';
+const API_URL = window.location.origin + '/soporte/api';
 //* Función genérica para manejar peticiones HTTP y errores.
 async function request(endpoint, method = 'GET', body = null) {
   const url = `${API_URL}${endpoint}`; //* Construye la URL completa.
